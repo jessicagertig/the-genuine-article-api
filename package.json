@@ -4,7 +4,7 @@
   "description": "A RESTful API providing access to information and media about historical clothing as preserved in museums and collections.",
   "main": "index.js",
   "scripts": {
-    "server": "nodemon index.js",
+    "server": "nodemon server.js",
     "start": "node index.js",
     "test": "cross-env DB_ENV=testing jest --verbose --i --forceExit --detectOpenHandles",
     "test-watch": "cross-env DB_ENV=testing jest --verbose --i --watchAll",
