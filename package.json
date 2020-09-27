@@ -1,0 +1,31 @@
+{
+	"name": "genuine-article-api",
+	"version": "1.0.0",
+	"description": "A RESTful API providing access to information and media about historical clothing as preserved in museums and collections.",
+	"main": "index.js",
+	"scripts": {
+		"server": "nodemon index.js",
+		"start": "node index.js",
+		"test": "cross-env DB_ENV=testing jest --verbose --i --forceExit --detectOpenHandles",
+		"test-watch": "cross-env DB_ENV=testing jest --verbose --i --watchAll",
+		"coverage": "cross-env DB_ENV=testing jest --verbose --i --forceExit --coverage || true"
+	},
+	"jest": {
+		"testEnvironment": "node"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/JessicaGCooper/TheGenuineArticleAPI"
+	},
+	"keywords": [],
+	"author": "Jessica G Cooper",
+	"license": "MIT",
+	"bugs": {
+		"url": "https://github.com/JessicaGCooper/TheGenuineArticleAPI/issues"
+	},
+	"homepage": "https://github.com/JessicaGCooper/TheGenuineArticleAPI#readme",
+	"dependencies": {
+		"express": "^4.17.1"
+	},
+	"devDependencies": {}
+}
