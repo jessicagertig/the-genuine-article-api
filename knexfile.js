@@ -14,10 +14,10 @@ module.exports = {
       password: database_password,
     },
     migrations: {
-      directory: './db/migrations',
+      directory: './database/migrations',
     },
     seeds: {
-      directory: './db/seeds/dev',
+      directory: './database/seeds/dev',
     },
     useNullAsDefault: true,
   },
@@ -30,10 +30,10 @@ module.exports = {
       password: database_password,
     },
     migrations: {
-      directory: './db/migrations',
+      directory: './database/migrations',
     },
     seeds: {
-      directory: './db/seeds/test',
+      directory: './database/seeds/test',
     },
     useNullAsDefault: true,
   },
@@ -42,10 +42,10 @@ module.exports = {
     client: 'pg',
     connection: process.env.DATABASE_URL,
     migrations: {
-      directory: './db/migrations',
+      directory: './database/migrations',
     },
     seeds: {
-      directory: './db/seeds/production',
+      directory: './database/seeds/production',
     },
     useNullAsDefault: true,
   },
