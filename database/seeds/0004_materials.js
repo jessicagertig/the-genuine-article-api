@@ -53,9 +53,6 @@ exports.seed = function (knex) {
       material: 'cambric',
     },
     {
-      material: 'linen lawn',
-    },
-    {
       material: 'flannel',
     },
     {
