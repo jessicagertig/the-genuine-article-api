@@ -1,7 +1,23 @@
-const server = require('./api/server.js');
+require('dotenv').config();
 
-const port = process.env.PORT || 4000;
+// ----- Imports ------
+const express = require('express');
+const cors = require('cors');
 
-server.listen(port, () => {
-  console.log(`Server is listening now on port ${port}`);
+// ----- Set up server ------
+const server = express();
+
+// ----- Middleware ------
+server.use(express.json());
+server.use(
+  cors({
+    origin: ['http://localhost:4000'],
+  })
+);
+
+// ---- Testing If Server is Live ----
+server.get('/', (req, res) => {
+  res.status(200).json({ api: 'up', dbenv: process.env.NODE_ENV });
 });
+
+module.exports = server;
