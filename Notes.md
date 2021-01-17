@@ -27,3 +27,64 @@ At this point in the project:
 3. I have researched media storage solutions and currently plan on using AWS S3.  
 
 4.  I have contemplated any secure/authenticated routes needed and concluded only editing the database should be secured (if I choose to do so on the front end).  If the application grows to include user accounts, I will implement a more robust authentication system, but for the time being a basic login for the adminstrative account is all that is needed.
+
+
+## Dependencies ##
+### **express** ###  
+Fast, unopinionated, minimalist web framework for node.
+* Robust routing
+* Focus on high performance
+* Super-high test coverage
+* HTTP helpers (redirection, caching, etc)
+* View system supporting 14+ template engines
+* Content negotiation
+* Executable for generating applications quickly
+	
+### **knex** ###
+A batteries-included, multi-dialect (MSSQL, MySQL, PostgreSQL, SQLite3, Oracle (including Oracle Wallet Authentication)) query builder for Node.js, featuring:
+
+* transactions
+* connection pooling
+* streaming queries
+* both a promise and callback API
+* a thorough test suite
+* the ability to run in the Browser
+
+### **knex-cleaner** ###
+Helper library to clean a PostgreSQL, MySQL or SQLite3 database tables using Knex. Great for integration tests.
+### **pg** ###
+Non-blocking PostgreSQL client for Node.js. Pure JavaScript and optional native libpq bindings.
+### **bcryptjs** ###
+Optimized bcrypt (middleware for hashing passwords) in JavaScript with zero dependencies. Compatible to the C++ bcrypt binding on node.js and also working in the browser.
+### **jsonwebtoken** ###
+**An implementation of JSON Web Tokens.**
+JSON Web Token (JWT) is a compact, URL-safe means of representing claims to be transferred between two parties.  The claims in a JWT are encoded as a JSON object that is used as the payload of a JSON Web Signature (JWS) structure or as the plaintext of a JSON Web Encryption (JWE) structure, enabling the claims to be digitally signed or integrity protected with a Message Authentication Code (MAC) and/or encrypted.
+### **cors** ###
+CORS is a node.js package for providing a Connect/Express middleware that can be used to enable CORS with various options.
+### **helmet** ###
+Helmet helps you secure your Express apps by setting various HTTP headers. It's not a silver bullet, but it can help!
+### **dotenv** ###
+Dotenv is a zero-dependency module that loads environment variables from a .env file into process.env.
+
+## DevDependencies ##
+
+### **cross-env** ###
+Run scripts that set and use environment variables across platforms
+
+### **jest** ###
+Delightful JavaScript Testing
+
+👩🏻‍💻 Developer Ready: Complete and ready to set-up JavaScript testing solution. Works out of the box for any React project.
+
+🏃🏽 Instant Feedback: Failed tests run first. Fast interactive mode can switch between running all tests or only test files related to changed files.
+
+📸 Snapshot Testing: Jest can capture snapshots of React trees or other serializable values to simplify UI testing.
+### **nodemon** ###
+nodemon is a tool that helps develop node.js based applications by automatically restarting the node application when file changes in the directory are detected.
+
+nodemon does not require any additional changes to your code or method of development. nodemon is a replacement wrapper for node. To use nodemon, replace the word node on the command line when executing your script.b
+### **supertest** ###
+HTTP assertions made easy via superagent.
+
+The motivation with this module is to provide a high-level abstraction for testing HTTP, while still allowing you to drop down to the lower-level API provided by superagent.
+
