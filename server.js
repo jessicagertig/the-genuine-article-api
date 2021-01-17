@@ -2,8 +2,9 @@ require('dotenv').config();
 
 // ----- Imports ------
 const express = require('express');
-const helmet = require('helmet');
 const cors = require('cors');
+const logger = require('morgan');
+const helmet = require('helmet');
 
 // ----- Router Imports -----
 const authRouter = require('./auth/auth-router');
@@ -19,6 +20,7 @@ server.use(
 		origin: ['http://localhost:4000']
 	})
 );
+server.use(logger('dev'));
 
 // ------- Routers --------
 server.use('/', authRouter);
