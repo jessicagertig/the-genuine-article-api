@@ -8,6 +8,7 @@ function find() {
 	return db('items')
 		.select(
 			'id',
+			'garment_title',
 			'garment_type',
 			'begin_year',
 			'end_year',
