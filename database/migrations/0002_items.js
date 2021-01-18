@@ -1,7 +1,8 @@
 exports.up = async function (knex) {
 	await knex.schema.createTable('items', function (tbl) {
 		tbl.increments().primary();
-		tbl.string('garment_type', 255).notNullable();
+		tbl.string('garment_title', 255).notNullable();
+		tbl.string('garment_type', 500).notNullable();
 		tbl.integer('begin_year').notNullable();
 		tbl.integer('end_year');
 		tbl.string('decade', 5).notNullable();
