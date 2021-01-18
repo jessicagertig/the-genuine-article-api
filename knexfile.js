@@ -22,7 +22,7 @@ module.exports = {
 		useNullAsDefault: true
 	},
 
-	test: {
+	testing: {
 		client: 'pg',
 		connection: {
 			database: database_testing_name,

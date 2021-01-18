@@ -30,13 +30,13 @@ router.post('/login', (req, res) => {
 
 				// send the token
 				res.status(200).json({
-					message: `Welcome!`,
+					message: `Welcome ${user.username}!`,
 					token: token // added token as part of the response sent
 				});
 			} else {
 				res.status(401).json({
 					message:
-						'Error logging in, please check your username and password!'
+						'Error logging in, please check your email and password!'
 				});
 			}
 		})
