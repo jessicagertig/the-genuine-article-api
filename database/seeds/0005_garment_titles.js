@@ -14,9 +14,6 @@ exports.seed = function (knex) {
 			garment_title: 'Dinner Dress'
 		},
 		{
-			garment_title: 'Walking Dress'
-		},
-		{
 			garment_title: 'Court Dress'
 		},
 		{
