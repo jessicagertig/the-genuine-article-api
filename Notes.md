@@ -66,6 +66,9 @@ Helmet helps you secure your Express apps by setting various HTTP headers. It's 
 ### **dotenv** ###
 Dotenv is a zero-dependency module that loads environment variables from a .env file into process.env.
 
+### **morgan** ###
+HTTP request logger middleware for node.js
+
 ## DevDependencies ##
 
 ### **cross-env** ###

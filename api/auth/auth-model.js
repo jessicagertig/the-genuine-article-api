@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-const db = require('../database/db-config');
+const db = require('../../database/db-config');
 
 module.exports = {
   add,
