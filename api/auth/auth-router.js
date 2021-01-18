@@ -39,11 +39,6 @@ router.post('/login', (req, res) => {
 						'Error logging in, please check your email and password!'
 				});
 			}
-		})
-		.catch((error) => {
-			res
-				.status(500)
-				.json({ message: 'Error on server end.', error });
 		});
 });
 
