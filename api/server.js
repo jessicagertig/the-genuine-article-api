@@ -25,7 +25,7 @@ server.use(logger('dev'));
 
 // ------- Routers --------
 server.use('/', authRouter);
-server.use('/', itemsInfoRouter);
+server.use('/items', itemsInfoRouter);
 
 // ---- Testing If Server is Live ----
 server.get('/', (req, res) => {

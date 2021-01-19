@@ -1,7 +1,9 @@
 const router = require('express').Router();
 const ItemsInfo = require('./items-info-model');
 
-router.get('/items', (req, res) => {
+const { catchAsync } = require('../utils/catch-async');
+
+router.get('/', (req, res) => {
 	ItemsInfo.find()
 		.then((items) => {
 			res.json(items);
@@ -12,5 +14,24 @@ router.get('/items', (req, res) => {
 				.json({ message: 'Error on server end.', error });
 		});
 });
+
+//populate dropdown menus on clientside
+router.get(
+	'/menus',
+	catchAsync(async (req, res) => {
+		const menus = [
+			ItemsInfo.findAllColors(),
+			ItemsInfo.findAllMaterials(),
+			ItemsInfo.findAllGarmentTitles()
+		];
+		// eslint-disable-next-line prettier/prettier
+		const [colors, materials, garment_titles] = await Promise.all(menus);
+		return res.status(200).json({
+			colors,
+			materials,
+			garment_titles
+		});
+	})
+);
 
 module.exports = router;

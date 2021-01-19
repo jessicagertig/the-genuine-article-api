@@ -1,8 +1,34 @@
 const db = require('../../database/db-config');
 
 module.exports = {
-	find
+	find,
+	findAllColors,
+	findAllMaterials,
+	findAllGarmentTitles
 };
+
+//i for items_info
+//c or item_colors
+//m for item_materials
+//p for primary_item_image
+//a for additional_item_images
+
+// const returning_item = [
+// 	'i.id as item_id',
+// 	'i.garment_title',
+// 	'garment_type',
+// 	'i.begin_year',
+// 	'i.end_year',
+// 	'i.decade',
+// 	'i.secondary_decade',
+// 	'i.culture_country',
+// 	'i.collection',
+// 	'i.collection_url',
+// 	'i.creator',
+// 	'i.source',
+// 	'i.item_collection_no',
+// 	'i.description'
+// ];
 
 function find() {
 	return db('items')
@@ -27,14 +53,21 @@ function find() {
 
 // function findBy(filter) {}
 
-// function findById(id) {}
+// function findItemById(id) {}
 
-// function findItemColorsByColorId(id) {}
+// function findItemsByColorId(id) {}
 
-// function findItemMaterialsByMaterialId(id) {}
+// function findItemsByMaterialId(id) {}
 
-// async function add(item) {
-// 	const [id] = await db('items').insert(item, 'id');
+//find colors, materials, and garment_titles for dropdown menus (forms and searchs)
+function findAllColors() {
+	return db('colors').select('id', 'color');
+}
 
-// 	return findById(id);
-// }
+function findAllMaterials() {
+	return db('materials').select('id', 'material');
+}
+
+function findAllGarmentTitles() {
+	return db('garment_titles').select('garment_title');
+}
