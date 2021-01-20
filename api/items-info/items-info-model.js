@@ -2,9 +2,12 @@ const db = require('../../database/db-config');
 
 module.exports = {
 	find,
+	findBy,
+	findByItemId,
 	findAllColors,
 	findAllMaterials,
-	findAllGarmentTitles
+	findAllGarmentTitles,
+	addItemInfo
 };
 
 //i for items_info
@@ -50,11 +53,15 @@ function find() {
 		)
 		.orderBy('begin_year');
 }
+//findBy(filter)
+function findBy(filter) {
+	return db('items').where(filter);
+}
 
-// function findBy(filter) {}
-
-// function findItemById(id) {}
-
+//findItemById
+function findByItemId(id) {
+	return db('items').where({ id }).first();
+}
 // function findItemsByColorId(id) {}
 
 // function findItemsByMaterialId(id) {}
@@ -71,3 +78,22 @@ function findAllMaterials() {
 function findAllGarmentTitles() {
 	return db('garment_titles').select('garment_title');
 }
+
+//POST
+//post item-info
+async function addItemInfo(item) {
+	const [id] = await db('items').insert(item, 'id');
+
+	return findByItemId(id);
+}
+//post item-colors with item_id
+//post item-materials with item_id
+//post primary-image with item_id
+//post additonal-images with item_id
+
+//PUT
+//put item-info
+//put item-colors with item_id
+//put item-materials with item_id
+//put primary-image with item_id
+//put additonal-images with item_id

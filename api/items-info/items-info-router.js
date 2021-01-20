@@ -15,6 +15,19 @@ router.get('/', (req, res) => {
 		});
 });
 
+//post item-info, return item info incluing newly created id
+router.post('/', async (req, res) => {
+	ItemsInfo.addItemInfo(req.body)
+		.then((item) => {
+			res.status(201).json(item);
+		})
+		.catch((error) => {
+			res
+				.status(500)
+				.json({ message: 'Error on server end.', error });
+		});
+});
+
 //populate dropdown menus on clientside
 router.get(
 	'/menus',
