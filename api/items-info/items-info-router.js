@@ -47,4 +47,29 @@ router.get(
 	})
 );
 
+//get item colors by item_id
+router.get('/colors/:item_id', (req, res) => {
+	const item_id = req.params.item_id;
+
+	ItemsInfo.findColorsByItemId(item_id)
+		.then((item_colors) => {
+			if (item_colors.length > 0) {
+				const colors_list = item_colors.map((color) => color.color);
+				res
+					.status(200)
+					.json({ item_id: item_id, colors: colors_list });
+			} else {
+				res.status(404).json({
+					message:
+						'No colors have been added for this item. Error on client end.'
+				});
+			}
+		})
+		.catch((error) => {
+			res
+				.status(500)
+				.json({ message: 'Error on server end.', error });
+		});
+});
+
 module.exports = router;
