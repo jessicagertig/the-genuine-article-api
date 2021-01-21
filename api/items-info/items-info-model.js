@@ -8,6 +8,7 @@ module.exports = {
 	findAllMaterials,
 	findAllGarmentTitles,
 	findColorsByItemId,
+	findMaterialsByItemId,
 	addItemInfo
 };
 
@@ -73,6 +74,12 @@ function findColorsByItemId(item_id) {
 }
 
 //findMaterialsByItemId
+function findMaterialsByItemId(item_id) {
+	return db('item_materials as im')
+		.select('im.item_id', 'im.material_id', 'materials.material')
+		.join('materials', 'im.material_id', 'materials.id')
+		.where('item_id', item_id);
+}
 
 //findItemsByColorId
 
