@@ -9,6 +9,7 @@ module.exports = {
 	findAllGarmentTitles,
 	findColorsByItemId,
 	findMaterialsByItemId,
+	findItemsByColorId,
 	addItemInfo
 };
 
@@ -82,7 +83,30 @@ function findMaterialsByItemId(item_id) {
 }
 
 //findItemsByColorId
-
+function findItemsByColorId(color_id) {
+	return db('item_colors as ic')
+		.join('colors', 'ic.color_id', 'colors.id')
+		.join('items', 'ic.item_id', 'items.id')
+		.select(
+			'ic.item_id',
+			'ic.color_id',
+			'colors.color',
+			'items.garment_title',
+			'items.garment_type',
+			'items.begin_year',
+			'items.end_year',
+			'items.decade',
+			'items.secondary_decade',
+			'items.culture_country',
+			'items.collection',
+			'items.collection_url',
+			'items.creator',
+			'items.source',
+			'items.item_collection_no',
+			'items.description'
+		)
+		.where('color_id', color_id);
+}
 // function findItemsByMaterialId(id) {}
 
 //find colors, materials, and garment_titles for dropdown menus (forms and searchs)

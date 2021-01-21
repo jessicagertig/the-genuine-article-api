@@ -47,6 +47,28 @@ router.get(
 	})
 );
 
+//get items by color_id
+router.get('/colors/:color_id', (req, res) => {
+	const color_id = req.params.color_id;
+
+	ItemsInfo.findItemsByColorId(color_id)
+		.then((items) => {
+			if (items.length > 0) {
+				res.status(200).json(items);
+			} else {
+				res.status(404).json({
+					message:
+						'No items have been added with this color. Error on client end.'
+				});
+			}
+		})
+		.catch((error) => {
+			res
+				.status(500)
+				.json({ message: 'Error on server end.', error });
+		});
+});
+
 //get item colors by item_id
 router.get('/colors/:item_id', (req, res) => {
 	const item_id = req.params.item_id;

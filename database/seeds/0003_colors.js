@@ -108,6 +108,14 @@ exports.seed = function (knex) {
 		{
 			id: 27,
 			color: 'brown'
+		},
+		{
+			id: 28,
+			color: 'lilac'
+		},
+		{
+			id: 29,
+			color: 'cream'
 		}
 	]);
 };
