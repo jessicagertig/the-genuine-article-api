@@ -10,8 +10,9 @@ module.exports = {
 	findColorsByItemId,
 	findMaterialsByItemId,
 	findItemsByColorId,
-	addItemColors,
-	addItemInfo
+	addItemInfo,
+	addItemMaterials,
+	addItemColors
 };
 
 //i for items_info
@@ -130,7 +131,7 @@ async function addItemInfo(item) {
 
 	return findByItemId(id);
 }
-//post item-colors with item_id //draft
+//post item-colors with item_id
 function addItemColors(item_id, color_fields) {
 	//color_fields should be an object containing an array of objects named fields (json format)
 	//such as { 'fields': [{'id': 2, 'color': 'red'}, {'id': 6, 'color': turquoise}] }
@@ -138,10 +139,21 @@ function addItemColors(item_id, color_fields) {
 		item_id: item_id,
 		color_id: color_field.id //how is this data going to come from frontend?
 	}));
-	//fieldsToInsert needs to be an array of objects
+	//fieldsToInsert needs to be an array of objects, via knex, postgresql will then insert each object as separate row
 	return db('item_colors').insert(fieldsToInsert).returning('*');
 }
+
 //post item-materials with item_id
+function addItemMaterials(item_id, material_fields) {
+	//color_fields should be an object containing an array of objects named fields (json format)
+	//such as { 'fields': [{'id': 2, 'color': 'red'}, {'id': 6, 'color': turquoise}] }
+	const fieldsToInsert = material_fields.map((material_field) => ({
+		item_id: item_id,
+		material_id: material_field.id //how is this data going to come from frontend?
+	}));
+	//fieldsToInsert needs to be an array of objects, via knex, postgresql will then insert each object as separate row
+	return db('item_materials').insert(fieldsToInsert).returning('*');
+}
 //post primary-image with item_id
 //post additonal-images with item_id
 

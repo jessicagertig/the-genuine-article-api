@@ -28,11 +28,26 @@ router.post('/', async (req, res) => {
 		});
 });
 
-//post item-colors //not tested - front-end input unclear
+//post item-colors
 router.post('/colors/:item_id', async (req, res) => {
 	const item_id = req.params.item_id;
 	console.log('req.body', req.body.fields);
 	ItemsInfo.addItemColors(item_id, req.body.fields)
+		.then((item) => {
+			res.status(201).json(item);
+		})
+		.catch((error) => {
+			res
+				.status(500)
+				.json({ message: 'Error on server end.', error });
+		});
+});
+
+//post item-materials
+router.post('/materials/:item_id', async (req, res) => {
+	const item_id = req.params.item_id;
+	console.log('req.body', req.body.fields);
+	ItemsInfo.addItemMaterials(item_id, req.body.fields)
 		.then((item) => {
 			res.status(201).json(item);
 		})
