@@ -162,7 +162,5 @@ function addItemMaterials(item_id, material_fields) {
 
 //PUT
 //put item-info
-//put item-colors with item_id
-//put item-materials with item_id
 //put primary-image with item_id
 //put additonal-images with item_id

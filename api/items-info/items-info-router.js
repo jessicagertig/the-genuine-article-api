@@ -3,10 +3,64 @@ const ItemsInfo = require('./items-info-model');
 
 const { catchAsync } = require('../utils/catch-async');
 
+//get all items
 router.get('/', (req, res) => {
 	ItemsInfo.find()
 		.then((items) => {
 			res.json(items);
+		})
+		.catch((error) => {
+			res
+				.status(500)
+				.json({ message: 'Error on server end.', error });
+		});
+});
+
+//get item colors by item_id
+router.get('/colors/:item_id', (req, res) => {
+	const item_id = req.params.item_id;
+
+	ItemsInfo.findColorsByItemId(item_id)
+		.then((item_colors) => {
+			if (item_colors.length > 0) {
+				const colors_list = item_colors.map((color) => color.color);
+				res
+					.status(200)
+					.json({ item_id: item_id, colors: colors_list });
+			} else {
+				res.status(404).json({
+					message:
+						'No colors have been added for this item. Error on client end.'
+				});
+			}
+		})
+		.catch((error) => {
+			res
+				.status(500)
+				.json({ message: 'Error on server end.', error });
+		});
+});
+
+//get item materials by item_id
+router.get('/materials/:item_id', (req, res) => {
+	const item_id = req.params.item_id;
+
+	ItemsInfo.findMaterialsByItemId(item_id)
+		.then((item_materials) => {
+			if (item_materials.length > 0) {
+				const materials_list = item_materials.map(
+					(material) => material.material
+				);
+				res.status(200).json({
+					item_id: item_id,
+					materials: materials_list
+				});
+			} else {
+				res.status(404).json({
+					message:
+						'No materials have been added for this item. Error on client end.'
+				});
+			}
 		})
 		.catch((error) => {
 			res
@@ -111,59 +165,6 @@ router.get('/material/:material_id', (req, res) => {
 				res.status(404).json({
 					message:
 						'No items have been added with this material. Error on client end.'
-				});
-			}
-		})
-		.catch((error) => {
-			res
-				.status(500)
-				.json({ message: 'Error on server end.', error });
-		});
-});
-
-//get item colors by item_id
-router.get('/colors/:item_id', (req, res) => {
-	const item_id = req.params.item_id;
-
-	ItemsInfo.findColorsByItemId(item_id)
-		.then((item_colors) => {
-			if (item_colors.length > 0) {
-				const colors_list = item_colors.map((color) => color.color);
-				res
-					.status(200)
-					.json({ item_id: item_id, colors: colors_list });
-			} else {
-				res.status(404).json({
-					message:
-						'No colors have been added for this item. Error on client end.'
-				});
-			}
-		})
-		.catch((error) => {
-			res
-				.status(500)
-				.json({ message: 'Error on server end.', error });
-		});
-});
-
-//get item materials by item_id
-router.get('/materials/:item_id', (req, res) => {
-	const item_id = req.params.item_id;
-
-	ItemsInfo.findMaterialsByItemId(item_id)
-		.then((item_materials) => {
-			if (item_materials.length > 0) {
-				const materials_list = item_materials.map(
-					(material) => material.material
-				);
-				res.status(200).json({
-					item_id: item_id,
-					materials: materials_list
-				});
-			} else {
-				res.status(404).json({
-					message:
-						'No materials have been added for this item. Error on client end.'
 				});
 			}
 		})
