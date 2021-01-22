@@ -10,33 +10,11 @@ module.exports = {
 	findColorsByItemId,
 	findMaterialsByItemId,
 	findItemsByColorId,
+	findItemsByMaterialId,
 	addItemInfo,
 	addItemMaterials,
 	addItemColors
 };
-
-//i for items_info
-//c or item_colors
-//m for item_materials
-//p for primary_item_image
-//a for additional_item_images
-
-// const returning_item = [
-// 	'i.id as item_id',
-// 	'i.garment_title',
-// 	'garment_type',
-// 	'i.begin_year',
-// 	'i.end_year',
-// 	'i.decade',
-// 	'i.secondary_decade',
-// 	'i.culture_country',
-// 	'i.collection',
-// 	'i.collection_url',
-// 	'i.creator',
-// 	'i.source',
-// 	'i.item_collection_no',
-// 	'i.description'
-// ];
 
 function find() {
 	return db('items')
@@ -109,7 +87,32 @@ function findItemsByColorId(color_id) {
 		)
 		.where('color_id', color_id);
 }
-// function findItemsByMaterialId(id) {}
+
+//findItemsByMaterialId
+function findItemsByMaterialId(material_id) {
+	return db('item_materials as im')
+		.join('materials', 'im.material_id', 'materials.id')
+		.join('items', 'im.item_id', 'items.id')
+		.select(
+			'im.item_id',
+			'im.material_id',
+			'materials.material',
+			'items.garment_title',
+			'items.garment_type',
+			'items.begin_year',
+			'items.end_year',
+			'items.decade',
+			'items.secondary_decade',
+			'items.culture_country',
+			'items.collection',
+			'items.collection_url',
+			'items.creator',
+			'items.source',
+			'items.item_collection_no',
+			'items.description'
+		)
+		.where('material_id', material_id);
+}
 
 //find colors, materials, and garment_titles for dropdown menus (forms and searchs)
 function findAllColors() {

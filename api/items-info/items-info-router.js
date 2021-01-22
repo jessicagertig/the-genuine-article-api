@@ -78,7 +78,7 @@ router.get(
 );
 
 //get items by color_id
-router.get('/:color_id', (req, res) => {
+router.get('/color/:color_id', (req, res) => {
 	const color_id = req.params.color_id;
 
 	ItemsInfo.findItemsByColorId(color_id)
@@ -89,6 +89,28 @@ router.get('/:color_id', (req, res) => {
 				res.status(404).json({
 					message:
 						'No items have been added with this color. Error on client end.'
+				});
+			}
+		})
+		.catch((error) => {
+			res
+				.status(500)
+				.json({ message: 'Error on server end.', error });
+		});
+});
+
+//get items by material_id
+router.get('/material/:material_id', (req, res) => {
+	const material_id = req.params.material_id;
+
+	ItemsInfo.findItemsByMaterialId(material_id)
+		.then((items) => {
+			if (items.length > 0) {
+				res.status(200).json(items);
+			} else {
+				res.status(404).json({
+					message:
+						'No items have been added with this material. Error on client end.'
 				});
 			}
 		})
@@ -136,7 +158,7 @@ router.get('/materials/:item_id', (req, res) => {
 				);
 				res.status(200).json({
 					item_id: item_id,
-					findAllMaterials: materials_list
+					materials: materials_list
 				});
 			} else {
 				res.status(404).json({
