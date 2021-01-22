@@ -28,6 +28,21 @@ router.post('/', async (req, res) => {
 		});
 });
 
+//post item-colors //not tested - front-end input unclear
+router.post('/colors/:item_id', async (req, res) => {
+	const item_id = req.params.item_id;
+	console.log('req.body', req.body.fields);
+	ItemsInfo.addItemColors(item_id, req.body.fields)
+		.then((item) => {
+			res.status(201).json(item);
+		})
+		.catch((error) => {
+			res
+				.status(500)
+				.json({ message: 'Error on server end.', error });
+		});
+});
+
 //populate dropdown menus on clientside
 router.get(
 	'/menus',
@@ -48,7 +63,7 @@ router.get(
 );
 
 //get items by color_id
-router.get('/colors/:color_id', (req, res) => {
+router.get('/:color_id', (req, res) => {
 	const color_id = req.params.color_id;
 
 	ItemsInfo.findItemsByColorId(color_id)

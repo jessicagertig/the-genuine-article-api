@@ -10,6 +10,7 @@ module.exports = {
 	findColorsByItemId,
 	findMaterialsByItemId,
 	findItemsByColorId,
+	addItemColors,
 	addItemInfo
 };
 
@@ -129,7 +130,17 @@ async function addItemInfo(item) {
 
 	return findByItemId(id);
 }
-//post item-colors with item_id
+//post item-colors with item_id //draft
+function addItemColors(item_id, color_fields) {
+	//color_fields should be an object containing an array of objects named fields (json format)
+	//such as { 'fields': [{'id': 2, 'color': 'red'}, {'id': 6, 'color': turquoise}] }
+	const fieldsToInsert = color_fields.map((color_field) => ({
+		item_id: item_id,
+		color_id: color_field.id //how is this data going to come from frontend?
+	}));
+	//fieldsToInsert needs to be an array of objects
+	return db('item_colors').insert(fieldsToInsert).returning('*');
+}
 //post item-materials with item_id
 //post primary-image with item_id
 //post additonal-images with item_id
