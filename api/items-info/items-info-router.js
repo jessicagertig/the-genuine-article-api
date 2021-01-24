@@ -175,4 +175,28 @@ router.get('/material/:material_id', (req, res) => {
 		});
 });
 
+router.delete('/material/:item_id', (req, res) => {
+	const item_id = req.params.item_id;
+	const material_id = req.body.material_id;
+
+	ItemsInfo.removeItemMaterial(item_id, material_id)
+		.then((item_material) => {
+			console.log('item_material', item_material);
+			if (item_material) {
+				res
+					.status(200)
+					.json({ message: 'Garment Material Type Deleted' });
+			} else {
+				res.status(404).json({
+					message: `No record with item_id ${item_id} and material_id ${material_id} exists.`
+				});
+			}
+		})
+		.catch((error) => {
+			res
+				.status(500)
+				.json({ message: 'Error on server end.', error });
+		});
+});
+
 module.exports = router;

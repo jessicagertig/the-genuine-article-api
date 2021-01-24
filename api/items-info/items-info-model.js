@@ -13,7 +13,8 @@ module.exports = {
 	findItemsByMaterialId,
 	addItemInfo,
 	addItemMaterials,
-	addItemColors
+	addItemColors,
+	removeItemMaterial
 };
 
 function find() {
@@ -156,6 +157,14 @@ function addItemMaterials(item_id, material_fields) {
 	}));
 	//fieldsToInsert needs to be an array of objects, via knex, postgresql will then insert each object as separate row
 	return db('item_materials').insert(fieldsToInsert).returning('*');
+}
+
+//Delete Item_Material
+function removeItemMaterial(item_id, material_id) {
+	return db('item_materials')
+		.where({ item_id })
+		.andWhere({ material_id })
+		.del(['item_id', 'material_id']);
 }
 //post primary-image with item_id
 //post additonal-images with item_id
