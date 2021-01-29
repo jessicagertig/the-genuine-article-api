@@ -16,6 +16,21 @@ router.get('/', (req, res) => {
 		});
 });
 
+//get item by item_id
+router.get('/:item_id', (req, res) => {
+	const id = req.params.item_id;
+
+	ItemsInfo.findByItemId(id)
+		.then((items) => {
+			res.json(items);
+		})
+		.catch((error) => {
+			res
+				.status(500)
+				.json({ message: 'Error on server end.', error });
+		});
+});
+
 //get item colors by item_id
 router.get('/colors/:item_id', (req, res) => {
 	const item_id = req.params.item_id;
