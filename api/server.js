@@ -16,11 +16,7 @@ const server = express();
 // ----- Middleware ------
 server.use(helmet());
 server.use(express.json());
-server.use(
-	cors({
-		origin: ['http://localhost:4000']
-	})
-);
+server.use(cors());
 server.use(logger('dev'));
 
 // ------- Routers --------
