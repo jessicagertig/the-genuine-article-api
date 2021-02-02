@@ -9,6 +9,7 @@ const helmet = require('helmet');
 // ----- Router Imports -----
 const authRouter = require('./auth/auth-router');
 const itemsInfoRouter = require('./items-info/items-info-router');
+const itemsImagesRouter = require('./items-images/items-images-router');
 
 // ----- Set up server ------
 const server = express();
@@ -22,6 +23,7 @@ server.use(logger('dev'));
 // ------- Routers --------
 server.use('/', authRouter);
 server.use('/items', itemsInfoRouter);
+server.use('/images', itemsImagesRouter);
 
 // ---- Testing If Server is Live ----
 server.get('/', (req, res) => {
