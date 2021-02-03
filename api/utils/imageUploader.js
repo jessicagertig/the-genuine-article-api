@@ -42,7 +42,7 @@ class ImageUploader {
 		}
 	}
 	
-	async upload(id, fileName, body) {
+	async upload(id, fileName, body, contentType, md5) {
 		console.log('filename', fileName)
 		const Bucket = process.env.S3_BUCKET_NAME;
 		console.log('Bucket', Bucket)
@@ -54,7 +54,8 @@ class ImageUploader {
 				Body: body,
 				Bucket,
 				Key: `${this.dir(id)}/${fileName}`,
-				// ContentType: contentType,
+				ContentType: contentType,
+				ContentMD5: md5
 				// ACL: 'public-read'
 			})
 			.promise()
@@ -75,7 +76,7 @@ class ImageUploader {
 						Bucket,
 						Body: sizedBody,
 						Key: `${this.dir(id)}/${name}_${fileName}`,
-						// ContentType: contentType,
+						ContentType: contentType,
 						// ACL: 'public-read'
 					})
 					.promise()
