@@ -20,9 +20,9 @@ class ImageUploader {
 	}
 	
 	dir(id) {
-		return `uploads/images/garment_item_id:${id}/${snakeCase(this.modelName).toLocaleLowerCase()}`;
+		return `uploads/images/garment_item_id${id}/${snakeCase(this.modelName).toLocaleLowerCase()}`;
 	}
-	
+
 	async delete(id, fileName) {
 		const Bucket = process.env.S3_BUCKET_NAME;
 		
@@ -37,29 +37,35 @@ class ImageUploader {
 					Bucket,
 					Key: `${this.dir(id)}/${name}_${fileName}`
 				})
-				.promise()
+				.promise();
 			}
 		}
-	}
+	};
 	
 	async upload(id, fileName, body, contentType, md5) {
-		console.log('filename', fileName)
+		let newUrl = ''
 		const Bucket = process.env.S3_BUCKET_NAME;
-		console.log('Bucket', Bucket)
-		const Key = `${this.dir(id)}/${fileName}`
-		console.log('KEY', Key)
 		try {
 			await this.s3
 			.putObject({
-				Body: body,
 				Bucket,
+				Body: body,
 				Key: `${this.dir(id)}/${fileName}`,
 				ContentType: contentType,
-				ContentMD5: md5
-				// ACL: 'public-read'
+				ContentMD5: md5,
+				ACL: 'public-read'
 			})
 			.promise()
-			
+			.then(data => {
+				const hash = Buffer.from(md5, 'base64').toString('hex')
+				if (data.ETag === `"${hash}"`){
+					newUrl = `http://${Bucket}.s3.${process.env.S3_REGION}.amazonaws.com/${this.dir(id)}/${fileName}`
+					console.log('newUrl', newUrl)
+					return newUrl
+				}
+			})
+			.catch(err => console.log('err', err));
+
 			if (this.sizes) {
 				const names = Object.keys(this.sizes);
 				for (const name of names) {
@@ -69,38 +75,42 @@ class ImageUploader {
 						fit: 'contain',
 						background: { r: 255, g: 255, b: 255, a: 1 }
 					})
-					.toBuffer()
+					.toBuffer();
 					
 					await this.s3
-					.putObject({
-						Bucket,
-						Body: sizedBody,
-						Key: `${this.dir(id)}/${name}_${fileName}`,
-						ContentType: contentType,
-						// ACL: 'public-read'
-					})
-					.promise()
+						.putObject({
+							Bucket,
+							Body: sizedBody,
+							Key: `${this.dir(id)}/${name}_${fileName}`,
+							ContentType: contentType,
+							ACL: 'public-read'
+						})
+						.promise()
+						.then(data => console.log('data', data))
+						.catch(err => console.log('err', err));
 				}
+				return newUrl
 			}
 		} catch (err) {
 			await this.s3
-			.deleteObject({ Bucket, Key: `${this.dir(id)}/${fileName}` })
-			.promise()
+				.deleteObject({ Bucket, Key: `${this.dir(id)}/${fileName}` })
+				.promise();
 			if (this.sizes) {
 				const names = Object.keys(this.sizes);
 				for (const name of names) {
 					await this.s3
-					.deleteObject({
-						Bucket,
-						Key: `${this.dir(id)}/${name}_${fileName}`
-					})
-					.promise()
+						.deleteObject({
+							Bucket,
+							Key: `${this.dir(id)}/${name}_${fileName}`
+						})
+						.promise();
 				}
 			}
-			throw err
+			throw err;
 		}
 	}
 }
+
 //End 'parent' class
 
 class AdminUploader extends ImageUploader {
