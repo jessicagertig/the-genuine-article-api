@@ -9,7 +9,6 @@ const {
 router.post('/main-image/:item_id', async (req, res) => {
 	const item_id = req.params.item_id;
 	const parsedData = await parseFormData(req);
-	console.log('parsedData', parsedData);
 	const body = await readUploadedFile(parsedData, 'image');
 	const contentType = parsedData.files['image'].type;
 	const uploader = new ImageUploader('main_image');
@@ -24,11 +23,9 @@ router.post('/main-image/:item_id', async (req, res) => {
 		contentType,
 		md5
 	);
-	console.log('main_image_url', main_image_url);
-	console.log('item_id', item_id);
-	Images.addMainImage(main_image_url, item_id)
+	Images.addMainImage({ main_image_url, item_id })
 		.then((img) => {
-			res.status(201).json(img);
+			res.status(201).json({ ...img, main_image_url });
 		})
 		.catch((error) => {
 			res
