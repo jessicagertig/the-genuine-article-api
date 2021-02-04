@@ -43,7 +43,7 @@ class ImageUploader {
 	};
 	
 	async upload(id, fileName, body, contentType, md5) {
-		let newUrl = ''
+		let urls = []
 		const Bucket = process.env.S3_BUCKET_NAME;
 		try {
 			await this.s3
@@ -59,9 +59,8 @@ class ImageUploader {
 			.then(data => {
 				const hash = Buffer.from(md5, 'base64').toString('hex')
 				if (data.ETag === `"${hash}"`){
-					newUrl = `http://${Bucket}.s3.${process.env.S3_REGION}.amazonaws.com/${this.dir(id)}/${fileName}`
-					console.log('newUrl', newUrl)
-					return newUrl
+					const main_image_url = `http://${Bucket}.s3.${process.env.S3_REGION}.amazonaws.com/${this.dir(id)}/${fileName}`
+					urls.push(main_image_url)
 				}
 			})
 			.catch(err => console.log('err', err));
@@ -73,7 +72,7 @@ class ImageUploader {
 					const sizedBody = await Sharp(body)
 					.resize(width, height, {
 						fit: 'contain',
-						background: { r: 255, g: 255, b: 255, a: 1 }
+						background: { r: 255, g: 255, b: 255, alpha: 1 }
 					})
 					.toBuffer();
 					
@@ -86,10 +85,15 @@ class ImageUploader {
 							ACL: 'public-read'
 						})
 						.promise()
-						.then(data => console.log('data', data))
+						.then(data => {
+							if (data.ETag) {
+								let url = `http://${Bucket}.s3.${process.env.S3_REGION}.amazonaws.com/${this.dir(id)}/${name}_${fileName}`
+								urls.push(url)
+							}
+						})
 						.catch(err => console.log('err', err));
 				}
-				return newUrl
+				return urls
 			}
 		} catch (err) {
 			await this.s3
@@ -103,7 +107,9 @@ class ImageUploader {
 							Bucket,
 							Key: `${this.dir(id)}/${name}_${fileName}`
 						})
-						.promise();
+						.promise()						
+						.then(data => console.log('data', data))
+						.catch(err => console.log('err', err));
 				}
 			}
 			throw err;
@@ -113,18 +119,19 @@ class ImageUploader {
 
 //End 'parent' class
 
-class AdminUploader extends ImageUploader {
+class MainImageUploader extends ImageUploader {
 	constructor(modelName) {
 		super(modelName, {
-			large: [500, 609],
-			display: [450, 582],
-			adminUploadMain: [250, 305],
-			thumb: [64, 78]
+			main_large: [500, 609],
+			main_display: [450, 582],
+			main_admin_upload: [250, 305],
+			main_small: [96, 117],
+			main_thumb: [64, 78]
 		});
 	}
 }
 
 module.exports = {
 	ImageUploader,
-	AdminUploader
+	MainImageUploader
 };
