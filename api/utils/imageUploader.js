@@ -44,6 +44,7 @@ class ImageUploader {
 	
 	async upload(id, fileName, body, contentType, md5) {
 		let urls = []
+		let newUrl = ''
 		const Bucket = process.env.S3_BUCKET_NAME;
 		try {
 			await this.s3
