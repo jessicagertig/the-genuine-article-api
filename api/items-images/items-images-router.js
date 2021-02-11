@@ -12,10 +12,7 @@ router.post('/main-image/:item_id', async (req, res) => {
 	const body = await readUploadedFile(parsedData, 'image');
 	const contentType = parsedData.files['image'].type;
 	const uploader = new ImageUploader('main_image');
-	const md5 = Buffer.from(
-		parsedData.files['image'].hash,
-		'hex'
-	).toString('base64');
+	const md5 = parsedData.files['image'].hash, 'hex').
 	const main_image_url = await uploader.upload(
 		item_id,
 		parsedData.files['image'].name,

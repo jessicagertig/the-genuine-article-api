@@ -55,16 +55,16 @@ class ImageUploader {
 				ContentMD5: md5,
 				ACL: 'public-read'
 			})
-			.promise()
-			.then(data => {
-				const hash = Buffer.from(md5, 'base64').toString('hex')
-				if (data.ETag === `"${hash}"`){
-					newUrl = `http://${Bucket}.s3.${process.env.S3_REGION}.amazonaws.com/${this.dir(id)}/${fileName}`
-					console.log('newUrl', newUrl)
-					return newUrl
-				}
-			})
-			.catch(err => console.log('err', err));
+			.promise();
+			// .then(data => {
+			// 	const hash = Buffer.from(md5, 'base64').toString('hex')
+			// 	if (data.ETag === hash){
+			// 		newUrl = `http://${Bucket}.s3.${process.env.S3_REGION}.amazonaws.com/${this.dir(id)}/${fileName}`
+			// 		console.log('newUrl', newUrl)
+			// 		return newUrl
+			// 	}
+			// })
+			// .catch(err => console.log('err', err));
 
 			if (this.sizes) {
 				const names = Object.keys(this.sizes);
