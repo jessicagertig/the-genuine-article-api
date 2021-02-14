@@ -1,6 +1,5 @@
 /* eslint-disable prettier/prettier */
 const AWS = require('aws-sdk');
-const { snakeCase } = require('lodash');
 const Sharp = require('sharp');
 
 //modelName is type of image uploaded for example, in future it might be userProfile, but for now it's just going to be mainImage, additionalImage
@@ -20,7 +19,7 @@ class ImageUploader {
 	}
 	
 	dir(id) {
-		return `uploads/images/garment_item_id${id}/${snakeCase(this.modelName).toLocaleLowerCase()}`;
+		return `images/garment_item_id${id}/${this.modelName}`;
 	}
 
 	async delete(id, fileName) {
@@ -43,11 +42,10 @@ class ImageUploader {
 	};
 	
 	async upload(id, fileName, body, contentType, md5) {
-		let urls = []
 		const Bucket = process.env.S3_BUCKET_NAME;
 		try {
 			await this.s3
-			.putObject({
+			.upload({
 				Bucket,
 				Body: body,
 				Key: `${this.dir(id)}/${fileName}`,
@@ -55,16 +53,9 @@ class ImageUploader {
 				ContentMD5: md5,
 				ACL: 'public-read'
 			})
-			.promise();
-			// .then(data => {
-			// 	const hash = Buffer.from(md5, 'base64').toString('hex')
-			// 	if (data.ETag === hash){
-			// 		newUrl = `http://${Bucket}.s3.${process.env.S3_REGION}.amazonaws.com/${this.dir(id)}/${fileName}`
-			// 		console.log('newUrl', newUrl)
-			// 		return newUrl
-			// 	}
-			// })
-			// .catch(err => console.log('err', err));
+			.promise()
+			.then(data => console.log(`File uploaded successfully at ${data.Location}`))
+			.catch(err => console.log('err', err));
 
 			if (this.sizes) {
 				const names = Object.keys(this.sizes);
@@ -78,7 +69,7 @@ class ImageUploader {
 					.toBuffer();
 					
 					await this.s3
-						.putObject({
+						.upload({
 							Bucket,
 							Body: sizedBody,
 							Key: `${this.dir(id)}/${name}_${fileName}`,
@@ -86,15 +77,9 @@ class ImageUploader {
 							ACL: 'public-read'
 						})
 						.promise()
-						.then(data => {
-							if (data.ETag) {
-								let url = `http://${Bucket}.s3.${process.env.S3_REGION}.amazonaws.com/${this.dir(id)}/${name}_${fileName}`
-								urls.push(url)
-							}
-						})
+						.then(data => console.log(`File was uploaded succesfully at ${data.location}`))
 						.catch(err => console.log('err', err));
 				}
-				return urls
 			}
 		} catch (err) {
 			await this.s3
@@ -109,8 +94,8 @@ class ImageUploader {
 							Key: `${this.dir(id)}/${name}_${fileName}`
 						})
 						.promise()						
-						.then(data => console.log('data', data))
-						.catch(err => console.log('err', err));
+						.then(data => console.log('Sizes Delete Data', data))
+						.catch(err => console.log('Sizes Delete Error', err));
 				}
 			}
 			throw err;
