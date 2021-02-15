@@ -10,8 +10,12 @@ router.post('/main-image/:item_id', async (req, res) => {
 	const item_id = req.params.item_id;
 	const parsedData = await parseFormData(req);
 	const body = await readUploadedFile(parsedData, 'image');
+	console.log('BODY-Stream:  ', body);
 	const uploader = new ImageUploader('main_image');
-	const md5 = parsedData.files['image'].hash;
+	const md5 = Buffer.from(
+		parsedData.files['image'].hash,
+		'hex'
+	).toString('base64');
 	const main_image = await uploader.upload(
 		item_id,
 		parsedData.files['image'].name, //fileName

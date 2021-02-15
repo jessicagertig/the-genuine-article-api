@@ -1,10 +1,9 @@
 const { IncomingForm } = require('formidable');
-const promises = require('fs/promises');
+const fs = require('fs');
 
 const parseFormData = async (req) => {
 	return await new Promise((resolve, reject) => {
 		const form = new IncomingForm({
-			keepExtensions: true,
 			hash: 'md5'
 		});
 		form.parse(req, (err, fields, files) => {
@@ -17,7 +16,8 @@ const parseFormData = async (req) => {
 const readUploadedFile = async (data, key) => {
 	const path = data.files[key].path;
 	if (path) {
-		return await promises.readFile(path);
+		const fileStream = await fs.createReadStream(path);
+		return fileStream;
 	}
 	return null;
 };

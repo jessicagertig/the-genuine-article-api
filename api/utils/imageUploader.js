@@ -32,7 +32,7 @@ class ImageUploader {
 			const names = Object.keys(this.sizes);
 			for (const name of names) {
 				await this.s3
-				.deletObject({
+				.deleteObject({
 					Bucket,
 					Key: `${this.dir(id)}/${name}_${fileName}`
 				})
@@ -43,6 +43,7 @@ class ImageUploader {
 	
 	async upload(id, fileName, body, contentType, md5) {
 		const Bucket = process.env.S3_BUCKET_NAME;
+		// console.log('body', body)
 		try {
 			await this.s3
 			.upload({
