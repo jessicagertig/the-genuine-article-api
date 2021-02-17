@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const Images = require('./items-images-model');
-const { ImageUploader } = require('../utils/imageUploader');
+const { uploadOriginalImg } = require('../utils/uploadImage');
+// const { ImageUploader } = require('../utils/imageUploader');
 const {
 	parseFormData,
 	readUploadedFile
@@ -9,23 +10,27 @@ const {
 router.post('/main-image/:item_id', async (req, res) => {
 	const item_id = req.params.item_id;
 	const parsedData = await parseFormData(req);
+	console.log('parsedData', parsedData.files['image']);
 	const body = await readUploadedFile(parsedData, 'image');
-	console.log('BODY-Stream:  ', body);
-	const uploader = new ImageUploader('main_image');
+	const contentType = parsedData.files['image'].type;
+	console.log('BODY:  ', body);
 	const md5 = Buffer.from(
 		parsedData.files['image'].hash,
 		'hex'
 	).toString('base64');
-	const main_image = await uploader.upload(
+	console.log('md5', md5);
+	const main_image_url = await uploadOriginalImg(
 		item_id,
+		'main_image',
 		parsedData.files['image'].name, //fileName
 		body,
-		parsedData.files['image'].type, //contentType
+		contentType,
 		md5
 	);
-	Images.addMainImage(main_image, item_id)
-		.then((main_images) => {
-			res.status(201).json(main_images);
+	console.log('MAIN IMAGE URL', main_image_url);
+	Images.addMainImage({ main_image_url, item_id })
+		.then((img) => {
+			res.status(201).json({ ...img, main_image_url });
 		})
 		.catch((error) => {
 			res

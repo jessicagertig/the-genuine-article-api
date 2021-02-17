@@ -1,5 +1,5 @@
 const { IncomingForm } = require('formidable');
-const fs = require('fs');
+const fs = require('fs/promises');
 
 const parseFormData = async (req) => {
 	return await new Promise((resolve, reject) => {
@@ -16,10 +16,17 @@ const parseFormData = async (req) => {
 const readUploadedFile = async (data, key) => {
 	const path = data.files[key].path;
 	if (path) {
-		const fileStream = await fs.createReadStream(path);
-		return fileStream;
+		try {
+			console.log('Path', path);
+			const data = await fs.readFile(path);
+			console.log('DATA: ', data);
+			return data;
+		} catch (error) {
+			console.error(
+				`Got an error trying to read the file: ${error.message}`
+			);
+		}
 	}
-	return null;
 };
 
 module.exports = {
