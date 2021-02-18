@@ -4,6 +4,7 @@ const fs = require('fs/promises');
 const parseFormData = async (req) => {
 	return await new Promise((resolve, reject) => {
 		const form = new IncomingForm({
+			multiples: true,
 			hash: 'md5'
 		});
 		form.parse(req, (err, fields, files) => {
@@ -18,9 +19,9 @@ const readUploadedFile = async (data, key) => {
 	if (path) {
 		try {
 			console.log('Path', path);
-			const data = await fs.readFile(path);
-			console.log('DATA: ', data);
-			return data;
+			const readData = await fs.readFile(path);
+			console.log('readData: ', readData);
+			return readData;
 		} catch (error) {
 			console.error(
 				`Got an error trying to read the file: ${error.message}`

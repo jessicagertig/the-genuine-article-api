@@ -7,7 +7,7 @@ const {
 	readUploadedFile
 } = require('../utils/parseFiles');
 
-router.post('/main-image/:item_id', async (req, res) => {
+router.put('/main-image/:item_id', async (req, res) => {
 	const item_id = req.params.item_id;
 	const parsedData = await parseFormData(req);
 	console.log('parsedData', parsedData.files['image']);
