@@ -2,6 +2,10 @@
   "name": "genuine-article-api",
   "version": "1.0.0",
   "description": "A RESTful API providing access to information and media about historical clothing as preserved in museums and collections.",
+  "engines": {
+    "node": "12.20.01",
+    "npm": "6.14.10"
+  },
   "main": "index.js",
   "scripts": {
     "start": "node index.js --trace-warnings",
@@ -28,7 +32,7 @@
     "cors": "^2.8.5",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
-    "formidable": "^2.0.0-canary.20200504.1",
+    "formidable": "1.2.2",
     "helmet": "^4.1.1",
     "jsonwebtoken": "^8.5.1",
     "knex": "^0.21.5",

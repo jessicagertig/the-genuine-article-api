@@ -1,7 +1,7 @@
 const AWS = require('aws-sdk');
 // const Sharp = require('sharp');
 
-const uploadOriginalImg = async (
+const uploadOriginalImg = (
 	id,
 	modelName,
 	fileName,
@@ -17,23 +17,27 @@ const uploadOriginalImg = async (
 		accessKeyId: process.env.S3_KEY_ID,
 		secretAccessKey: process.env.S3_SECRET
 	};
-
+	//initialize s3 with config
 	const s3 = new AWS.S3(config);
-
+	//predefine path for uploaded items based on input params
 	const dir = `garment_item_id${id}/${modelName}`;
+	//get bucket name from .env file
 	const Bucket = process.env.S3_BUCKET_NAME;
 
 	//delete any existing object in bucket with same key
-	await s3.deleteObject(
+	//this is supposed to be S3's default behavior but sometimes remnants seem to briefly load
+	s3.deleteObject(
 		{ Bucket, Key: `${dir}/${fileName}` },
-		function (err, data) {
+		function (err) {
 			if (err) {
 				throw err;
+			} else {
+				console.log('deleted data');
 			}
-			console.log('delete data', data);
 		}
 	);
 
+	//add original image to bucket in size given - may want to limit size somehow
 	s3.putObject({
 		Bucket,
 		Body: Buffer.from(body),
@@ -44,37 +48,13 @@ const uploadOriginalImg = async (
 		.promise()
 		.then((data) => {
 			console.log(`file uploaded successfully: ${data.ETag}`);
-			// eslint-disable-next-line prettier/prettier
-			url = `http://${Bucket}.s3.${process.env.S3_REGION}.amazonaws.com/${dir}/${fileName}`
-			console.log('url', url);
 		})
 		.catch((err) => {
 			console.log('upload failed', err);
 		});
 	let url = `http://${Bucket}.s3.${process.env.S3_REGION}.amazonaws.com/${dir}/${fileName}`;
-	console.log('url', url);
 	return url;
 };
-
-// 	try {
-// 		await s3
-// 			.upload({
-// 				Bucket,
-// 				Body: body,
-// 				Key: `${dir}/${fileName}`,
-// 			})
-// 			.promise()
-// 			.then((data) =>
-// 				console.log(`File uploaded successfully at ${data.Location}`)
-// 			)
-// 			.catch((err) => console.log('ERROR in TRY', err));
-// 	} catch (error) {
-// 		await s3.deleteObject
-// 			.deleteObject({ Bucket, Key: `${dir}/${fileName}` })
-// 			.promise();
-// 		throw error;
-// 	}
-// };
 
 module.exports = {
 	uploadOriginalImg
