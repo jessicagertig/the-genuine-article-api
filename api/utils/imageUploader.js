@@ -1,5 +1,6 @@
 /* eslint-disable prettier/prettier */
 const AWS = require('aws-sdk');
+const { error } = require('console');
 const Sharp = require('sharp');
 
 //modelName is type of image uploaded for example, in future it might be userProfile, but for now it's just going to be mainImage, additionalImage
@@ -17,9 +18,9 @@ class ImageUploader {
 		},
 		this.s3 = new AWS.S3(this.config)
 	}
-	
+	//method to predefine path for uploaded items based on input params
 	dir(id) {
-		return `images/garment_item_id${id}/${this.modelName}`;
+		return `garment_item_id${id}/${this.modelName}`;
 	}
 
 	async delete(id, fileName) {
@@ -45,8 +46,7 @@ class ImageUploader {
 		const Bucket = process.env.S3_BUCKET_NAME;
 		// console.log('body', body)
 		try {
-			await this.s3
-			.upload({
+			await this.s3.putObject({
 				Bucket,
 				Body: body,
 				Key: `${this.dir(id)}/${fileName}`,
@@ -55,8 +55,14 @@ class ImageUploader {
 				ACL: 'public-read'
 			})
 			.promise()
-			.then(data => console.log(`File uploaded successfully at ${data.Location}`))
-			.catch(err => console.log('err', err));
+			.then(res => res.json('File Uploaded Successfully'))
+			.catch(err => res.json({'Error uploading original file': err}))
+		}
+	
+
+		async uploadSizedImages(id, fileName, body, contentType, md5) {
+				const Bucket = process.env.S3_BUCKET_NAME;
+				// console.log('body', body)
 
 			if (this.sizes) {
 				const names = Object.keys(this.sizes);
