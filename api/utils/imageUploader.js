@@ -65,13 +65,15 @@ class ImageUploader {
 				ACL: 'public-read'
 			})
 			.promise()
-			.then((data) => console.log('Original image uploaded successfully. Etag: ', data.ETag))
+			.then((data) => {
+				console.log('Original image uploaded successfully. Etag: ', data.ETag)
+				return url = `http://${Bucket}.s3.${process.env.S3_REGION}.amazonaws.com/${this.dir(id)}/${fileName}`;
+			})
 			.catch(err => console.error('Error uploading original file: ', err))
 			//sanity test this to see if .then and .catch will block the delete function from running in below catch block
-			url = `http://${Bucket}.s3.${process.env.S3_REGION}.amazonaws.com/${this.dir(id)}/${fileName}`;
+			
 		} catch (err) {
-			console.error('Error uploading orignial image.')
-			this.deleteOriginalImage(id, fileName)
+			console.error('Error uploading original image. Error: ', err)
 		}
 		return url
 	}
@@ -107,7 +109,6 @@ class ImageUploader {
 			}			
 		} catch (err) {
 			console.error('Error deleting uploading resized images.')
-			this.deleteResizedImages(id, fileName)
 		}
 	}
 	//end methods
