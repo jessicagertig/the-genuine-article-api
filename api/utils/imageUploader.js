@@ -54,7 +54,7 @@ class ImageUploader {
 	
 	async uploadOriginalImage(id, fileName, body, contentType, md5) {
 		const Bucket = process.env.S3_BUCKET_NAME;
-		// console.log('body', body)
+		let url;
 		try {
 			await this.s3.putObject({
 				Bucket,
@@ -65,13 +65,15 @@ class ImageUploader {
 				ACL: 'public-read'
 			})
 			.promise()
-			.then(console.log('Original image uploaded successfully'))
-			.catch(err => console.error({'Error uploading original file': err}))
+			.then((data) => console.log('Original image uploaded successfully. Etag: ', data.ETag))
+			.catch(err => console.error('Error uploading original file: ', err))
 			//sanity test this to see if .then and .catch will block the delete function from running in below catch block
+			url = `http://${Bucket}.s3.${process.env.S3_REGION}.amazonaws.com/${this.dir(id)}/${fileName}`;
 		} catch (err) {
 			console.error('Error uploading orignial image.')
 			this.deleteOriginalImage(id, fileName)
 		}
+		return url
 	}
 	
 
