@@ -113,7 +113,7 @@ class ImageUploader {
 
 //End 'parent' class
 
-class OriginalImageUploader extends ImageUploader {
+class ResizedImageUploader extends ImageUploader {
 	constructor(modelName) {
 		super(modelName, {
 			main_large: [500, 609],
@@ -127,5 +127,5 @@ class OriginalImageUploader extends ImageUploader {
 
 module.exports = {
 	ImageUploader,
-	OriginalImageUploader
+	ResizedImageUploader
 };
