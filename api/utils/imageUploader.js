@@ -1,6 +1,5 @@
 /* eslint-disable prettier/prettier */
 const AWS = require('aws-sdk');
-const { error } = require('console');
 const Sharp = require('sharp');
 
 //modelName is type of image uploaded for example, in future it might be userProfile, but for now it's just going to be mainImage, additionalImage
@@ -22,27 +21,38 @@ class ImageUploader {
 	dir(id) {
 		return `garment_item_id${id}/${this.modelName}`;
 	}
-
-	async delete(id, fileName) {
+	//method to delete the original version of the image uploaded, there is no try/catch block here because currently I will call it inside of of a method 
+	async deleteOriginalImage(id, fileName) {
 		const Bucket = process.env.S3_BUCKET_NAME;
-		
-		await this.s3
+		//will the simple return await with a .promise.catch eliminate need for try/catch block?
+		return await this.s3
 		.deleteObject({ Bucket, Key: `${this.dir(id)}/${fileName}` })
 		.promise()
-		if (this.sizes) {
-			const names = Object.keys(this.sizes);
-			for (const name of names) {
-				await this.s3
-				.deleteObject({
-					Bucket,
-					Key: `${this.dir(id)}/${name}_${fileName}`
-				})
-				.promise();
-			}
+		.catch(err => console.log('Error deleting original image', err));
+	};
+
+	async deleteResizedImages(id, fileName) {
+		const Bucket = process.env.S3_BUCKET_NAME;
+		//switch if statement to nest inside try block
+		try {
+			if (this.sizes) {
+				const names = Object.keys(this.sizes);
+				for (const name of names) {
+					await this.s3
+					.deleteObject({
+						Bucket,
+						Key: `${this.dir(id)}/${name}_${fileName}`
+					})
+					.promise()
+					.catch(err => console.error('Error deleting resized images', err));
+				}
+			} 
+		}	catch (err) {
+			console.error(err)
 		}
 	};
 	
-	async upload(id, fileName, body, contentType, md5) {
+	async uploadOriginalImage(id, fileName, body, contentType, md5) {
 		const Bucket = process.env.S3_BUCKET_NAME;
 		// console.log('body', body)
 		try {
@@ -55,15 +65,20 @@ class ImageUploader {
 				ACL: 'public-read'
 			})
 			.promise()
-			.then(res => res.json('File Uploaded Successfully'))
-			.catch(err => res.json({'Error uploading original file': err}))
+			.then(console.log('Original image uploaded successfully'))
+			.catch(err => console.error({'Error uploading original file': err}))
+			//sanity test this to see if .then and .catch will block the delete function from running in below catch block
+		} catch (err) {
+			console.error('Error uploading orignial image.')
+			this.deleteOriginalImage(id, fileName)
 		}
+	}
 	
 
-		async uploadSizedImages(id, fileName, body, contentType, md5) {
-				const Bucket = process.env.S3_BUCKET_NAME;
-				// console.log('body', body)
+	async uploadResizedImages(id, fileName, body, contentType) {
+		const Bucket = process.env.S3_BUCKET_NAME;
 
+		try {
 			if (this.sizes) {
 				const names = Object.keys(this.sizes);
 				for (const name of names) {
@@ -84,35 +99,21 @@ class ImageUploader {
 							ACL: 'public-read'
 						})
 						.promise()
-						.then(data => console.log(`File was uploaded succesfully at ${data.location}`))
-						.catch(err => console.log('err', err));
-				}
-			}
+						.then(console.log(`Files were uploaded succesfully`))
+						.catch(err => console.error('err', err));
+				}	
+			}			
 		} catch (err) {
-			await this.s3
-				.deleteObject({ Bucket, Key: `${this.dir(id)}/${fileName}` })
-				.promise();
-			if (this.sizes) {
-				const names = Object.keys(this.sizes);
-				for (const name of names) {
-					await this.s3
-						.deleteObject({
-							Bucket,
-							Key: `${this.dir(id)}/${name}_${fileName}`
-						})
-						.promise()						
-						.then(data => console.log('Sizes Delete Data', data))
-						.catch(err => console.log('Sizes Delete Error', err));
-				}
-			}
-			throw err;
+			console.error('Error deleting uploading resized images.')
+			this.deleteResizedImages(id, fileName)
 		}
 	}
+	//end methods
 }
 
 //End 'parent' class
 
-class MainImageUploader extends ImageUploader {
+class OriginalImageUploader extends ImageUploader {
 	constructor(modelName) {
 		super(modelName, {
 			main_large: [500, 609],
@@ -126,5 +127,5 @@ class MainImageUploader extends ImageUploader {
 
 module.exports = {
 	ImageUploader,
-	MainImageUploader
+	OriginalImageUploader
 };
