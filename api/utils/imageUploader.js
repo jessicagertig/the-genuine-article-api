@@ -84,9 +84,11 @@ class ImageUploader {
 	//method to upload resized images (resized with Sharp)
 	async uploadResizedImages(id, fileName, body, contentType) {
 		const Bucket = process.env.S3_BUCKET_NAME;
+		let baseUrl;
 
 		try {
 			if (this.sizes) {
+				let sizeName = null
 				const names = Object.keys(this.sizes);
 				for (const name of names) {
 					const [width, height] = this.sizes[name];
@@ -106,17 +108,25 @@ class ImageUploader {
 							ACL: 'public-read'
 						})
 						.promise()
-						.then(console.log(`Files were uploaded successfully`))
+						.then(() => {
+							console.log(`Resized version "${name}" of image was uploaded successfully.`);
+							sizeName = name 
+						})
 						.catch(err => console.error('Error message: ', err));
-				}	
-			}			
+				}
+				if (sizeName === 'thumb') {
+					baseUrl = `http://${Bucket}.s3.${process.env.S3_REGION}.amazonaws.com/${this.dir(id)}`
+				} else {
+					baseUrl = null
+				}
+			}	
+			return baseUrl		
 		} catch (err) {
 			console.error(`Error uploading resized versions of image with filename "${fileName}".  Message: ` , err)
 		}
 	}
 	//end methods
 }
-
 //End 'parent' class
 
 class ResizedMainImageUploader extends ImageUploader {
