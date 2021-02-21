@@ -21,16 +21,17 @@ class ImageUploader {
 	dir(id) {
 		return `garment_item_id${id}/${this.modelName}`;
 	}
-	//method to delete the original version of the image uploaded, there is no try/catch block here because currently I will call it inside of of a method 
+	//method to delete the original (unaltered) version of the image uploaded 
 	async deleteOriginalImage(id, fileName) {
 		const Bucket = process.env.S3_BUCKET_NAME;
 		//will the simple return await with a .promise.catch eliminate need for try/catch block?
 		return await this.s3
 		.deleteObject({ Bucket, Key: `${this.dir(id)}/${fileName}` })
 		.promise()
-		.catch(err => console.log('Error deleting original image', err));
+		.catch(err => console.log(`Error deleting image at path: ${this.dir(id)}/${fileName}`, err));
 	};
 
+	//method to be used by classes which include resizing imagages, to delete all different sizes, depending on class
 	async deleteResizedImages(id, fileName) {
 		const Bucket = process.env.S3_BUCKET_NAME;
 		//switch if statement to nest inside try block
@@ -44,14 +45,16 @@ class ImageUploader {
 						Key: `${this.dir(id)}/${name}_${fileName}`
 					})
 					.promise()
-					.catch(err => console.error('Error deleting resized images', err));
+					.catch(err => console.error(`Error deleting resized versions of image with filename "${fileName}".`, err));
 				}
 			} 
 		}	catch (err) {
-			console.error(err)
+			console.error(`Error deleting resized versions of image with filename "${fileName}".  Message: ` , err)
 		}
 	};
 	
+	//upload image in the largest original size available
+	//TODO: limit maximum size
 	async uploadOriginalImage(id, fileName, body, contentType, md5) {
 		const Bucket = process.env.S3_BUCKET_NAME;
 		let url;
@@ -66,19 +69,19 @@ class ImageUploader {
 			})
 			.promise()
 			.then((data) => {
-				console.log('Original image uploaded successfully. Etag: ', data.ETag)
+				console.log('Original image uploaded successfully. ETag: ', data.ETag)
 				return url = `http://${Bucket}.s3.${process.env.S3_REGION}.amazonaws.com/${this.dir(id)}/${fileName}`;
 			})
-			.catch(err => console.error('Error uploading original file: ', err))
+			.catch(err => console.error(`Error uploading original file "${fileName}". Message: `, err))
 			//sanity test this to see if .then and .catch will block the delete function from running in below catch block
 			
 		} catch (err) {
-			console.error('Error uploading original image. Error: ', err)
+			console.error(`Error uploading original image "${fileName}". Message: `, err)
 		}
 		return url
 	}
 	
-
+	//method to upload resized images (resized with Sharp)
 	async uploadResizedImages(id, fileName, body, contentType) {
 		const Bucket = process.env.S3_BUCKET_NAME;
 
@@ -103,12 +106,12 @@ class ImageUploader {
 							ACL: 'public-read'
 						})
 						.promise()
-						.then(console.log(`Files were uploaded succesfully`))
-						.catch(err => console.error('err', err));
+						.then(console.log(`Files were uploaded successfully`))
+						.catch(err => console.error('Error message: ', err));
 				}	
 			}			
 		} catch (err) {
-			console.error('Error deleting uploading resized images.')
+			console.error(`Error uploading resized versions of image with filename "${fileName}".  Message: ` , err)
 		}
 	}
 	//end methods
@@ -116,19 +119,30 @@ class ImageUploader {
 
 //End 'parent' class
 
-class ResizedImageUploader extends ImageUploader {
+class ResizedMainImageUploader extends ImageUploader {
 	constructor(modelName) {
 		super(modelName, {
-			main_large: [500, 609],
-			main_display: [450, 582],
-			main_admin_upload: [250, 305],
-			main_small: [96, 117],
-			main_thumb: [64, 78]
+			large: [500, 609],
+			display: [450, 582],//for garment of the day
+			admin_upload: [250, 305],//for upload page
+			small: [96, 117],
+			thumb: [64, 78]
+		});
+	}
+}
+
+class ResizedSecondaryImagesUploader extends ImageUploader {
+	constructor(modelName) {
+		super(modelName, {
+			large: [500, 609],
+			small: [96, 117],
+			thumb: [64, 78]
 		});
 	}
 }
 
 module.exports = {
 	ImageUploader,
-	ResizedImageUploader
+	ResizedMainImageUploader,
+	ResizedSecondaryImagesUploader
 };
