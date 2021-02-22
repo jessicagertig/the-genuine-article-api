@@ -7,6 +7,7 @@ const {
 	SecondaryImagesUploader
 } = require('../utils/imageUploader');
 const { defineParams } = require('../utils/parseFiles');
+const checkItemImageExists = require('./image-middleware')
 
 //get original main_image by item_id
 router.get('/main_image/:item_id', (req, res) => {
@@ -25,7 +26,7 @@ router.get('/main_image/:item_id', (req, res) => {
 });
 
 //post original main_image by item_id
-router.post('/main_image/:item_id', async (req, res) => {
+router.post('/main_image/:item_id', checkItemImageExists, async (req, res) => {
 	const item_id = req.params.item_id;
 	const [body, contentType, fileName, md5] = await defineParams(req);
 	const upload = new ImageUploader('original_image');
