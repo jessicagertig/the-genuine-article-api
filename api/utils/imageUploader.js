@@ -141,7 +141,7 @@ class ResizedMainImageUploader extends ImageUploader {
 	}
 }
 
-class ResizedSecondaryImagesUploader extends ImageUploader {
+class SecondaryImagesUploader extends ImageUploader {
 	constructor(modelName) {
 		super(modelName, {
 			large: [500, 609],
@@ -154,5 +154,5 @@ class ResizedSecondaryImagesUploader extends ImageUploader {
 module.exports = {
 	ImageUploader,
 	ResizedMainImageUploader,
-	ResizedSecondaryImagesUploader
+	SecondaryImagesUploader
 };
