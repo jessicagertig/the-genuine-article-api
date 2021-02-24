@@ -87,6 +87,24 @@ router.put('/main_image/:item_id', async (req, res) => {
 		});
 });
 
+//delete original unaltered main image from database
+router.delete('/main-image/:item_id', (req, res) => {
+	const item_id = req.params.item_id;
+	Images.removeMainImage(item_id)
+		.then( result => {
+			console.log(result)
+			res
+			.status(200)
+			.json({ message: `The main image for item id ${item_id} has been deleted.` })
+		})
+		.catch( error => {
+			res
+				.status(500)
+				.json({ message: `An error occured while deleting main image for item with id ${item_id}`, error })
+		})
+})
+
+
 //post main_image in 5 new sizes
 router.post('/main_image_sizes/:item_id', async (req, res) => {
 	const item_id = req.params.item_id;
