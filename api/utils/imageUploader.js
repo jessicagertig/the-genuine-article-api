@@ -22,17 +22,17 @@ class ImageUploader {
 		return `garment_item_id${id}/${this.modelName}`;
 	}
 	//method to delete the original (unaltered) version of the image uploaded 
-	async deleteOriginalImage(id, fileName) {
+	async deleteOriginalImage(id, file_name) {
 		const Bucket = process.env.S3_BUCKET_NAME;
 		//will the simple return await with a .promise.catch eliminate need for try/catch block?
 		return await this.s3
-		.deleteObject({ Bucket, Key: `${this.dir(id)}/${fileName}` })
+		.deleteObject({ Bucket, Key: `${this.dir(id)}/${file_name}` })
 		.promise()
-		.catch(err => console.log(`Error deleting image at path: ${this.dir(id)}/${fileName}`, err));
+		.catch(err => console.log(`Error deleting image at path: ${this.dir(id)}/${file_name}`, err));
 	};
 
 	//method to be used by classes which include resizing imagages, to delete all different sizes, depending on class
-	async deleteResizedImages(id, fileName) {
+	async deleteResizedImages(id, file_name) {
 		const Bucket = process.env.S3_BUCKET_NAME;
 		//switch if statement to nest inside try block
 		try {
@@ -42,47 +42,47 @@ class ImageUploader {
 					await this.s3
 					.deleteObject({
 						Bucket,
-						Key: `${this.dir(id)}/${name}_${fileName}`
+						Key: `${this.dir(id)}/${name}_${file_name}`
 					})
 					.promise()
-					.catch(err => console.error(`Error deleting resized versions of image with filename "${fileName}".`, err));
+					.catch(err => console.error(`Error deleting resized versions of image with filename "${file_name}".`, err));
 				}
 			} 
 		}	catch (err) {
-			console.error(`Error deleting resized versions of image with filename "${fileName}".  Message: ` , err)
+			console.error(`Error deleting resized versions of image with filename "${file_name}".  Message: ` , err)
 		}
 	};
 	
 	//upload image in the largest original size available
 	//TODO: limit maximum size
-	async uploadOriginalImage(id, fileName, body, contentType, md5) {
+	async uploadOriginalImage(id, file_name, body, content_type, md5) {
 		const Bucket = process.env.S3_BUCKET_NAME;
 		let url;
 		try {
 			await this.s3.putObject({
 				Bucket,
 				Body: body,
-				Key: `${this.dir(id)}/${fileName}`,
-				ContentType: contentType,
+				Key: `${this.dir(id)}/${file_name}`,
+				ContentType: content_type,
 				ContentMD5: md5,
 				ACL: 'public-read'
 			})
 			.promise()
 			.then((data) => {
 				console.log('Original image uploaded successfully. ETag: ', data.ETag)
-				return url = `http://${Bucket}.s3.${process.env.S3_REGION}.amazonaws.com/${this.dir(id)}/${fileName}`;
+				return url = `http://${Bucket}.s3.${process.env.S3_REGION}.amazonaws.com/${this.dir(id)}/${file_name}`;
 			})
-			.catch(err => console.error(`Error uploading original file "${fileName}". Message: `, err))
+			.catch(err => console.error(`Error uploading original file "${file_name}". Message: `, err))
 			//sanity test this to see if .then and .catch will block the delete function from running in below catch block
 			
 		} catch (err) {
-			console.error(`Error uploading original image "${fileName}". Message: `, err)
+			console.error(`Error uploading original image "${file_name}". Message: `, err)
 		}
 		return url
 	}
 	
 	//method to upload resized images (resized with Sharp)
-	async uploadResizedImages(id, fileName, body, contentType) {
+	async uploadResizedImages(id, file_name, body, content_type) {
 		const Bucket = process.env.S3_BUCKET_NAME;
 		let baseUrl;
 
@@ -103,8 +103,8 @@ class ImageUploader {
 						.upload({
 							Bucket,
 							Body: sizedBody,
-							Key: `${this.dir(id)}/${name}_${fileName}`,
-							ContentType: contentType,
+							Key: `${this.dir(id)}/${name}_${file_name}`,
+							ContentType: content_type,
 							ACL: 'public-read'
 						})
 						.promise()
@@ -122,7 +122,7 @@ class ImageUploader {
 			}	
 			return baseUrl		
 		} catch (err) {
-			console.error(`Error uploading resized versions of image with filename "${fileName}".  Message: ` , err)
+			console.error(`Error uploading resized versions of image with filename "${file_name}".  Message: ` , err)
 		}
 	}
 	//end methods

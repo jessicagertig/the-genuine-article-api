@@ -33,13 +33,13 @@ const readUploadedFile = async (data, key) => {
 const defineParams = async (req) => {
 	const parsedData = await parseFormData(req);
 	const body = await readUploadedFile(parsedData, 'image');
-	const contentType = parsedData.files['image'].type;
-	const fileName = parsedData.files['image'].name;
+	const content_type = parsedData.files['image'].type;
+	const file_name = parsedData.files['image'].name;
 	const md5 = Buffer.from(
 		parsedData.files['image'].hash,
 		'hex'
 	).toString('base64');
-	const params = [body, contentType, fileName, md5];
+	const params = [body, content_type, file_name, md5];
 	return params;
 };
 

@@ -15,7 +15,11 @@ router.get('/main_image/:item_id', (req, res) => {
 
 	Images.findMainImageByItemId(item_id)
 		.then((img) => {
+			if (img === undefined) {
+				res.status(400).json({ message: `No main image exists for item with id ${item_id}.` })
+			} else {
 			res.status(200).json(img);
+			} 
 		})
 		.catch((error) => {
 			res.status(500).json({
@@ -28,18 +32,18 @@ router.get('/main_image/:item_id', (req, res) => {
 //post original main_image by item_id
 router.post('/main_image/:item_id', checkItemImageExists, async (req, res) => {
 	const item_id = req.params.item_id;
-	const [body, contentType, fileName, md5] = await defineParams(req);
+	const [body, content_type, file_name, md5] = await defineParams(req);
 	const upload = new ImageUploader('original_image');
 	const main_image_url = await upload.uploadOriginalImage(
 		item_id,
-		fileName,
+		file_name,
 		body,
-		contentType,
+		content_type,
 		md5
 	);
 	
 
-	Images.addMainImage({ main_image_url, item_id })
+	Images.addMainImage({ main_image_url, file_name, item_id })
 		.then((img) => {
 			res.status(201).json(img);
 		})
@@ -53,13 +57,13 @@ router.post('/main_image/:item_id', checkItemImageExists, async (req, res) => {
 //put original main_image by item_id
 router.put('/main_image/:item_id', async (req, res) => {
 	const item_id = req.params.item_id;
-	const [body, contentType, fileName, md5] = await defineParams(req);
+	const [body, content_type, file_name, md5] = await defineParams(req);
 	const upload = new ImageUploader('original_image');
 	const main_image_url = await upload.uploadOriginalImage(
 		item_id,
-		fileName,
+		file_name,
 		body,
-		contentType,
+		content_type,
 		md5
 	);
 	
@@ -88,14 +92,17 @@ router.put('/main_image/:item_id', async (req, res) => {
 });
 
 //delete original unaltered main image from database
-router.delete('/main-image/:item_id', (req, res) => {
+router.delete('/main_image/:item_id', (req, res) => {
 	const item_id = req.params.item_id;
 	Images.removeMainImage(item_id)
 		.then( result => {
-			console.log(result)
-			res
-			.status(200)
-			.json({ message: `The main image for item id ${item_id} has been deleted.` })
+			if (result) {
+				res
+				.status(200)
+				.json({ message: `The main image for item with id ${item_id} has been deleted.` })
+			} else {
+				res.status(400).json({ message: `No main image existed for item with id ${item_id}.` })
+			}
 		})
 		.catch( error => {
 			res
@@ -108,16 +115,16 @@ router.delete('/main-image/:item_id', (req, res) => {
 //post main_image in 5 new sizes
 router.post('/main_image_sizes/:item_id', async (req, res) => {
 	const item_id = req.params.item_id;
-	const [body, contentType, fileName] = await defineParams(req);
+	const [body, content_type, file_name] = await defineParams(req);
 	const upload = new ResizedMainImageUploader('main_image_sizes');
 	const baseUrl = await upload.uploadResizedImages(
 		item_id,
-		fileName,
+		file_name,
 		body,
-		contentType
+		content_type
 	);
 
-	Images.addMainImageSizes(baseUrl, fileName, item_id)
+	Images.addMainImageSizes(baseUrl, file_name, item_id)
 		.then((img) => {
 			res.status(201).json({ ...img });
 		})
@@ -131,16 +138,16 @@ router.post('/main_image_sizes/:item_id', async (req, res) => {
 //post secondary image in 3 sizes, orginal not posted
 router.post('/secondary_images/:item_id', async (req, res) => {
 	const item_id = req.params.item_id;
-	const [body, contentType, fileName] = await defineParams(req);
+	const [body, content_type, file_name] = await defineParams(req);
 	const upload = new SecondaryImagesUploader('secondary_images');
 	const baseUrl = await upload.uploadResizedImages(
 		item_id,
-		fileName,
+		file_name,
 		body,
-		contentType
+		content_type
 	);
 
-	Images.addSecondaryImageSizes(baseUrl, fileName, item_id)
+	Images.addSecondaryImageSizes(baseUrl, file_name, item_id)
 		.then((img) => {
 			res.status(201).json({ ...img });
 		})

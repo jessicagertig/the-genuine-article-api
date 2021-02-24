@@ -10,7 +10,10 @@ function findImageById(id) {
 }
 
 function findMainImageByItemId(item_id) {
-	return db('main_image').where('item_id', item_id).first();
+	return db('main_image')
+		.select('*')
+		.where('item_id', item_id)
+		.first();
 }
 
 async function addMainImage(main_image_info) {
@@ -25,13 +28,13 @@ async function updateMainImage({ main_image_url, item_id }) {
 		.update({ main_image_url });
 }
 
-async function addMainImageSizes(baseUrl, fileName, item_id) {
+async function addMainImageSizes(baseUrl, file_name, item_id) {
 	const fieldsToInsert = {
-		large: `${baseUrl}/large_${fileName}`,
-		display: `${baseUrl}/display_${fileName}`,
-		admin_upload: `${baseUrl}/admin_upload_${fileName}`,
-		small: `${baseUrl}/small_${fileName}`,
-		thumb: `${baseUrl}/thumb_${fileName}`,
+		large: `${baseUrl}/large_${file_name}`,
+		display: `${baseUrl}/display_${file_name}`,
+		admin_upload: `${baseUrl}/admin_upload_${file_name}`,
+		small: `${baseUrl}/small_${file_name}`,
+		thumb: `${baseUrl}/thumb_${file_name}`,
 		item_id: item_id
 	};
 	//todo check for entry with that item_id and overwrite it if exists instead of creating new row
@@ -40,11 +43,11 @@ async function addMainImageSizes(baseUrl, fileName, item_id) {
 		.returning('*');
 }
 
-async function addSecondaryImageSizes(baseUrl, fileName, item_id) {
+async function addSecondaryImageSizes(baseUrl, file_name, item_id) {
 	const fieldsToInsert = {
-		large: `${baseUrl}/large_${fileName}`,
-		small: `${baseUrl}/small_${fileName}`,
-		thumb: `${baseUrl}/thumb_${fileName}`,
+		large: `${baseUrl}/large_${file_name}`,
+		small: `${baseUrl}/small_${file_name}`,
+		thumb: `${baseUrl}/thumb_${file_name}`,
 		item_id: item_id
 	};
 	//todo check for entry with that item_id and overwrite it if exists instead of creating new row
@@ -54,8 +57,11 @@ async function addSecondaryImageSizes(baseUrl, fileName, item_id) {
 }
 
 // eslint-disable-next-line prettier/prettier
-function removeMainImage(item_id){
-	return db('main_image').where({ item_id }).del();
+async function removeMainImage(item_id){
+	console.log('item_id', item_id);
+	return await db('main_image')
+		.where({ item_id })
+		.del(['id', 'file_name', 'item_id']);
 }
 
 module.exports = {
