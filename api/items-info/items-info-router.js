@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const ItemsInfo = require('./items-info-model');
 
-const { catchAsync } = require('../utils/catch-async');
+// const { catchAsync } = require('../utils/catch-async');
 
 //get all items
 router.get('/', (req, res) => {
@@ -128,23 +128,28 @@ router.post('/materials/:item_id', async (req, res) => {
 });
 
 //populate dropdown menus on clientside
-router.get(
-	'/menus',
-	catchAsync(async (req, res) => {
-		const menus = [
-			ItemsInfo.findAllColors(),
-			ItemsInfo.findAllMaterials(),
-			ItemsInfo.findAllGarmentTitles()
-		];
-		// eslint-disable-next-line prettier/prettier
-		const [colors, materials, garment_titles] = await Promise.all(menus);
-		return res.status(200).json({
-			colors,
-			materials,
-			garment_titles
+router.get('/menus', (req, res) => {
+	const menus = [
+		ItemsInfo.findAllColors(),
+		ItemsInfo.findAllMaterials(),
+		ItemsInfo.findAllGarmentTitles()
+	];
+	// eslint-disable-next-line prettier/prettier
+	Promise.all(menus)
+		.catch((error) => {
+			console.log('ERROR', error);
+		})
+		.then((menus) => {
+			const [colors, materials, garment_titles] = menus;
+			res.status(200).json({
+				colors,
+				materials,
+				garment_titles
+			});
 		});
-	})
-);
+});
+//while calling any of these promises individually is successful this combined call errors out with the express error handler
+//if I want to find the reason for the error I may have to create custom error handler for whole application
 
 //get items by color_id
 router.get('/color/:color_id', (req, res) => {
@@ -190,20 +195,20 @@ router.get('/material/:material_id', (req, res) => {
 		});
 });
 
-router.delete('/material/:item_id', (req, res) => {
+router.delete('/color/:item_id', (req, res) => {
 	const item_id = req.params.item_id;
-	const material_id = req.body.material_id;
+	const color_id = req.body.color_id;
 
-	ItemsInfo.removeItemMaterial(item_id, material_id)
-		.then((item_material) => {
-			console.log('item_material', item_material);
-			if (item_material) {
-				res
-					.status(200)
-					.json({ message: 'Garment Material Type Deleted' });
+	ItemsInfo.removeItemMaterial(item_id, color_id)
+		.then((item_color) => {
+			console.log('item_color', item_color);
+			if (item_color) {
+				res.status(200).json({
+					message: `Color with id ${color_id} deleted from record of garment with id ${item_id}.`
+				});
 			} else {
 				res.status(404).json({
-					message: `No record with item_id ${item_id} and material_id ${material_id} exists.`
+					message: `No record with item_id ${item_id} and material_id ${color_id} exists.`
 				});
 			}
 		})

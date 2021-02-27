@@ -14,7 +14,8 @@ module.exports = {
 	addItemInfo,
 	addItemMaterials,
 	addItemColors,
-	removeItemMaterial
+	removeItemMaterial,
+	removeItemColor
 };
 
 function find() {
@@ -117,15 +118,15 @@ function findItemsByMaterialId(material_id) {
 
 //find colors, materials, and garment_titles for dropdown menus (forms and searchs)
 function findAllColors() {
-	return db('colors').select('id', 'color');
+	return db('colors').select('*');
 }
 
 function findAllMaterials() {
-	return db('materials').select('id', 'material');
+	return db('materials').select('*');
 }
 
 function findAllGarmentTitles() {
-	return db('garment_titles').select('garment_title');
+	return db('garment_titles').select('*');
 }
 
 //POST
@@ -166,10 +167,14 @@ function removeItemMaterial(item_id, material_id) {
 		.andWhere({ material_id })
 		.del(['item_id', 'material_id']);
 }
-//post primary-image with item_id
-//post additonal-images with item_id
+
+//Delete Item_Material
+function removeItemColor(item_id, color_id) {
+	return db('item_materials')
+		.where({ item_id })
+		.andWhere({ color_id })
+		.del(['item_id', 'color_id']);
+}
 
 //PUT
 //put item-info
-//put primary-image with item_id
-//put additonal-images with item_id
