@@ -1,33 +1,66 @@
 const router = require('express').Router();
 const ItemsInfo = require('./items-info-model');
 
-// const { catchAsync } = require('../utils/catch-async');
-
 //get all items
 router.get('/', (req, res) => {
 	ItemsInfo.find()
 		.then((items) => {
-			res.json(items);
+			if (items.length > 0) {
+				res.status(200).json(items);
+			} else {
+				res.status(400).json({
+					message: 'There are no items listed. Error on client end.'
+				});
+			}
 		})
 		.catch((error) => {
-			res
-				.status(500)
-				.json({ message: 'Error on server end.', error });
+			res.status(500).json({
+				message: 'Error on server end getting all items.',
+				error
+			});
 		});
 });
 
+//populate dropdown menus on clientside
+router.get('/menus', (req, res) => {
+	const menus = [
+		ItemsInfo.findAllColors(),
+		ItemsInfo.findAllMaterials(),
+		ItemsInfo.findAllGarmentTitles()
+	];
+	// eslint-disable-next-line prettier/prettier
+	Promise.all(menus)
+		.catch((error) => {
+			console.log('Error in retrieving menus.', error);
+		})
+		.then((menus) => {
+			const [colors, materials, garment_titles] = menus;
+			res.status(200).json({
+				colors,
+				materials,
+				garment_titles
+			});
+		});
+});
 //get item by item_id
 router.get('/:item_id', (req, res) => {
-	const id = req.params.item_id;
+	const item_id = req.params.item_id;
 
-	ItemsInfo.findByItemId(id)
-		.then((items) => {
-			res.json(items);
+	ItemsInfo.findByItemId(item_id)
+		.then((item) => {
+			if (item) {
+				res.status(200).json(item);
+			} else {
+				res.status(400).json({
+					message: `No item with id ${item_id} exists. Error on client end.`
+				});
+			}
 		})
 		.catch((error) => {
-			res
-				.status(500)
-				.json({ message: 'Error on server end.', error });
+			res.status(500).json({
+				message: `Error on server end getting item by id ${item_id}.`,
+				error
+			});
 		});
 });
 
@@ -43,16 +76,16 @@ router.get('/colors/:item_id', (req, res) => {
 					.status(200)
 					.json({ item_id: item_id, colors: colors_list });
 			} else {
-				res.status(404).json({
-					message:
-						'No colors have been added for this item. Error on client end.'
+				res.status(400).json({
+					message: `No colors have been added for item with id ${item_id}. Error on client end.`
 				});
 			}
 		})
 		.catch((error) => {
-			res
-				.status(500)
-				.json({ message: 'Error on server end.', error });
+			res.status(500).json({
+				message: `Error on server end getting colors for item with id ${item_id}.`,
+				error
+			});
 		});
 });
 
@@ -72,15 +105,15 @@ router.get('/materials/:item_id', (req, res) => {
 				});
 			} else {
 				res.status(404).json({
-					message:
-						'No materials have been added for this item. Error on client end.'
+					message: `No materials have been added for item with id ${item_id}. Error on client end.`
 				});
 			}
 		})
 		.catch((error) => {
-			res
-				.status(500)
-				.json({ message: 'Error on server end.', error });
+			res.status(500).json({
+				message: `Error on server end getting materials for item with id ${item_id}.`,
+				error
+			});
 		});
 });
 
@@ -91,9 +124,10 @@ router.post('/', async (req, res) => {
 			res.status(201).json(item);
 		})
 		.catch((error) => {
-			res
-				.status(500)
-				.json({ message: 'Error on server end.', error });
+			res.status(500).json({
+				message: 'Error on server end posting a new item.',
+				error
+			});
 		});
 });
 
@@ -106,9 +140,10 @@ router.post('/colors/:item_id', async (req, res) => {
 			res.status(201).json(item);
 		})
 		.catch((error) => {
-			res
-				.status(500)
-				.json({ message: 'Error on server end.', error });
+			res.status(500).json({
+				message: `Error on server end posting colors for item with id ${item_id}.`,
+				error
+			});
 		});
 });
 
@@ -121,35 +156,12 @@ router.post('/materials/:item_id', async (req, res) => {
 			res.status(201).json(item);
 		})
 		.catch((error) => {
-			res
-				.status(500)
-				.json({ message: 'Error on server end.', error });
-		});
-});
-
-//populate dropdown menus on clientside
-router.get('/menus', (req, res) => {
-	const menus = [
-		ItemsInfo.findAllColors(),
-		ItemsInfo.findAllMaterials(),
-		ItemsInfo.findAllGarmentTitles()
-	];
-	// eslint-disable-next-line prettier/prettier
-	Promise.all(menus)
-		.catch((error) => {
-			console.log('ERROR', error);
-		})
-		.then((menus) => {
-			const [colors, materials, garment_titles] = menus;
-			res.status(200).json({
-				colors,
-				materials,
-				garment_titles
+			res.status(500).json({
+				message: `Error on server end posting materials for item with id ${item_id}.`,
+				error
 			});
 		});
 });
-//while calling any of these promises individually is successful this combined call errors out with the express error handler
-//if I want to find the reason for the error I may have to create custom error handler for whole application
 
 //get items by color_id
 router.get('/color/:color_id', (req, res) => {
@@ -160,16 +172,16 @@ router.get('/color/:color_id', (req, res) => {
 			if (items.length > 0) {
 				res.status(200).json(items);
 			} else {
-				res.status(404).json({
-					message:
-						'No items have been added with this color. Error on client end.'
+				res.status(400).json({
+					message: `No items exist which list the color with id ${color_id}. Error on client end.`
 				});
 			}
 		})
 		.catch((error) => {
-			res
-				.status(500)
-				.json({ message: 'Error on server end.', error });
+			res.status(500).json({
+				message: `Error on server end getting all items listing the color with id ${color_id}.`,
+				error
+			});
 		});
 });
 
@@ -182,16 +194,16 @@ router.get('/material/:material_id', (req, res) => {
 			if (items.length > 0) {
 				res.status(200).json(items);
 			} else {
-				res.status(404).json({
-					message:
-						'No items have been added with this material. Error on client end.'
+				res.status(400).json({
+					message: `No items exist which list the material with id ${material_id}. Error on client end.`
 				});
 			}
 		})
 		.catch((error) => {
-			res
-				.status(500)
-				.json({ message: 'Error on server end.', error });
+			res.status(500).json({
+				message: `Error on server end getting all items listing the material with id ${material_id}.`,
+				error
+			});
 		});
 });
 
@@ -207,15 +219,16 @@ router.delete('/color/:item_id', (req, res) => {
 					message: `Color with id ${color_id} deleted from record of garment with id ${item_id}.`
 				});
 			} else {
-				res.status(404).json({
+				res.status(400).json({
 					message: `No record with item_id ${item_id} and material_id ${color_id} exists.`
 				});
 			}
 		})
 		.catch((error) => {
-			res
-				.status(500)
-				.json({ message: 'Error on server end.', error });
+			res.status(500).json({
+				message: `Error on server end deleting color from item with id ${item_id}.`,
+				error
+			});
 		});
 });
 
