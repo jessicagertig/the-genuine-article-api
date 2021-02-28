@@ -24,14 +24,16 @@ router.get('/:item_id', (req, res) => {
 
 	ItemsMaterials.findMaterialsByItemId(item_id)
 		.then((item_materials) => {
+			console.log('item materials', item_materials);
 			if (item_materials.length > 0) {
-				const materials_list = item_materials.map(
-					(material) => material.material
-				);
-				res.status(200).json({
-					item_id: item_id,
-					materials: materials_list
-				});
+				let materials_dict = {};
+				for (let i = 0; i < item_materials.length; i++) {
+					// eslint-disable-next-line prettier/prettier
+				materials_dict[item_materials[i].material] = item_materials[i].material_id;
+				}
+				res
+					.status(200)
+					.json({ item_id: item_id, materials: materials_dict });
 			} else {
 				res.status(400).json({
 					message: `No materials have been added for item with id ${item_id}. Error on client end.`

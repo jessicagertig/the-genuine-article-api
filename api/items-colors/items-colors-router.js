@@ -24,10 +24,14 @@ router.get('/:item_id', (req, res) => {
 	ItemsInfo.findColorsByItemId(item_id)
 		.then((item_colors) => {
 			if (item_colors.length > 0) {
-				const colors_list = item_colors.map((color) => color.color);
+				let colors_dict = {};
+				for (let i = 0; i < item_colors.length; i++) {
+					// eslint-disable-next-line prettier/prettier
+					colors_dict[item_colors[i].color] = item_colors[i].color_id;
+				}
 				res
 					.status(200)
-					.json({ item_id: item_id, colors: colors_list });
+					.json({ item_id: item_id, colors: colors_dict });
 			} else {
 				res.status(400).json({
 					message: `No colors have been added for item with id ${item_id}. Error on client end.`
