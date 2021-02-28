@@ -1,22 +1,28 @@
 const router = require('express').Router();
+const {
+	checkForDuplicateMaterials
+} = require('./item-materials-validation');
 const ItemsMaterials = require('./items-materials-model');
 
 //post item-materials
-//TODO edit model/or create middleware to check for existing entries of a material for an item
-router.post('/:item_id', async (req, res) => {
-	const item_id = req.params.item_id;
-	console.log('req.body', req.body.fields);
-	ItemsMaterials.addItemMaterials(item_id, req.body.fields)
-		.then((item) => {
-			res.status(201).json(item);
-		})
-		.catch((error) => {
-			res.status(500).json({
-				message: `Error on server end posting materials for item with id ${item_id}.`,
-				error
+router.post(
+	'/:item_id',
+	checkForDuplicateMaterials,
+	async (req, res) => {
+		const item_id = req.params.item_id;
+		console.log('req.body', req.body.fields);
+		ItemsMaterials.addItemMaterials(item_id, req.body.fields)
+			.then((item) => {
+				res.status(201).json(item);
+			})
+			.catch((error) => {
+				res.status(500).json({
+					message: `Error on server end posting materials for item with id ${item_id}.`,
+					error
+				});
 			});
-		});
-});
+	}
+);
 
 //get item materials by item_id
 router.get('/:item_id', (req, res) => {

@@ -1,21 +1,28 @@
 const router = require('express').Router();
 const ItemsInfo = require('./items-colors-model');
+const {
+	checkForDuplicateColors
+} = require('./items-colors-validation');
 
 //post item-colors
-router.post('/:item_id', async (req, res) => {
-	const item_id = req.params.item_id;
-	console.log('req.body', req.body.fields);
-	ItemsInfo.addItemColors(item_id, req.body.fields)
-		.then((item) => {
-			res.status(201).json(item);
-		})
-		.catch((error) => {
-			res.status(500).json({
-				message: `Error on server end posting colors for item with id ${item_id}.`,
-				error
+router.post(
+	'/:item_id',
+	checkForDuplicateColors,
+	async (req, res) => {
+		const item_id = req.params.item_id;
+		console.log('req.body', req.body.fields);
+		ItemsInfo.addItemColors(item_id, req.body.fields)
+			.then((item) => {
+				res.status(201).json(item);
+			})
+			.catch((error) => {
+				res.status(500).json({
+					message: `Error on server end posting colors for item with id ${item_id}.`,
+					error
+				});
 			});
-		});
-});
+	}
+);
 
 //get item colors by item_id
 router.get('/:item_id', (req, res) => {
@@ -23,6 +30,7 @@ router.get('/:item_id', (req, res) => {
 
 	ItemsInfo.findColorsByItemId(item_id)
 		.then((item_colors) => {
+			console.log('item_colors', item_colors);
 			if (item_colors.length > 0) {
 				let colors_dict = {};
 				for (let i = 0; i < item_colors.length; i++) {
