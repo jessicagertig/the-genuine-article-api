@@ -2,7 +2,7 @@ const router = require('express').Router();
 const ItemsInfo = require('./items-colors-model');
 
 //post item-colors
-router.post('/items_colors/:item_id', async (req, res) => {
+router.post('/:item_id', async (req, res) => {
 	const item_id = req.params.item_id;
 	console.log('req.body', req.body.fields);
 	ItemsInfo.addItemColors(item_id, req.body.fields)
@@ -18,7 +18,7 @@ router.post('/items_colors/:item_id', async (req, res) => {
 });
 
 //get item colors by item_id
-router.get('/items_colors/:item_id', (req, res) => {
+router.get('/:item_id', (req, res) => {
 	const item_id = req.params.item_id;
 
 	ItemsInfo.findColorsByItemId(item_id)
@@ -43,7 +43,7 @@ router.get('/items_colors/:item_id', (req, res) => {
 });
 
 //get items by color_id
-router.get('/items_colors/color/:color_id', (req, res) => {
+router.get('/color/:color_id', (req, res) => {
 	const color_id = req.params.color_id;
 
 	ItemsInfo.findItemsByColorId(color_id)
@@ -65,14 +65,14 @@ router.get('/items_colors/color/:color_id', (req, res) => {
 });
 
 //delete item color by item_id and color_id
-router.delete('/items_colors/:item_id', (req, res) => {
+router.delete('/:item_id', (req, res) => {
 	const item_id = req.params.item_id;
 	const color_id = req.body.color_id;
 
 	ItemsInfo.removeItemColor(item_id, color_id)
 		.then((item_color) => {
 			console.log('item_color', item_color);
-			if (item_color) {
+			if (item_color.length > 0) {
 				res.status(200).json({
 					message: `Color with id ${color_id} deleted from record of garment with id ${item_id}.`
 				});
