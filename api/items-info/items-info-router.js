@@ -21,7 +21,7 @@ router.get('/', (req, res) => {
 		});
 });
 
-//populate dropdown menus on clientside
+//get menus, populate dropdown menus on clientside
 router.get('/menus', (req, res) => {
 	const menus = [
 		ItemsInfo.findAllColors(),
@@ -42,6 +42,7 @@ router.get('/menus', (req, res) => {
 			});
 		});
 });
+
 //get item by item_id
 router.get('/:item_id', (req, res) => {
 	const item_id = req.params.item_id;
@@ -64,34 +65,6 @@ router.get('/:item_id', (req, res) => {
 		});
 });
 
-//get item materials by item_id
-router.get('/materials/:item_id', (req, res) => {
-	const item_id = req.params.item_id;
-
-	ItemsInfo.findMaterialsByItemId(item_id)
-		.then((item_materials) => {
-			if (item_materials.length > 0) {
-				const materials_list = item_materials.map(
-					(material) => material.material
-				);
-				res.status(200).json({
-					item_id: item_id,
-					materials: materials_list
-				});
-			} else {
-				res.status(404).json({
-					message: `No materials have been added for item with id ${item_id}. Error on client end.`
-				});
-			}
-		})
-		.catch((error) => {
-			res.status(500).json({
-				message: `Error on server end getting materials for item with id ${item_id}.`,
-				error
-			});
-		});
-});
-
 //post item-info, return item info incluing newly created id
 router.post('/', async (req, res) => {
 	ItemsInfo.addItemInfo(req.body)
@@ -101,69 +74,6 @@ router.post('/', async (req, res) => {
 		.catch((error) => {
 			res.status(500).json({
 				message: 'Error on server end posting a new item.',
-				error
-			});
-		});
-});
-
-//post item-materials
-router.post('/materials/:item_id', async (req, res) => {
-	const item_id = req.params.item_id;
-	console.log('req.body', req.body.fields);
-	ItemsInfo.addItemMaterials(item_id, req.body.fields)
-		.then((item) => {
-			res.status(201).json(item);
-		})
-		.catch((error) => {
-			res.status(500).json({
-				message: `Error on server end posting materials for item with id ${item_id}.`,
-				error
-			});
-		});
-});
-
-//get items by material_id
-router.get('/materials/:material_id', (req, res) => {
-	const material_id = req.params.material_id;
-
-	ItemsInfo.findItemsByMaterialId(material_id)
-		.then((items) => {
-			if (items.length > 0) {
-				res.status(200).json(items);
-			} else {
-				res.status(400).json({
-					message: `No items exist which list the material with id ${material_id}. Error on client end.`
-				});
-			}
-		})
-		.catch((error) => {
-			res.status(500).json({
-				message: `Error on server end getting all items listing the material with id ${material_id}.`,
-				error
-			});
-		});
-});
-
-router.delete('/color/:item_id', (req, res) => {
-	const item_id = req.params.item_id;
-	const color_id = req.body.color_id;
-
-	ItemsInfo.removeItemMaterial(item_id, color_id)
-		.then((item_color) => {
-			console.log('item_color', item_color);
-			if (item_color) {
-				res.status(200).json({
-					message: `Color with id ${color_id} deleted from record of garment with id ${item_id}.`
-				});
-			} else {
-				res.status(400).json({
-					message: `No record with item_id ${item_id} and material_id ${color_id} exists.`
-				});
-			}
-		})
-		.catch((error) => {
-			res.status(500).json({
-				message: `Error on server end deleting color from item with id ${item_id}.`,
 				error
 			});
 		});

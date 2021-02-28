@@ -11,6 +11,7 @@ const authRouter = require('./auth/auth-router');
 const itemsInfoRouter = require('./items-info/items-info-router');
 const itemsImagesRouter = require('./items-images/items-images-router');
 const itemsColorsRouter = require('./items-colors/items-colors-router');
+const itemsMaterialsRouter = require('./items-materials/items-materials-router');
 
 // ----- Set up server ------
 const server = express();
@@ -26,6 +27,7 @@ server.use('/', authRouter);
 server.use('/items', itemsInfoRouter);
 server.use('/images', itemsImagesRouter);
 server.use('/items_colors', itemsColorsRouter);
+server.use('/items_materials', itemsMaterialsRouter);
 
 // ---- Testing If Server is Live ----
 server.get('/', (req, res) => {
