@@ -55,7 +55,7 @@ function addItemColors(item_id, color_fields) {
 
 //Delete Item_Color
 function removeItemColor(item_id, color_id) {
-	return db('item_materials')
+	return db('item_colors')
 		.where({ item_id })
 		.andWhere({ color_id })
 		.del(['item_id', 'color_id']);
