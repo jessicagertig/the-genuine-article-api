@@ -18,6 +18,7 @@ const checkForDuplicateMaterials = async (req, res, next) => {
 				res.status(400).json({
 					message: `Duplicate material. Please remove the material ${incoming[i].material} and try again.`
 				});
+				break;
 			}
 		}
 		if (duplicate === false) {

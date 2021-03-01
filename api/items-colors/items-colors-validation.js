@@ -16,6 +16,7 @@ const checkForDuplicateColors = async (req, res, next) => {
 				res.status(400).json({
 					message: `Duplicate color. Please remove the color ${incoming[i].color} and try again.`
 				});
+				break;
 			}
 		}
 		if (duplicate === false) {
