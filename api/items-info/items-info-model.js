@@ -2,8 +2,9 @@ const db = require('../../database/db-config');
 
 module.exports = {
 	find,
-	findBy,
 	findByItemId,
+	findByCollectionUrl,
+	findByCollectionNo,
 	findAllColors,
 	findAllMaterials,
 	findAllGarmentTitles,
@@ -30,14 +31,20 @@ function find() {
 		)
 		.orderBy('begin_year');
 }
-//findBy(filter)
-function findBy(filter) {
-	return db('items').where(filter);
-}
 
 //findItemById
 function findByItemId(id) {
 	return db('items').where({ id }).first();
+}
+
+//findBy(filter)
+function findByCollectionUrl(collection_url) {
+	return db('items').where({ collection_url }).first();
+}
+
+//function find by item collection no
+function findByCollectionNo(item_collection_no) {
+	return db('items').where({ item_collection_no }).first();
 }
 
 //find colors, materials, and garment_titles for dropdown menus (forms and searchs)
