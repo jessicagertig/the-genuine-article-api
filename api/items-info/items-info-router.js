@@ -1,4 +1,5 @@
 const router = require('express').Router();
+const { checkForDuplicateItem } = require('./items-info-middleware');
 const ItemsInfo = require('./items-info-model');
 
 //get all items
@@ -66,7 +67,7 @@ router.get('/:item_id', (req, res) => {
 });
 
 //post item-info, return item info incluing newly created id
-router.post('/', async (req, res) => {
+router.post('/', checkForDuplicateItem, async (req, res) => {
 	ItemsInfo.addItemInfo(req.body)
 		.then((item) => {
 			res.status(201).json(item);
