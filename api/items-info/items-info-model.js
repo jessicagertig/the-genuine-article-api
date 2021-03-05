@@ -8,7 +8,8 @@ module.exports = {
 	findAllColors,
 	findAllMaterials,
 	findAllGarmentTitles,
-	addItemInfo
+	addItemInfo,
+	updateItemInfo
 };
 
 function find() {
@@ -37,7 +38,7 @@ function findByItemId(id) {
 	return db('items').where({ id }).first();
 }
 
-//findBy(filter)
+//find by collection  url
 function findByCollectionUrl(collection_url) {
 	return db('items').where({ collection_url }).first();
 }
@@ -70,6 +71,13 @@ async function addItemInfo(item) {
 
 //PUT
 //put item-info
+async function updateItemInfo(item_id, data) {
+	return await db('items')
+		.where('item_id', item_id)
+		.first()
+		.update(data)
+		.returning('*');
+}
 
 //Delete
 //Delete item
