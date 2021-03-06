@@ -80,4 +80,31 @@ router.post('/', checkForDuplicateItem, async (req, res) => {
 		});
 });
 
+//put item-info
+router.put('/:item_id', async (req, res) => {
+	const item_id = req.params.item_id;
+	const data = req.body;
+
+	try {
+		const item_info = await ItemsInfo.findByItemId(item_id);
+		console.log('item info', item_info);
+		if (item_info !== undefined) {
+			const edited_item = await ItemsInfo.updateItemInfo(
+				data,
+				item_id
+			);
+			res.status(200).json(edited_item[0]);
+		} else {
+			res.status(400).json({
+				message: `No item with id ${item_id} exists. Error on client end.`
+			});
+		}
+	} catch (error) {
+		res.status(500).json({
+			message: `Error on server end updating item by id ${item_id}.`,
+			error
+		});
+	}
+});
+
 module.exports = router;

@@ -71,10 +71,10 @@ async function addItemInfo(item) {
 
 //PUT
 //put item-info
-async function updateItemInfo(item_id, data) {
+async function updateItemInfo(data, item_id) {
 	return await db('items')
-		.where('item_id', item_id)
-		.first()
+		.where('id', item_id)
+		.first({})
 		.update(data)
 		.returning('*');
 }
