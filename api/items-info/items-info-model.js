@@ -30,7 +30,7 @@ function find() {
 			'item_collection_no',
 			'description'
 		)
-		.orderBy('begin_year');
+		.orderBy('id');
 }
 
 //findItemById

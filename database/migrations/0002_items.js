@@ -17,7 +17,6 @@ exports.up = async function (knex) {
 		tbl.string('source', 255);
 		tbl.string('item_collection_no', 255).unique();
 		tbl.text('description');
-		tbl.timestamp('created_at', { useTz: true });
 	});
 };
 
