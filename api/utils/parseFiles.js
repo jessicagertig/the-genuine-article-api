@@ -1,5 +1,5 @@
 const { IncomingForm } = require('formidable');
-const fs = require('fs/promises');
+const fs = require('fs').promises;
 
 const parseFormData = async (req) => {
 	return await new Promise((resolve, reject) => {
