@@ -47,7 +47,8 @@ function addItemMaterials(item_id, material_fields) {
 	//such as { 'fields': [{'id': 2, 'color': 'red'}, {'id': 6, 'color': turquoise}] }
 	const fieldsToInsert = material_fields.map((material_field) => ({
 		item_id: item_id,
-		material_id: material_field.id //how is this data going to come from frontend?
+		material_id: material_field.id, //how is this data going to come from frontend?
+		material: material_field.material
 	}));
 	//fieldsToInsert needs to be an array of objects, via knex, postgresql will then insert each object as separate row
 	return db('item_materials').insert(fieldsToInsert).returning('*');
@@ -58,5 +59,5 @@ function removeItemMaterial(item_id, material_id) {
 	return db('item_materials')
 		.where({ item_id })
 		.andWhere({ material_id })
-		.del(['item_id', 'material_id']);
+		.del(['item_id', 'material_id', 'material']);
 }
