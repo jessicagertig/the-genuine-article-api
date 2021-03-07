@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 const router = require('express').Router();
 const { checkForDuplicateItem } = require('./items-info-middleware');
 const ItemsInfo = require('./items-info-model');
@@ -30,18 +31,17 @@ router.get('/', async (req, res) => {
 		let result = [];
 		if (item_info) {
 			for (let i = 0; i < item_info.length; i++) {
-				let id = item_info[i].id;
 				//iterate over each item found
 				let info = item_info[i];
 				//create list of colors
-				let colors = await Colors.findColorsByItemId(id);
+				let colors = await Colors.findColorsByItemId(item_info[i].id);
 				if (colors.length > 0) {
 					colors = colors.map((color) => color.color);
 				} else {
 					colors = false;
 				}
 				//create list of materials
-				let materials = await Materials.findMaterialsByItemId(id);
+				let materials = await Materials.findMaterialsByItemId(item_info[i].id);
 				if (materials.length > 0) {
 					materials = materials.map((material) => material.material);
 				} else {
@@ -52,18 +52,14 @@ router.get('/', async (req, res) => {
 					info['colors'] = colors;
 					info['materials'] = materials;
 				} else if (!colors && materials) {
-					info['colors'] =
-						'There are no materials listed for this item.';
+					info['colors'] = 'There are no materials listed for this item.';
 					info['materials'] = materials;
 				} else if (colors && !materials) {
 					info['colors'] = colors;
-					info['materials'] =
-						'There are no materials listed for this item.';
+					info['materials'] = 'There are no materials listed for this item.';
 				} else if (!colors && !materials) {
-					info['colors'] =
-						'There are no colors listed for this item.';
-					info['materials'] =
-						'There are no materials listed for this item.';
+					info['colors'] = 'There are no colors listed for this item.';
+					info['materials'] = 'There are no materials listed for this item.';
 				}
 				result.push(info);
 			}
