@@ -1,6 +1,9 @@
+/* eslint-disable prettier/prettier */
 const router = require('express').Router();
 const { checkForDuplicateItem } = require('./items-info-middleware');
 const ItemsInfo = require('./items-info-model');
+const Colors = require('../items-colors/items-colors-model');
+const Materials = require('../items-materials/items-materials-model');
 
 //get all items with basic info
 router.get('/info', (req, res) => {
@@ -20,6 +23,58 @@ router.get('/info', (req, res) => {
 				error
 			});
 		});
+});
+
+router.get('/', async (req, res) => {
+	try {
+		const item_info = await ItemsInfo.find();
+		let result = [];
+		if (item_info) {
+			for (let i = 0; i < item_info.length; i++) {
+				//iterate over each item found
+				let info = item_info[i];
+				//create list of colors
+				let colors = await Colors.findColorsByItemId(item_info[i].id);
+				if (colors.length > 0) {
+					colors = colors.map((color) => color.color);
+				} else {
+					colors = false;
+				}
+				//create list of materials
+				let materials = await Materials.findMaterialsByItemId(item_info[i].id);
+				if (materials.length > 0) {
+					materials = materials.map((material) => material.material);
+				} else {
+					materials = false;
+				}
+				//determine result messages based on if any colors or materials are listed, later attempt to ensure they are always listed
+				if (colors && materials) {
+					info['colors'] = colors;
+					info['materials'] = materials;
+				} else if (!colors && materials) {
+					info['colors'] = 'There are no materials listed for this item.';
+					info['materials'] = materials;
+				} else if (colors && !materials) {
+					info['colors'] = colors;
+					info['materials'] = 'There are no materials listed for this item.';
+				} else if (!colors && !materials) {
+					info['colors'] = 'There are no colors listed for this item.';
+					info['materials'] = 'There are no materials listed for this item.';
+				}
+				result.push(info);
+			}
+			res.status(200).json(result);
+		} else {
+			res.status(400).json({
+				message: 'There are no items listed. Error on client end.'
+			});
+		}
+	} catch (error) {
+		res.status(500).json({
+			message: 'Error on server end getting all items.',
+			error
+		});
+	}
 });
 
 //get menus, populate dropdown menus on clientside
