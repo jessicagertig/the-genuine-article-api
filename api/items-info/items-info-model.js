@@ -5,9 +5,6 @@ module.exports = {
 	findByItemId,
 	findByCollectionUrl,
 	findByCollectionNo,
-	findAllColors,
-	findAllMaterials,
-	findAllGarmentTitles,
 	addItemInfo,
 	updateItemInfo
 };
@@ -46,19 +43,6 @@ function findByCollectionUrl(collection_url) {
 //function find by item collection no
 function findByCollectionNo(item_collection_no) {
 	return db('items').where({ item_collection_no }).first();
-}
-
-//find colors, materials, and garment_titles for dropdown menus (forms and searchs)
-function findAllColors() {
-	return db('colors').select('*');
-}
-
-function findAllMaterials() {
-	return db('materials').select('*');
-}
-
-function findAllGarmentTitles() {
-	return db('garment_titles').select('*');
 }
 
 //POST
