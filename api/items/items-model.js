@@ -1,66 +1,59 @@
 const db = require('../../database/db-config');
 
 module.exports = {
-	findItems,
+	findAllColors,
+	findAllMaterials,
+	findAllGarmentTitles,
 	createItem
 };
 
-function findItems() {
-	return db('items')
-		.select(
-			'id',
-			'garment_title',
-			'garment_type',
-			'begin_year',
-			'end_year',
-			'decade',
-			'secondary_decade',
-			'culture_country',
-			'collection',
-			'collection_url',
-			'creator',
-			'source',
-			'item_collection_no',
-			'description'
-		)
-		.orderBy('id');
+//find colors, materials, and garment_titles for dropdown menus (forms and searchs)
+function findAllColors() {
+	return db('colors').select('*');
+}
+
+function findAllMaterials() {
+	return db('materials').select('*');
+}
+
+function findAllGarmentTitles() {
+	return db('garment_titles').select('*');
 }
 
 async function createItem(item_info, item_colors, item_materials) {
 	return db.transaction((trx) => {
 		return db('items')
-			.transacting(trx)
 			.insert(item_info)
+			.transacting(trx)
 			.returning('id')
 			.then((res) => {
-				const item_id = res.id[0];
+				console.log('ID', res[0]);
+				const item_id = res[0];
 				const colorFieldsToInsert = item_colors.map(
 					(item_color) => ({
 						item_id: item_id,
-						color_id: item_color.id, //how is this data going to come from frontend?
+						color_id: item_color.color_id, //how is this data going to come from frontend?
 						color: item_color.color
 					})
 				);
-
-				return db('colors')
-					.transacting(trx)
+				return db('item_colors')
 					.insert(colorFieldsToInsert)
-					.returning(item_id);
+					.transacting(trx)
+					.returning('item_id');
 			})
 			.then((res) => {
-				const item_id = res.item_id[0];
+				const item_id = res[0];
 				const materialFieldsToInsert = item_materials.map(
 					(item_material) => ({
 						item_id: item_id,
-						material_id: item_material.id, //how is this data going to come from frontend?
+						material_id: item_material.material_id, //how is this data going to come from frontend?
 						material: item_material.material
 					})
 				);
-
-				return db('materials')
-					.transacting(trx)
+				console.log('materials to insert', materialFieldsToInsert);
+				return db('item_materials')
 					.insert(materialFieldsToInsert)
-					.returning('*');
+					.transacting(trx); //todo try and return something better!
 			})
 			.then(trx.commit)
 			.catch(trx.rollback);
