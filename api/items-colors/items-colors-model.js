@@ -1,19 +1,10 @@
 const db = require('../../database/db-config');
 
 module.exports = {
-	findColorsByItemId,
 	findItemsByColorId,
 	addItemColors,
 	removeItemColor
 };
-
-//findColorsByItemId
-function findColorsByItemId(item_id) {
-	return db('item_colors as ic')
-		.select('ic.item_id', 'ic.color_id', 'colors.color')
-		.join('colors', 'ic.color_id', 'colors.id')
-		.where('item_id', item_id);
-}
 
 //findItemsByColorId
 function findItemsByColorId(color_id) {
