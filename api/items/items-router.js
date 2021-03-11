@@ -55,6 +55,7 @@ router.get('/', async (req, res) => {
 });
 
 //get menus, populate dropdown menus on clientside
+//deal properly with error handling?  Are menu sizes worth using async?
 router.get('/menus', (req, res) => {
 	const menus = [
 		ItemsInfo.findAllColors(),
@@ -84,7 +85,7 @@ router.post('/', async (req, res) => {
 			req.body.item_colors,
 			req.body.item_materials
 		);
-		return res.status(201).json(newItem);
+		return res.status(201).json({newItem});
 	} catch (error) {
 		return res
 			.status(500)
