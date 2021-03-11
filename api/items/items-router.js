@@ -54,6 +54,21 @@ router.get('/', async (req, res) => {
 	}
 });
 
+//get item by item id
+router.get('/:item_id', async (req, res) => {
+	const item_id = req.params.item_id;
+	
+	try {
+		const item = await Items.findItemById(item_id);
+
+		return res.status(200).json(item)
+	} catch (error) {
+		res
+		.status(500)
+		.json({ Message: `Error retriveing item with id ${item_id}.`, error });
+	}
+})
+
 //get menus, populate dropdown menus on clientside
 //deal properly with error handling?  Are menu sizes worth using async?
 router.get('/menus', (req, res) => {
@@ -85,7 +100,8 @@ router.post('/', async (req, res) => {
 			req.body.item_colors,
 			req.body.item_materials
 		);
-		return res.status(201).json({newItem});
+		console.log('NEW', newItem)
+		return res.status(201).json(newItem);
 	} catch (error) {
 		return res
 			.status(500)
