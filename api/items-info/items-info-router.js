@@ -4,7 +4,7 @@ const { checkForDuplicateItem } = require('./items-info-middleware');
 const ItemsInfo = require('./items-info-model');
 
 //get all items with basic info
-router.get('/info', (req, res) => {
+router.get('/', (req, res) => {
 	ItemsInfo.find()
 		.then((items) => {
 			if (items.length > 0) {
