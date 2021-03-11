@@ -4,6 +4,10 @@ module.exports = {
 	findAllColors,
 	findAllMaterials,
 	findAllGarmentTitles,
+	findColorsByItemId,
+	findMaterialsByItemId,
+	findInfoById,
+	findItemById,
 	createItem
 };
 
@@ -18,6 +22,43 @@ function findAllMaterials() {
 
 function findAllGarmentTitles() {
 	return db('garment_titles').select('*');
+}
+
+//findColorsByItemId
+function findColorsByItemId(item_id) {
+	return db('item_colors as ic')
+		.select('ic.item_id', 'ic.color_id', 'colors.color')
+		.join('colors', 'ic.color_id', 'colors.id')
+		.where('item_id', item_id);
+}
+
+//findMaterialsByItemId
+function findMaterialsByItemId(item_id) {
+	return db('item_materials as im')
+		.select('im.item_id', 'im.material_id', 'materials.material')
+		.join('materials', 'im.material_id', 'materials.id')
+		.where('item_id', item_id);
+}
+
+//findInfoById
+function findInfoById(id) {
+	return db('items').where({ id }).first();
+}
+
+//findItemById
+async function findItemById(id) {
+	const info = await findInfoById(id);
+	const colors = await findColorsByItemId(id);
+	const materials = await findMaterialsByItemId(id);
+	console.log('info', info);
+	console.log('colors', colors);
+	console.log('materials', materials);
+	const returned = {
+		info,
+		colors,
+		materials
+	};
+	return returned;
 }
 
 async function createItem(item_info, item_colors, item_materials) {
@@ -53,7 +94,11 @@ async function createItem(item_info, item_colors, item_materials) {
 				console.log('materials to insert', materialFieldsToInsert);
 				return db('item_materials')
 					.insert(materialFieldsToInsert)
-					.transacting(trx); //todo try and return something better!
+					.transacting(trx) //todo try and return something better!
+					.returning(item_id)
+					.then((res) => {
+						return res[0];
+					});
 			})
 			.then(trx.commit)
 			.catch(trx.rollback);
