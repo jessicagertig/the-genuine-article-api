@@ -9,6 +9,7 @@ const helmet = require('helmet');
 // ----- Router Imports -----
 const authRouter = require('./auth/auth-router');
 const itemsRouter = require('./items/items-router');
+const itemsInfoRouter = require('./items-info/items-info-router');
 const itemsImagesRouter = require('./items-images/items-images-router');
 const itemsColorsRouter = require('./items-colors/items-colors-router');
 const itemsMaterialsRouter = require('./items-materials/items-materials-router');
@@ -24,6 +25,7 @@ server.use(logger('dev'));
 
 // ------- Routers --------
 server.use('/', authRouter);
+server.use('/info', itemsInfoRouter); //use for dev at the moment
 server.use('/items', itemsRouter);
 server.use('/images', itemsImagesRouter);
 server.use('/items_colors', itemsColorsRouter);
