@@ -1,19 +1,10 @@
 const db = require('../../database/db-config');
 
 module.exports = {
-	findMaterialsByItemId,
 	findItemsByMaterialId,
 	addItemMaterials,
 	removeItemMaterial
 };
-
-//findMaterialsByItemId
-function findMaterialsByItemId(item_id) {
-	return db('item_materials as im')
-		.select('im.item_id', 'im.material_id', 'materials.material')
-		.join('materials', 'im.material_id', 'materials.id')
-		.where('item_id', item_id);
-}
 
 //findItemsByMaterialId
 function findItemsByMaterialId(material_id) {
