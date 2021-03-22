@@ -2,28 +2,28 @@ const db = require('../../database/db-config');
 
 //find
 function find() {
-	return db('main_image').select('*').orderBy('id');
+	return db('main_images').select('*').orderBy('id');
 }
 
 function findImageById(id) {
-	return db('main_image').where({ id }).first();
+	return db('main_images').where({ id }).first();
 }
 
 function findMainImageByItemId(item_id) {
-	return db('main_image')
+	return db('main_images')
 		.select('*')
 		.where('item_id', item_id)
 		.first();
 }
 
 async function addMainImage(main_image_info) {
-	const [id] = await db('main_image').insert(main_image_info, 'id');
+	const [id] = await db('main_images').insert(main_image_info, 'id');
 
 	return findImageById(id);
 }
 
 async function updateMainImage({ main_image_url, item_id }) {
-	return db('main_image')
+	return db('main_images')
 		.where({ item_id })
 		.update({ main_image_url });
 }
@@ -59,7 +59,7 @@ async function addSecondaryImageSizes(baseUrl, file_name, item_id) {
 // eslint-disable-next-line prettier/prettier
 async function removeMainImage(item_id){
 	console.log('item_id', item_id);
-	return await db('main_image')
+	return await db('main_images')
 		.where({ item_id })
 		.del(['id', 'file_name', 'item_id']);
 }
