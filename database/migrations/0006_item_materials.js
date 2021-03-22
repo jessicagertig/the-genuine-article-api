@@ -12,7 +12,6 @@ exports.up = async function (knex) {
 			.inTable('materials')
 			.onDelete('cascade')
 			.onUpdate('cascade');
-		tbl.string('material', 255).notNullable();
 	});
 };
 
