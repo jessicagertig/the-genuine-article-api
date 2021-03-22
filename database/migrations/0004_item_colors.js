@@ -12,7 +12,6 @@ exports.up = async function (knex) {
 			.inTable('colors')
 			.onDelete('cascade')
 			.onUpdate('cascade');
-		tbl.string('color', 255).notNullable();
 	});
 };
 
