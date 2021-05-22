@@ -89,7 +89,7 @@ async function createItem(item_info, item_colors, item_materials) {
         return db('item_materials')
           .insert(materialFieldsToInsert)
           .transacting(trx)
-          .returning(item_id) //todo try and return something better!
+          .returning(item_id)
           .then((res) => {
             const item = {
               item_id: res[0],
