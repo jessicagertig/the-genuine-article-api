@@ -50,9 +50,6 @@ async function findItemById(id) {
   const info = await findInfoById(id)
   const colors = await findColorsByItemId(id)
   const materials = await findMaterialsByItemId(id)
-  console.log('info', info)
-  console.log('colors', colors)
-  console.log('materials', materials)
   const returned = {
     info,
     colors,
@@ -68,37 +65,41 @@ async function createItem(item_info, item_colors, item_materials) {
       .transacting(trx)
       .returning('id')
       .then((res) => {
-        console.log('ID', res[0])
         const item_id = res[0]
         const colorFieldsToInsert = item_colors.map(
           (item_color) => ({
             item_id: item_id,
-            color_id: item_color.color_id, //how is this data going to come from frontend?
-            color: item_color.color
+            color_id: item_color.color_id //how is this data going to come from frontend?
           })
         )
-        console.log('colors to insert', colorFieldsToInsert)
         return db('item_colors')
           .insert(colorFieldsToInsert)
           .transacting(trx)
-          .returning('item_id')
+          .returning(['item_id', 'color_id'])
       })
       .then((res) => {
-        const item_id = res[0]
+        const item_id = res[0].item_id
+        const color_ids = res.map((color) => color.color_id)
         const materialFieldsToInsert = item_materials.map(
           (item_material) => ({
             item_id: item_id,
-            material_id: item_material.material_id, //how is this data going to come from frontend?
-            material: item_material.material
+            material_id: item_material.material_id //how is this data going to come from frontend?
           })
         )
-        console.log('materials to insert', materialFieldsToInsert)
         return db('item_materials')
           .insert(materialFieldsToInsert)
-          .transacting(trx) //todo try and return something better!
-          .returning(item_id)
+          .transacting(trx)
+          .returning(item_id) //todo try and return something better!
           .then((res) => {
-            return res[0]
+            const item = {
+              item_id: res[0],
+              item_info: item_info,
+              color_ids: color_ids,
+              material_ids: materialFieldsToInsert.map(
+                (material) => material.material_id
+              )
+            }
+            return item
           })
       })
       .then(trx.commit)
