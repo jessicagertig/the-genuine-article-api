@@ -1,0 +1,9 @@
+{
+  "editor.detectIndentation": false,
+  "prettier.configPath": "/Users/jessica/Documents/TheGenuineArticleAPI/.prettierrc.js",
+  "prettier.jsxSingleQuote": true,
+  "prettier.requireConfig": true,
+  "prettier.singleQuote": true,
+  "prettier.semi": false,
+  "editor.tabSize": 2
+}
