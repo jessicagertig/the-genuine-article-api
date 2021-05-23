@@ -3,8 +3,7 @@ const Items = require('../items/items-model')
 const checkForDuplicateMaterials = async (req, res, next) => {
   const item_id = req.params.item_id
   let duplicate = false
-  // eslint-disable-next-line prettier/prettier
-  const currentMaterials = await Items.findMaterialsByItemId(item_id);
+  const currentMaterials = await Items.findMaterialsByItemId(item_id)
 
   if (currentMaterials.length > 0) {
     const material_ids = currentMaterials.map(

@@ -32,7 +32,7 @@ function findItemsByMaterialId(material_id) {
     .where('material_id', material_id)
 }
 
-//post item-materials with item_id
+//put item-materials with item_id --> for editing materials after initial entry
 function addItemMaterials(item_id, material_fields) {
   //color_fields should be an object containing an array of objects named fields (json format)
   //such as { 'fields': [{'id': 2, 'color': 'red'}, {'id': 6, 'color': turquoise}] }
@@ -44,7 +44,7 @@ function addItemMaterials(item_id, material_fields) {
   return db('item_materials').insert(fieldsToInsert).returning('*')
 }
 
-//Delete Item_Material
+//Delete Item_Material --> for editing item materials after initial post
 function removeItemMaterial(item_id, material_id) {
   return db('item_materials')
     .where({ item_id })

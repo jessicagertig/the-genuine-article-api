@@ -32,19 +32,19 @@ function findItemsByColorId(color_id) {
     .where('color_id', color_id)
 }
 
-//post item-colors with item_id
+//For editing Item colors after initial entry
 function addItemColors(item_id, color_fields) {
   //color_fields should be an object containing an array of objects named fields (json format)
   //such as { 'fields': [{'id': 2, 'color': 'red'}, {'id': 6, 'color': turquoise}] }
   const fieldsToInsert = color_fields.map((color_field) => ({
     item_id: item_id,
-    color_id: color_field.id //how is this data going to come from frontend?=
+    color_id: color_field.id //how is this data going to come from frontend?
   }))
   //fieldsToInsert needs to be an array of objects, via knex, postgresql will then insert each object as separate row
   return db('item_colors').insert(fieldsToInsert).returning('*')
 }
 
-//Delete Item_Color
+//Delete Item_Color --> for editing item colors after initial entry
 function removeItemColor(item_id, color_id) {
   return db('item_colors')
     .where({ item_id })
