@@ -1,8 +1,8 @@
-const Items = require('./items-info-model')
+const Items = require('./items-model')
 
 const checkForDuplicateItem = async (req, res, next) => {
-  const new_collection_url = req.body.collection_url
-  const new_collection_no = req.body.item_collection_no
+  const new_collection_url = req.body.item_info.collection_url
+  const new_collection_no = req.body.item_info.item_collection_no
 
   const existing_url = await Items.findByCollectionUrl(
     new_collection_url

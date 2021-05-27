@@ -4,11 +4,14 @@ const Materials = require('../items-materials/items-materials-model')
 
 module.exports = {
   findAllGarmentTitles,
+  findByCollectionUrl,
+  findByCollectionNo,
   getAllItems,
   findAllItemsInfo,
   findInfoById,
   findItemById,
-  createItem
+  createItem,
+  updateItemInfo
 }
 
 //finds all items (excluding colors and materials)
@@ -33,9 +36,19 @@ function findAllItemsInfo() {
     .orderBy('id')
 }
 
-//findsAllGarmentTitles
+//findsAllGarmentTitles (for menu/search)
 function findAllGarmentTitles() {
   return db('garment_titles').select('*')
+}
+
+//find by collection url (for validation middleware)
+function findByCollectionUrl(collection_url) {
+  return db('items').where({ collection_url }).first()
+}
+
+//function find by item collection no (for validation middleware)
+function findByCollectionNo(item_collection_no) {
+  return db('items').where({ item_collection_no }).first()
 }
 
 //findInfoById
@@ -119,4 +132,13 @@ async function createItem(item_info, item_colors, item_materials) {
       .then(trx.commit)
       .catch(trx.rollback)
   })
+}
+
+//put item-info (excluding colors and materials)
+async function updateItemInfo(data, item_id) {
+  return await db('items')
+    .where('id', item_id)
+    .first({})
+    .update(data)
+    .returning('*')
 }
