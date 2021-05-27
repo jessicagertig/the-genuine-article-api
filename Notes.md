@@ -5,8 +5,6 @@
  - implement middleware checking to be sure neither the collection_item_url nor collection_item_id is a duplicate
  - ensure all editing methods are appropriate - item info, colors, and materials should be able to be edited separately
  - create delete item method (will need to be transactional)
- - format all existing code to current prettier settings in one commit
-
 ## Motivation ##
 
 The initial motivation for this project is a personal interest in history, social history, and in historical clothing.

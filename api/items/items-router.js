@@ -2,6 +2,7 @@ const router = require('express').Router()
 const Colors = require('../items-colors/items-colors-model')
 const Materials = require('../items-materials/items-materials-model')
 const Items = require('./items-model')
+const { checkForDuplicateItem } = require('./items-info-middleware')
 
 //Get all items, in this case must find colors and materials for each item and add to list
 router.get('/', async (req, res) => {
@@ -68,7 +69,7 @@ router.get('/:item_id', async (req, res) => {
 })
 
 //post an item
-router.post('/', async (req, res) => {
+router.post('/', checkForDuplicateItem, async (req, res) => {
   try {
     const newItem = await Items.createItem(
       req.body.item_info,
@@ -80,6 +81,30 @@ router.post('/', async (req, res) => {
     return res
       .status(500)
       .json({ Message: 'Error creating new item.', error })
+  }
+})
+
+//put item-info (edit main info section only)
+router.put('/item-info/:item_id', async (req, res) => {
+  const item_id = req.params.item_id
+  const data = req.body
+  console.log('data', data)
+  try {
+    const item_info = await Items.findInfoById(item_id)
+    console.log('item info', item_info)
+    if (item_info !== undefined) {
+      const edited_item = await Items.updateItemInfo(data, item_id)
+      res.status(200).json(edited_item[0])
+    } else {
+      res.status(400).json({
+        message: `No item with id ${item_id} exists. Error on client end.`
+      })
+    }
+  } catch (error) {
+    res.status(500).json({
+      message: `Error on server end updating item by id ${item_id}.`,
+      error
+    })
   }
 })
 
