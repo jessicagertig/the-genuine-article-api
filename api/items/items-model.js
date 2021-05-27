@@ -1,43 +1,41 @@
 const db = require('../../database/db-config')
+const Colors = require('../items-colors/items-colors-model')
+const Materials = require('../items-materials/items-materials-model')
 
 module.exports = {
-  findAllColors,
-  findAllMaterials,
   findAllGarmentTitles,
-  findColorsByItemId,
-  findMaterialsByItemId,
+  getAllItems,
+  findAllItemsInfo,
   findInfoById,
   findItemById,
   createItem
 }
 
-//find colors, materials, and garment_titles for dropdown menus (forms and searchs)
-function findAllColors() {
-  return db('colors').select('*')
+//finds all items (excluding colors and materials)
+function findAllItemsInfo() {
+  return db('items')
+    .select(
+      'id',
+      'garment_title',
+      'garment_type',
+      'begin_year',
+      'end_year',
+      'decade',
+      'secondary_decade',
+      'culture_country',
+      'collection',
+      'collection_url',
+      'creator',
+      'source',
+      'item_collection_no',
+      'description'
+    )
+    .orderBy('id')
 }
 
-function findAllMaterials() {
-  return db('materials').select('*')
-}
-
+//findsAllGarmentTitles
 function findAllGarmentTitles() {
   return db('garment_titles').select('*')
-}
-
-//findColorsByItemId
-function findColorsByItemId(item_id) {
-  return db('item_colors as ic')
-    .select('ic.item_id', 'ic.color_id', 'colors.color')
-    .join('colors', 'ic.color_id', 'colors.id')
-    .where('item_id', item_id)
-}
-
-//findMaterialsByItemId
-function findMaterialsByItemId(item_id) {
-  return db('item_materials as im')
-    .select('im.item_id', 'im.material_id', 'materials.material')
-    .join('materials', 'im.material_id', 'materials.id')
-    .where('item_id', item_id)
 }
 
 //findInfoById
@@ -48,14 +46,30 @@ function findInfoById(id) {
 //findItemById
 async function findItemById(id) {
   const info = await findInfoById(id)
-  const colors = await findColorsByItemId(id)
-  const materials = await findMaterialsByItemId(id)
+  const colors = await Colors.findColorsByItemId(id)
+  const materials = await Materials.findMaterialsByItemId(id)
   const returned = {
     info,
     colors,
     materials
   }
   return returned
+}
+
+async function getAllItems() {
+  let info = await findAllItemsInfo()
+  for (let i = 0; i < info.length; i++) {
+    let item = info[i]
+    let item_id = item.id
+    const materials = await Materials.findMaterialsByItemId(item_id)
+    // eslint-disable-next-line prettier/prettier
+    const materialsList = materials.map((material) => material.material)
+    item['materials'] = materialsList
+    let colors = await Colors.findColorsByItemId(item_id)
+    const colorsList = colors.map((color) => color.color)
+    item['colors'] = colorsList
+  }
+  return info
 }
 
 async function createItem(item_info, item_colors, item_materials) {
