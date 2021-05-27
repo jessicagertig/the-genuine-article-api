@@ -1,50 +1,13 @@
 const router = require('express').Router()
-// const { checkForDuplicateItem } = require('./items-info-middleware');
+const Colors = require('../items-colors/items-colors-model')
+const Materials = require('../items-materials/items-materials-model')
 const Items = require('./items-model')
-const ItemsInfo = require('../items-info/items-info-model')
 
-//Due to the transactional createItem model function for the post request,
-//the lists of items without colors or materials will not be needed
-//After you no longer use the seeded items
+//Get all items, in this case must find colors and materials for each item and add to list
 router.get('/', async (req, res) => {
   try {
-    const item_info = await ItemsInfo.find()
-    console.log(item_info)
-    let result = {}
-    let itemsList = []
-    let itemsNeedingColors = []
-    let itemsNeedingMaterials = []
-    if (item_info) {
-      for (let i = 0; i < item_info.length; i++) {
-        //iterate over each item found
-        let item = item_info[i]
-        //create list of colors
-        let colors = await Items.findColorsByItemId(item.id)
-        if (colors.length > 0) {
-          colors = colors.map((color) => color.color)
-          //add list to item object
-          item['colors'] = colors
-        } else {
-          item['colors'] = []
-          itemsNeedingColors.push(item.id)
-        }
-        //create list of materials
-        let materials = await Items.findMaterialsByItemId(
-          item_info[i].id
-        )
-        if (materials.length > 0) {
-          materials = materials.map((material) => material.material)
-          //add list to item object
-          item['materials'] = materials
-        } else {
-          item['materials'] = []
-          itemsNeedingMaterials.push(item.id)
-        }
-        itemsList.push(item)
-      }
-      result['items_list'] = itemsList
-      result['items_without_colors'] = itemsNeedingColors
-      result['items_without_materials'] = itemsNeedingMaterials
+    const result = await Items.getAllItems()
+    if (result) {
       res.status(200).json(result)
     } else {
       res.status(400).json({
@@ -63,8 +26,8 @@ router.get('/', async (req, res) => {
 //function must come before get by item_id else pg will try to insert 'menus' as id
 router.get('/menus', async (req, res) => {
   try {
-    const color_menu = await Items.findAllColors()
-    const materials_menu = await Items.findAllMaterials()
+    const color_menu = await Colors.findAllColors()
+    const materials_menu = await Materials.findAllMaterials()
     const garment_titles_menu = await Items.findAllGarmentTitles()
     if (!color_menu) {
       throw 'Error fetching the color menu.'
@@ -81,20 +44,6 @@ router.get('/menus', async (req, res) => {
       garment_titles_menu: garment_titles_menu
     }
     return res.status(200).json(menus)
-    // const menus = [
-    //   Items.findAllColors(),
-    //   Items.findAllMaterials(),
-    //   Items.findAllGarmentTitles()
-    // ];
-    // Promise.all(menus)
-    //   .then((menus) => {
-    //     const [colors, materials, garment_titles] = menus;
-    //     res.status(200).json({
-    //       colors,
-    //       materials,
-    //       garment_titles
-    //     });
-    //   });
   } catch (error) {
     return res
       .status(500)
