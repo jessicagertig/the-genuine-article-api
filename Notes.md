@@ -1,9 +1,7 @@
 # Project Notes/Journal #
 
 **TO DO:**
- - arrange models back to separate anything related to colors to colors folder & anything related to materials to materials folder
- - implement middleware checking to be sure neither the collection_item_url nor collection_item_id is a duplicate
- - ensure all editing methods are appropriate - item info, colors, and materials should be able to be edited separately
+ - ensure all editing methods are appropriate - item info(checked/works - in Items), colors, and materials should be able to be edited separately
  - create delete item method (will need to be transactional)
 ## Motivation ##
 
