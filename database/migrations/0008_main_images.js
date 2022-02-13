@@ -1,7 +1,6 @@
 exports.up = async function (knex) {
   await knex.schema.createTable('main_images', function (tbl) {
     tbl.increments().primary()
-    tbl.string('main_image_url').notNullable().unique()
     tbl
       .integer('item_id')
       .references('id')
@@ -9,6 +8,7 @@ exports.up = async function (knex) {
       .onDelete('cascade')
       .onUpdate('cascade')
     tbl.string('file_name').notNullable().unique()
+    tbl.string('main_image_url').notNullable().unique()
     tbl.string('large_url').notNullable().unique()
     tbl.string('display_url').notNullable().unique()
     tbl.string('admin_upload_url').notNullable().unique()

@@ -15,11 +15,11 @@ function findMainImageByItemId(item_id) {
     .first()
 }
 
-async function addMainImage(main_image_info) {
-  const [id] = await db('main_images').insert(main_image_info, 'id')
+// async function addMainImage(main_image_info) {
+//   const [id] = await db('main_images').insert(main_image_info, 'id')
 
-  return findImageById(id)
-}
+//   return findImageById(id)
+// }
 
 async function updateMainImage({ main_image_url, item_id }) {
   return db('main_images')
@@ -27,17 +27,25 @@ async function updateMainImage({ main_image_url, item_id }) {
     .update({ main_image_url })
 }
 
-async function addMainImageSizes(baseUrl, file_name, item_id) {
+//allows the original main image and all the resized versions urls to be inserted into DB after uploading to S3
+async function addMainImageSizes(
+  main_image_url,
+  baseUrl,
+  file_name,
+  item_id
+) {
   const fieldsToInsert = {
-    large: `${baseUrl}/large_${file_name}`,
-    display: `${baseUrl}/display_${file_name}`,
-    admin_upload: `${baseUrl}/admin_upload_${file_name}`,
-    small: `${baseUrl}/small_${file_name}`,
-    thumb: `${baseUrl}/thumb_${file_name}`,
+    file_name: file_name,
+    main_image_url: main_image_url,
+    large_url: `${baseUrl}/large_${file_name}`,
+    display_url: `${baseUrl}/display_${file_name}`,
+    admin_upload_url: `${baseUrl}/admin_upload_${file_name}`,
+    small_url: `${baseUrl}/small_${file_name}`,
+    thumb_url: `${baseUrl}/thumb_${file_name}`,
     item_id: item_id
   }
   //TODO check for entry with that item_id and overwrite it if exists instead of creating new row
-  return await db('main_image_sizes')
+  return await db('main_images')
     .insert(fieldsToInsert)
     .returning('*')
 }
@@ -64,7 +72,7 @@ async function removeMainImage(item_id) {
 
 module.exports = {
   find,
-  addMainImage,
+  // addMainImage,
   updateMainImage,
   addMainImageSizes,
   findImageById,

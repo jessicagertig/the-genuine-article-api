@@ -26,7 +26,7 @@ class ImageUploader {
   //HOW TO PROVIDE CORRECT KEY TO DELETE TO S3?  GET FILENAME FROM PG?  FROM S3?s
   //SEPARATE SECONDARY IMAGE POSTINGS INTO ANOTHER CLASS? PREVENT INHERITANCE OF DELETION?
   //SECONDARY IMAGES SHOULD BE ABLE TO BE DELETED WITHOUT REPLACEMENT
-  //SHOULD THE MAIN IMAGE TABLE & RESIZED MAIN IMAGES TABLE BE CONSOLIDATED? THIS MAY BE MORE EASILY ACCOMPLISHED IF UPLOADING OF MAIN IMAGES IS SEPARATED ENTIRELY FROM SECONDARY IMAGES - CREATE ENTIRE DIFFERENT CLASS? REFACTOR SO NOT A CLASS AT ALL?
+  //THE MAIN IMAGE TABLE & RESIZED MAIN IMAGES TABLE HAVE BEEN CONSOLIDATED. For the time being, refactoring the function in the images router file allowed the original and resized versions of the main image to all be uploaded and urls saved to the db.
 
   //method to delete the original (unaltered) version of the image uploaded
   async deleteOriginalImage(id, file_name) {
@@ -96,6 +96,11 @@ class ImageUploader {
             'Original image uploaded successfully. ETag: ',
             data.ETag
           )
+          console.log(
+            `URL: http://${Bucket}.s3.${
+              process.env.S3_REGION
+            }.amazonaws.com/${this.dir(id)}/${file_name}`
+          )
           return (url = `http://${Bucket}.s3.${
             process.env.S3_REGION
           }.amazonaws.com/${this.dir(id)}/${file_name}`)
@@ -151,6 +156,7 @@ class ImageUploader {
             })
             .catch((err) => console.error('Error message: ', err))
         }
+        //what is purpose of below if/else statement? To avoid infinite loop?
         if (sizeName === 'thumb') {
           baseUrl = `http://${Bucket}.s3.${
             process.env.S3_REGION
