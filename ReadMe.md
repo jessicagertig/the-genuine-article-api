@@ -21,3 +21,5 @@ For the time being this project will be limited to western clothing from the 19t
 Draft documentation of the API will be updated as the project proceeds:
 
 [Postman Documentation](https://documenter.getpostman.com/view/10277903/TW6tKVT3)
+
+//Postman Documentation is behind current actual routes
