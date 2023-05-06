@@ -1,10 +1,10 @@
-const server = require('../server')
+const server = require('../../app')
 
 const db = require('../../database/db-config')
 
 const request = require('supertest')
 
-describe('server.js', function () {
+describe('app.js (server)', function () {
   describe('environment', function () {
     it('should set environment to testing', function () {
       expect(process.env.NODE_ENV).toBe('testing')

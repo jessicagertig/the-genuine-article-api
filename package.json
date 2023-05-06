@@ -8,7 +8,7 @@
   },
   "main": "index.js",
   "scripts": {
-    "start": "node index.js --trace-warnings",
+    "start": "node ./build/index.js",
     "test": "cross-env NODE_ENV=testing jest --verbose --i --forceExit --detectOpenHandles",
     "test-watch": "cross-env NODE_ENV=testing jest --verbose --i --watchAll"
   },
@@ -20,7 +20,7 @@
     "url": "git+https://github.com/jessicagertig/the-genuine-article-api"
   },
   "keywords": [],
-  "author": "Jessica G Cooper",
+  "author": "Jessica Gertig",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/jessicagertig/the-genuine-article-api/issues"
@@ -30,6 +30,7 @@
     "aws-sdk": "^2.1368.0",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
+    "debug": "^4.3.4",
     "dotenv": "^8.6.0",
     "eslint-plugin-promise": "^4.2.1",
     "express": "^4.18.2",
