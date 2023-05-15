@@ -1,13 +1,13 @@
-const db = require('../../database/db-config')
+const db = require('../../database/db-config');
 const {
   findColorsByItemId,
   editItemColors
-} = require('../items-colors/items-colors-model')
+} = require('../items-colors/items-colors-model');
 const {
   findMaterialsByItemId,
   editItemMaterials
-} = require('../items-materials/items-materials-model')
-const { withTransaction } = require('../utils/withTransaction')
+} = require('../items-materials/items-materials-model');
+const { withTransaction } = require('../utils/withTransaction');
 
 module.exports = {
   findAllGarmentTitles,
@@ -19,7 +19,7 @@ module.exports = {
   findItemById,
   createItem,
   updateItem
-}
+};
 
 //finds all items (excluding colors and materials)
 function findAllItemsInfo() {
@@ -40,57 +40,57 @@ function findAllItemsInfo() {
       'item_collection_no',
       'description'
     )
-    .orderBy('id')
+    .orderBy('id');
 }
 
 //findsAllGarmentTitles (for menu/search)
 function findAllGarmentTitles() {
-  return db('garment_titles').select('*')
+  return db('garment_titles').select('*');
 }
 
 //find by collection url (for validation middleware)
 function findByCollectionUrl(collection_url) {
-  return db('items').where({ collection_url }).first()
+  return db('items').where({ collection_url }).first();
 }
 
 //function find by item collection no (for validation middleware)
 function findByCollectionNo(item_collection_no) {
-  return db('items').where({ item_collection_no }).first()
+  return db('items').where({ item_collection_no }).first();
 }
 
 //findInfoById
 function findInfoById(id) {
-  return db('items').where({ id }).first()
+  return db('items').where({ id }).first();
 }
 
 //findItemById
 /* note: the color and material tables are separate from the items table because each item can have multiple colors and materials, and each color and material can be associated with multiple items. The item_colors and item_materials tables are join tables. Sepration also facilitates searching by color or material. */
 async function findItemById(id) {
-  const info = await findInfoById(id)
-  const colors = await findColorsByItemId(id)
-  const materials = await findMaterialsByItemId(id)
+  const info = await findInfoById(id);
+  const colors = await findColorsByItemId(id);
+  const materials = await findMaterialsByItemId(id);
   const returned = {
     info,
     colors,
     materials
-  }
-  return returned
+  };
+  return returned;
 }
 
 async function getAllItems() {
-  let info = await findAllItemsInfo()
+  let info = await findAllItemsInfo();
   for (let i = 0; i < info.length; i++) {
-    let item = info[i]
-    let item_id = item.id
-    const materials = await findMaterialsByItemId(item_id)
+    let item = info[i];
+    let item_id = item.id;
+    const materials = await findMaterialsByItemId(item_id);
     // eslint-disable-next-line prettier/prettier
     const materialsList = materials.map((material) => material.material)
-    item['materials'] = materialsList
-    let colors = await findColorsByItemId(item_id)
-    const colorsList = colors.map((color) => color.color)
-    item['colors'] = colorsList
+    item['materials'] = materialsList;
+    let colors = await findColorsByItemId(item_id);
+    const colorsList = colors.map((color) => color.color);
+    item['colors'] = colorsList;
   }
-  return info
+  return info;
 }
 
 /* 
@@ -107,45 +107,45 @@ async function createItem(item_info, item_colors, item_materials) {
     const new_item_info = await db('items')
       .insert(item_info)
       .transacting(trx)
-      .returning('*')
+      .returning('*');
     // assign the new item id to a variable to use in the colors and materials inserts
-    const new_item_id = new_item_info[0].id
+    const new_item_id = new_item_info[0].id;
 
     // Handle the color insert //
     // explicetly handle empty array
-    let color_ids = []
+    let color_ids = [];
     if (item_colors.length !== 0) {
       const colorFieldsToInsert = item_colors.map((item_color) => ({
         item_id: new_item_id,
         color_id: item_color.color_id
-      }))
+      }));
 
       const new_item_colors = await db('item_colors')
         .insert(colorFieldsToInsert)
         .transacting(trx)
-        .returning(['item_id', 'color_id'])
+        .returning(['item_id', 'color_id']);
 
-      color_ids = new_item_colors.map((color) => color.color_id)
+      color_ids = new_item_colors.map((color) => color.color_id);
     }
     // handle the material insert //
     // explicetly handle empty array
-    let material_ids = []
+    let material_ids = [];
     if (item_materials.length !== 0) {
       const materialFieldsToInsert = item_materials.map(
         (item_material) => ({
           item_id: new_item_id,
           material_id: item_material.material_id
         })
-      )
+      );
 
       const new_item_materials = await db('item_materials')
         .insert(materialFieldsToInsert)
         .transacting(trx)
-        .returning(['item_id', 'material_id'])
+        .returning(['item_id', 'material_id']);
       // define material_ids for return
       material_ids = new_item_materials.map(
         (material) => material.material_id
-      )
+      );
     }
 
     // define the new item object for return
@@ -154,10 +154,10 @@ async function createItem(item_info, item_colors, item_materials) {
       item_info: new_item_info,
       color_ids: color_ids,
       material_ids: material_ids
-    }
+    };
 
-    return new_item
-  })
+    return new_item;
+  });
 }
 
 // put item by item_id
@@ -173,26 +173,26 @@ async function updateItem(
       .first({})
       .update(item_info)
       .transacting(trx)
-      .returning('*')
+      .returning('*');
 
     const edited_item_colors = await editItemColors(
       item_id,
       item_colors,
       { trx }
-    )
+    );
     const edited_item_materials = await editItemMaterials(
       item_id,
       item_materials,
       { trx }
-    )
+    );
 
     const edited_item = {
       item_id: item_id,
       item_info: edited_item_info,
       colors: edited_item_colors,
       materials: edited_item_materials
-    }
+    };
 
-    return edited_item
-  })
+    return edited_item;
+  });
 }
