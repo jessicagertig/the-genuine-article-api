@@ -1,5 +1,23 @@
 const Items = require('./items-model')
 
+const checkForRequestBody = (req, res, next) => {
+  if (!req.body.item_info) {
+    res.status(400).json({
+      message: 'Please include item_info in the request body.'
+    })
+  } else if (!req.body.item_colors) {
+    res.status(400).json({
+      message: 'Please include item_colors in the request body.'
+    })
+  } else if (!req.body.item_materials) {
+    res.status(400).json({
+      message: 'Please include item_materials in the request body.'
+    })
+  } else {
+    next()
+  }
+}
+
 const checkForDuplicateItem = async (req, res, next) => {
   const new_collection_url = req.body.item_info.collection_url
   const new_collection_no = req.body.item_info.item_collection_no
@@ -41,5 +59,6 @@ const checkForDuplicateItem = async (req, res, next) => {
 }
 
 module.exports = {
-  checkForDuplicateItem
+  checkForDuplicateItem,
+  checkForRequestBody
 }

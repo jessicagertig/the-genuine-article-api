@@ -2,7 +2,10 @@ const router = require('express').Router()
 const Colors = require('../items-colors/items-colors-model')
 const Materials = require('../items-materials/items-materials-model')
 const Items = require('./items-model')
-const { checkForDuplicateItem } = require('./items-info-middleware')
+const {
+  checkForRequestBody,
+  checkForDuplicateItem
+} = require('./items-info-middleware')
 
 //Get all items, in this case must find colors and materials for each item and add to list
 router.get('/', async (req, res) => {
@@ -69,20 +72,25 @@ router.get('/:item_id', async (req, res) => {
 })
 
 //post an item
-router.post('/', checkForDuplicateItem, async (req, res) => {
-  try {
-    const newItem = await Items.createItem(
-      req.body.item_info,
-      req.body.item_colors,
-      req.body.item_materials
-    )
-    return res.status(201).json(newItem)
-  } catch (error) {
-    return res
-      .status(500)
-      .json({ Message: 'Error creating new item.', error })
+router.post(
+  '/',
+  checkForRequestBody,
+  checkForDuplicateItem,
+  async (req, res) => {
+    try {
+      const newItem = await Items.createItem(
+        req.body.item_info,
+        req.body.item_colors,
+        req.body.item_materials
+      )
+      return res.status(201).json(newItem)
+    } catch (error) {
+      return res
+        .status(500)
+        .json({ Message: 'Error creating new item.', error })
+    }
   }
-})
+)
 
 //put item-info (edit main info section only)
 router.put('/item-info/:item_id', async (req, res) => {
