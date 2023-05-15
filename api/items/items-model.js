@@ -1,6 +1,12 @@
 const db = require('../../database/db-config')
-const Colors = require('../items-colors/items-colors-model')
-const Materials = require('../items-materials/items-materials-model')
+const {
+  findColorsByItemId,
+  editItemColors
+} = require('../items-colors/items-colors-model')
+const {
+  findMaterialsByItemId,
+  editItemMaterials
+} = require('../items-materials/items-materials-model')
 const { withTransaction } = require('../utils/withTransaction')
 
 module.exports = {
@@ -12,7 +18,7 @@ module.exports = {
   findInfoById,
   findItemById,
   createItem,
-  updateItemInfo
+  updateItem
 }
 
 //finds all items (excluding colors and materials)
@@ -61,8 +67,8 @@ function findInfoById(id) {
 /* note: the color and material tables are separate from the items table because each item can have multiple colors and materials, and each color and material can be associated with multiple items. The item_colors and item_materials tables are join tables. Sepration also facilitates searching by color or material. */
 async function findItemById(id) {
   const info = await findInfoById(id)
-  const colors = await Colors.findColorsByItemId(id)
-  const materials = await Materials.findMaterialsByItemId(id)
+  const colors = await findColorsByItemId(id)
+  const materials = await findMaterialsByItemId(id)
   const returned = {
     info,
     colors,
@@ -76,11 +82,11 @@ async function getAllItems() {
   for (let i = 0; i < info.length; i++) {
     let item = info[i]
     let item_id = item.id
-    const materials = await Materials.findMaterialsByItemId(item_id)
+    const materials = await findMaterialsByItemId(item_id)
     // eslint-disable-next-line prettier/prettier
     const materialsList = materials.map((material) => material.material)
     item['materials'] = materialsList
-    let colors = await Colors.findColorsByItemId(item_id)
+    let colors = await findColorsByItemId(item_id)
     const colorsList = colors.map((color) => color.color)
     item['colors'] = colorsList
   }
@@ -154,11 +160,39 @@ async function createItem(item_info, item_colors, item_materials) {
   })
 }
 
-//put item-info (excluding colors and materials)
-async function updateItemInfo(data, item_id) {
-  return await db('items')
-    .where('id', item_id)
-    .first({})
-    .update(data)
-    .returning('*')
+// put item by item_id
+async function updateItem(
+  item_id,
+  item_info,
+  item_colors,
+  item_materials
+) {
+  return withTransaction(async (trx) => {
+    const edited_item_info = await db('items')
+      .where('id', item_id)
+      .first({})
+      .update(item_info)
+      .transacting(trx)
+      .returning('*')
+
+    const edited_item_colors = await editItemColors(
+      item_id,
+      item_colors,
+      { trx }
+    )
+    const edited_item_materials = await editItemMaterials(
+      item_id,
+      item_materials,
+      { trx }
+    )
+
+    const edited_item = {
+      item_id: item_id,
+      item_info: edited_item_info,
+      colors: edited_item_colors,
+      materials: edited_item_materials
+    }
+
+    return edited_item
+  })
 }

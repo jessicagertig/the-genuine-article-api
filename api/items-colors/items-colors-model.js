@@ -1,5 +1,4 @@
-const db = require('../../database/db-config')
-const { withTransaction } = require('../../database/db-config')
+const db = require('../../database/db-config');
 
 module.exports = {
   findAllColors,
@@ -8,11 +7,11 @@ module.exports = {
   insertItemColors,
   removeItemColor,
   editItemColors
-}
+};
 
 //find all colors
 function findAllColors() {
-  return db('colors').select('*')
+  return db('colors').select('*');
 }
 
 //findColorsByItemId
@@ -20,10 +19,11 @@ function findColorsByItemId(item_id) {
   return db('item_colors as ic')
     .select('ic.item_id', 'ic.color_id', 'colors.color')
     .join('colors', 'ic.color_id', 'colors.id')
-    .where('item_id', item_id)
+    .where('item_id', item_id);
 }
 
 //findItemsByColorId
+// only function to be used in items-colors-router.js - for base of search results
 function findItemsByColorId(color_id) {
   return db('item_colors as ic')
     .join('colors', 'ic.color_id', 'colors.id')
@@ -46,7 +46,7 @@ function findItemsByColorId(color_id) {
       'items.item_collection_no',
       'items.description'
     )
-    .where('color_id', color_id)
+    .where('color_id', color_id);
 }
 
 //For editing Item colors after initial entry
@@ -56,9 +56,9 @@ function insertItemColors(item_id, color_fields) {
   const fieldsToInsert = color_fields.map((color_field) => ({
     item_id: item_id,
     color_id: color_field.id //how is this data going to come from frontend?
-  }))
+  }));
   //fieldsToInsert needs to be an array of objects, via knex, postgresql will then insert each object as separate row
-  return db('item_colors').insert(fieldsToInsert).returning('*')
+  return db('item_colors').insert(fieldsToInsert).returning('*');
 }
 
 //Delete Item_Color --> for editing item colors after initial entry
@@ -66,27 +66,37 @@ function removeItemColor(item_id, color_id) {
   return db('item_colors')
     .where({ item_id })
     .andWhere({ color_id })
-    .del(['item_id', 'color_id'])
+    .del(['item_id', 'color_id']);
 }
 
 //Edit Item_Colors --> for editing item colors after initial entry - will delete all item_colors for item_id and insert new ones or none
-async function editItemColors(item_id, color_fields) {
-  return withTransaction(async (trx) => {
+async function editItemColors(item_id, color_fields, context = {}) {
+  const { trx } = context;
+  let item_colors;
+  // if item_colors is undefined, we are not editing colors,
+  // so return all existing item_colors for item_id
+  if (color_fields === undefined) {
+    item_colors = await findItemsByColorId(item_id);
+  } else {
     //delete all item_colors for item_id
-    await db('item_colors').where({ item_id }).del().transacting(trx)
+    await db('item_colors')
+      .where({ item_id })
+      .del()
+      .transacting(trx);
 
     //insert new item_colors for item_id
     if (color_fields.length === 0) {
-      return []
+      return [];
     } else {
       const fieldsToInsert = color_fields.map((color_field) => ({
         item_id: item_id,
         color_id: color_field.id
-      }))
-      return db('item_colors')
+      }));
+      item_colors = await db('item_colors')
         .insert(fieldsToInsert)
         .transacting(trx)
-        .returning('*')
+        .returning('*');
     }
-  })
+  }
+  return item_colors;
 }

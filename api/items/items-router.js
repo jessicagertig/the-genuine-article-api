@@ -5,9 +5,9 @@ const Items = require('./items-model')
 const {
   checkForRequestBody,
   checkForDuplicateItem
-} = require('./items-info-middleware')
+} = require('./items-middleware')
 
-//Get all items, in this case must find colors and materials for each item and add to list
+//Get all items
 router.get('/', async (req, res) => {
   try {
     const result = await Items.getAllItems()
@@ -65,7 +65,7 @@ router.get('/:item_id', async (req, res) => {
     return res.status(200).json(item)
   } catch (error) {
     res.status(500).json({
-      Message: `Error retriveing item with id ${item_id}.`,
+      Message: `Error retrieving item with id ${item_id}.`,
       error
     })
   }
@@ -93,15 +93,19 @@ router.post(
 )
 
 //put item-info (edit main info section only)
-router.put('/item-info/:item_id', async (req, res) => {
+router.put('/:item_id', async (req, res) => {
   const item_id = req.params.item_id
-  const data = req.body
-  console.log('data', data)
+  console.log('req.body', req.body)
   try {
-    const item_info = await Items.findInfoById(item_id)
-    console.log('item info', item_info)
-    if (item_info !== undefined) {
-      const edited_item = await Items.updateItemInfo(data, item_id)
+    const existing_item_info = await Items.findInfoById(item_id)
+    console.log('existing item info', existing_item_info)
+    if (existing_item_info !== undefined) {
+      const edited_item = await Items.updateItem(
+        item_id,
+        req.body.item_info,
+        req.body.item_colors,
+        req.body.item_materials
+      )
       res.status(200).json(edited_item[0])
     } else {
       res.status(400).json({

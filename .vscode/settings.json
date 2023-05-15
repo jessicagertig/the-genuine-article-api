@@ -4,6 +4,6 @@
   "prettier.jsxSingleQuote": true,
   "prettier.requireConfig": true,
   "prettier.singleQuote": true,
-  "prettier.semi": false,
-  "editor.tabSize": 2
+  "editor.tabSize": 2,
+  "prettier.useEditorConfig": false
 }
