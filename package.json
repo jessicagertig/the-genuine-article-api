@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "description": "A RESTful API providing access to information and media about historical clothing as preserved in museums and collections.",
   "engines": {
-    "node": "18.16.0",
-    "npm": "9.5.1"
+    "node": "18.x",
+    "npm": "9.x"
   },
   "main": "index.js",
   "scripts": {
