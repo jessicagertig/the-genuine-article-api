@@ -1,11 +1,13 @@
 const db = require('../../database/db-config')
+const { withTransaction } = require('../../database/db-config')
 
 module.exports = {
   findAllColors,
   findColorsByItemId,
   findItemsByColorId,
-  addItemColors,
-  removeItemColor
+  insertItemColors,
+  removeItemColor,
+  editItemColors
 }
 
 //find all colors
@@ -48,7 +50,7 @@ function findItemsByColorId(color_id) {
 }
 
 //For editing Item colors after initial entry
-function addItemColors(item_id, color_fields) {
+function insertItemColors(item_id, color_fields) {
   //color_fields should be an object containing an array of objects named fields (json format)
   //such as { 'fields': [{'id': 2, 'color': 'red'}, {'id': 6, 'color': turquoise}] }
   const fieldsToInsert = color_fields.map((color_field) => ({
@@ -65,4 +67,26 @@ function removeItemColor(item_id, color_id) {
     .where({ item_id })
     .andWhere({ color_id })
     .del(['item_id', 'color_id'])
+}
+
+//Edit Item_Colors --> for editing item colors after initial entry - will delete all item_colors for item_id and insert new ones or none
+async function editItemColors(item_id, color_fields) {
+  return withTransaction(async (trx) => {
+    //delete all item_colors for item_id
+    await db('item_colors').where({ item_id }).del().transacting(trx)
+
+    //insert new item_colors for item_id
+    if (color_fields.length === 0) {
+      return []
+    } else {
+      const fieldsToInsert = color_fields.map((color_field) => ({
+        item_id: item_id,
+        color_id: color_field.id
+      }))
+      return db('item_colors')
+        .insert(fieldsToInsert)
+        .transacting(trx)
+        .returning('*')
+    }
+  })
 }

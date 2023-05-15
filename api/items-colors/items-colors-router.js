@@ -1,5 +1,5 @@
 const router = require('express').Router()
-const ItemsInfo = require('./items-colors-model')
+const ItemColors = require('./items-colors-model')
 const {
   checkForDuplicateColors
 } = require('./items-colors-validation')
@@ -11,7 +11,7 @@ router.post(
   async (req, res) => {
     const item_id = req.params.item_id
     console.log('req.body', req.body.fields)
-    ItemsInfo.addItemColors(item_id, req.body.fields)
+    ItemColors.insertItemColors(item_id, req.body.fields)
       .then((item) => {
         res.status(201).json(item)
       })
@@ -28,7 +28,7 @@ router.post(
 router.get('/:item_id', (req, res) => {
   const item_id = req.params.item_id
 
-  ItemsInfo.findColorsByItemId(item_id)
+  ItemColors.findColorsByItemId(item_id)
     .then((item_colors) => {
       console.log('item_colors', item_colors)
       if (item_colors.length > 0) {
@@ -57,7 +57,7 @@ router.get('/:item_id', (req, res) => {
 router.get('/color/:color_id', (req, res) => {
   const color_id = req.params.color_id
 
-  ItemsInfo.findItemsByColorId(color_id)
+  ItemColors.findItemsByColorId(color_id)
     .then((items) => {
       if (items.length > 0) {
         res.status(200).json(items)
@@ -80,7 +80,7 @@ router.delete('/:item_id', (req, res) => {
   const item_id = req.params.item_id
   const color_id = req.body.color_id
 
-  ItemsInfo.removeItemColor(item_id, color_id)
+  ItemColors.removeItemColor(item_id, color_id)
     .then((item_color) => {
       console.log('item_color', item_color)
       if (item_color.length > 0) {
