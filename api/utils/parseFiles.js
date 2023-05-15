@@ -5,7 +5,7 @@ const parseFormData = async (req) => {
   return await new Promise((resolve, reject) => {
     const form = new IncomingForm({
       multiples: true,
-      hash: 'md5'
+      hashAlgorithm: 'md5'
     });
     form.parse(req, (err, fields, files) => {
       if (err) return reject(err);
@@ -15,7 +15,7 @@ const parseFormData = async (req) => {
 };
 
 const readUploadedFile = async (data, key) => {
-  const path = data.files[key].path;
+  const path = data.files[key].filepath;
   if (path) {
     try {
       console.log('Path', path);
@@ -33,8 +33,8 @@ const readUploadedFile = async (data, key) => {
 const defineParams = async (req) => {
   const parsedData = await parseFormData(req);
   const body = await readUploadedFile(parsedData, 'image');
-  const content_type = parsedData.files['image'].type;
-  const file_name = parsedData.files['image'].name;
+  const content_type = parsedData.files['image'].mimetype;
+  const file_name = parsedData.files['image'].originalFilename;
   const md5 = Buffer.from(
     parsedData.files['image'].hash,
     'hex'
