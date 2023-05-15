@@ -1,9 +1,9 @@
-require('dotenv').config()
+require('dotenv').config();
 
-const database_name = process.env.DB_NAME
-const database_user = process.env.DB_USER
-const database_password = process.env.DB_PASSWORD
-const database_testing_name = process.env.DB_TESTING_NAME
+const database_name = process.env.DB_NAME;
+const database_user = process.env.DB_USER;
+const database_password = process.env.DB_PASSWORD;
+const database_testing_name = process.env.DB_TESTING_NAME;
 
 module.exports = {
   development: {
@@ -52,4 +52,4 @@ module.exports = {
     },
     useNullAsDefault: true
   }
-}
+};
