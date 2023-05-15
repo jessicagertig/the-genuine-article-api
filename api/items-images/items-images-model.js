@@ -8,11 +8,23 @@ function findImageById(id) {
   return db('main_images').where({ id }).first();
 }
 
-function findMainImageByItemId(item_id) {
-  return db('main_images')
-    .select('*')
+async function findMainImageByItemId(item_id) {
+  const image_urls = await db('main_images')
     .where('item_id', item_id)
+    .select(
+      'main_image_url',
+      'large_url',
+      'display_url',
+      'small_url',
+      'thumb_url'
+    )
     .first();
+
+  if (image_urls) {
+    return image_urls;
+  } else {
+    return null;
+  }
 }
 
 // async function addMainImage(main_image_info) {

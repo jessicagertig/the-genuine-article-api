@@ -7,6 +7,9 @@ const {
   findMaterialsByItemId,
   editItemMaterials
 } = require('../items-materials/items-materials-model');
+const {
+  findMainImageByItemId
+} = require('../items-images/items-images-model');
 const { withTransaction } = require('../utils/withTransaction');
 
 module.exports = {
@@ -69,28 +72,40 @@ async function findItemById(id) {
   const info = await findInfoById(id);
   const colors = await findColorsByItemId(id);
   const materials = await findMaterialsByItemId(id);
+  const image_urls = await findMainImageByItemId(id);
   const returned = {
     info,
     colors,
-    materials
+    materials,
+    image_urls
   };
   return returned;
 }
 
 async function getAllItems() {
-  let info = await findAllItemsInfo();
-  for (let i = 0; i < info.length; i++) {
-    let item = info[i];
-    let item_id = item.id;
-    const materials = await findMaterialsByItemId(item_id);
-    // eslint-disable-next-line prettier/prettier
-    const materialsList = materials.map((material) => material.material)
-    item['materials'] = materialsList;
-    let colors = await findColorsByItemId(item_id);
-    const colorsList = colors.map((color) => color.color);
-    item['colors'] = colorsList;
+  try {
+    const info = await findAllItemsInfo();
+    for (let i = 0; i < info.length; i++) {
+      let item = info[i];
+      let item_id = item.id;
+      const materials = await findMaterialsByItemId(item_id);
+      const materialsList = materials.map(
+        (material) => material.material
+      );
+      item['materials'] = materialsList;
+      const colors = await findColorsByItemId(item_id);
+      const colorsList = colors.map((color) => color.color);
+      item['colors'] = colorsList;
+      const image_urls = await findMainImageByItemId(item_id);
+      const small_image_url = image_urls
+        ? image_urls['small_url']
+        : null;
+      item['image_url'] = small_image_url;
+    }
+    return info;
+  } catch (error) {
+    console.log(error);
   }
-  return info;
 }
 
 /* 
