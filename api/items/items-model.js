@@ -97,10 +97,10 @@ async function getAllItems() {
       const colorsList = colors.map((color) => color.color);
       item['colors'] = colorsList;
       const image_urls = await findMainImageByItemId(item_id);
-      const small_image_url = image_urls
-        ? image_urls['small_url']
+      const large_image_url = image_urls
+        ? image_urls['large_url']
         : null;
-      item['image_url'] = small_image_url;
+      item['image_url'] = large_image_url;
     }
     return info;
   } catch (error) {
