@@ -127,11 +127,13 @@ async function createItem(item_info, item_colors, item_materials) {
     // Handle the color insert //
     // explicetly handle empty array
     let color_ids = [];
-    if (item_colors.length !== 0) {
-      const colorFieldsToInsert = item_colors.map((item_color) => ({
-        item_id: new_item_id,
-        color_id: item_color.color_id
-      }));
+    if (item_colors.length > 0) {
+      const colorFieldsToInsert = item_colors.map(
+        (item_color_id) => ({
+          item_id: new_item_id,
+          color_id: item_color_id
+        })
+      );
 
       const new_item_colors = await db('item_colors')
         .insert(colorFieldsToInsert)
@@ -143,11 +145,11 @@ async function createItem(item_info, item_colors, item_materials) {
     // handle the material insert //
     // explicetly handle empty array
     let material_ids = [];
-    if (item_materials.length !== 0) {
+    if (item_materials.length > 0) {
       const materialFieldsToInsert = item_materials.map(
-        (item_material) => ({
+        (item_material_id) => ({
           item_id: new_item_id,
-          material_id: item_material.material_id
+          material_id: item_material_id
         })
       );
 
