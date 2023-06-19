@@ -1,9 +1,12 @@
 {
   "editor.detectIndentation": false,
-  "prettier.configPath": "/Users/jessica/Documents/TheGenuineArticleAPI/.prettierrc.js",
+  "prettier.configPath": ".prettierrc.js",
   "prettier.jsxSingleQuote": true,
   "prettier.requireConfig": true,
   "prettier.singleQuote": true,
   "editor.tabSize": 2,
-  "prettier.useEditorConfig": false
+  "prettier.useEditorConfig": false,
+  "prettier.prettierPath": "",
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true
 }
