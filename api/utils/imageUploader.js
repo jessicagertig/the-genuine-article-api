@@ -134,7 +134,7 @@ class ImageUploader {
           const [width, height] = this.sizes[name];
           const sizedBody = await Sharp(body)
             .resize(width, height, {
-              fit: 'contain',
+              fit: 'cover',
               background: { r: 255, g: 255, b: 255, alpha: 1 }
             })
             .toBuffer();
@@ -180,7 +180,7 @@ class ImageUploader {
 class ResizedMainImageUploader extends ImageUploader {
   constructor(modelName) {
     super(modelName, {
-      large: [500, 609],
+      large: [400, 600],
       display: [450, 582], //for garment of the day
       admin_upload: [250, 305], //for upload page
       small: [96, 117],
