@@ -8,7 +8,7 @@
   },
   "main": "index.js",
   "scripts": {
-    "start": "node ./build/index.js",
+    "start": "node ./build/index.js --trace-warnings",
     "test": "cross-env NODE_ENV=testing jest --verbose --i --forceExit --detectOpenHandles",
     "test-watch": "cross-env NODE_ENV=testing jest --verbose --i --watchAll"
   },
