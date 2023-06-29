@@ -70,13 +70,17 @@ function findInfoById(id) {
 /* note: the color and material tables are separate from the items table because each item can have multiple colors and materials, and each color and material can be associated with multiple items. The item_colors and item_materials tables are join tables. Sepration also facilitates searching by color or material. */
 async function findItemById(id) {
   const info = await findInfoById(id);
-  const colors = await findColorsByItemId(id);
   const materials = await findMaterialsByItemId(id);
+  const materialsList = materials.map(
+    (material) => material.material
+  );
+  const colors = await findColorsByItemId(id);
+  const colorsList = colors.map((color) => color.color);
   const image_urls = await findMainImageByItemId(id);
   const returned = {
-    info,
-    colors,
-    materials,
+    ...info,
+    colors: colorsList,
+    materials: materialsList,
     image_urls
   };
   return returned;
