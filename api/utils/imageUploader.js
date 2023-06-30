@@ -122,7 +122,6 @@ class ImageUploader {
 
     try {
       if (this.sizes) {
-        let sizeName = null;
         const names = Object.keys(this.sizes);
         for (const name of names) {
           const [width, height] = this.sizes[name];
@@ -147,14 +146,10 @@ class ImageUploader {
             `Resized version "${name}" of image was uploaded successfully.`
           );
         }
-        //what is purpose of below if/else statement? To avoid infinite loop?
-        if (sizeName === 'thumb') {
-          baseUrl = `http://${Bucket}.s3.${
-            process.env.S3_REGION
-          }.amazonaws.com/${this.dir(id)}`;
-        } else {
-          baseUrl = null;
-        }
+
+        baseUrl = `http://${Bucket}.s3.${
+          process.env.S3_REGION
+        }.amazonaws.com/${this.dir(id)}`;
       }
       return baseUrl;
     } catch (err) {
