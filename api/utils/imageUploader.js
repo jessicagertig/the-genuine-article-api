@@ -1,4 +1,8 @@
-const AWS = require('aws-sdk');
+const {
+  S3Client,
+  PutObjectCommand,
+  DeleteObjectCommand
+} = require('@aws-sdk/client-s3');
 const Sharp = require('sharp');
 
 //modelName is type of image uploaded for example, in future it might be userProfile, but for now it's just going to be mainImage, additionalImage
@@ -10,11 +14,13 @@ class ImageUploader {
       (this.config = {
         //current version of amazon S3 API (see: https://docs.aws.amazon.com/AmazonS3/latest/API/Welcome.html)
         apiVersion: '2006-03-01',
-        accessKeyId: process.env.S3_KEY_ID,
-        secretAccessKey: process.env.S3_SECRET,
-        region: process.env.S3_REGION
+        region: process.env.S3_REGION,
+        credentials: {
+          accessKeyId: process.env.S3_KEY_ID,
+          secretAccessKey: process.env.S3_SECRET
+        }
       }),
-      (this.s3 = new AWS.S3(this.config));
+      (this.s3 = new S3Client(this.config));
   }
   //method to predefine path for uploaded items based on input params
   dir(id) {
@@ -29,21 +35,21 @@ class ImageUploader {
   //THE MAIN IMAGE TABLE & RESIZED MAIN IMAGES TABLE HAVE BEEN CONSOLIDATED. For the time being, refactoring the function in the images router file allowed the original and resized versions of the main image to all be uploaded and urls saved to the db.
 
   //method to delete the original (unaltered) version of the image uploaded
-  async deleteOriginalImage(id, file_name) {
-    const Bucket = process.env.S3_BUCKET_NAME;
-    //will the simple return await with a .promise.catch eliminate need for try/catch block?
-    return await this.s3
-      .deleteObject({ Bucket, Key: `${this.dir(id)}/${file_name}` })
-      .promise()
-      .catch((err) =>
-        console.log(
-          `Error deleting image at path: ${this.dir(
-            id
-          )}/${file_name}`,
-          err
-        )
-      );
-  }
+  // async deleteOriginalImage(id, file_name) {
+  //   const Bucket = process.env.S3_BUCKET_NAME;
+  //   //will the simple return await with a .promise.catch eliminate need for try/catch block?
+  //   return await this.s3
+  //     .deleteObject({ Bucket, Key: `${this.dir(id)}/${file_name}` })
+  //     .promise()
+  //     .catch((err) =>
+  //       console.log(
+  //         `Error deleting image at path: ${this.dir(
+  //           id
+  //         )}/${file_name}`,
+  //         err
+  //       )
+  //     );
+  // }
 
   //method to be used by classes which include resizing imagages, to delete all different sizes, depending on class
   async deleteResizedImages(id, file_name) {
@@ -53,18 +59,19 @@ class ImageUploader {
       if (this.sizes) {
         const names = Object.keys(this.sizes);
         for (const name of names) {
-          await this.s3
-            .deleteObject({
-              Bucket,
-              Key: `${this.dir(id)}/${name}_${file_name}`
-            })
-            .promise()
-            .catch((err) =>
-              console.error(
-                `Error deleting resized versions of image with filename "${file_name}".`,
-                err
-              )
+          const command = new DeleteObjectCommand({
+            Bucket,
+            Key: `${this.dir(id)}/${name}_${file_name}`
+          });
+
+          try {
+            await this.s3.send(command);
+          } catch (err) {
+            console.error(
+              `Error deleting resized versions of image with filename "${file_name}".`,
+              err
             );
+          }
         }
       }
     } catch (err) {
@@ -79,46 +86,33 @@ class ImageUploader {
   //TODO: limit maximum size
   async uploadOriginalImage(id, file_name, body, content_type, md5) {
     const Bucket = process.env.S3_BUCKET_NAME;
-    let url;
     try {
-      await this.s3
-        .putObject({
-          Bucket,
-          Body: body,
-          Key: `${this.dir(id)}/${file_name}`,
-          ContentType: content_type,
-          ContentMD5: md5,
-          ACL: 'public-read'
-        })
-        .promise()
-        .then((data) => {
-          console.log(
-            'Original image uploaded successfully. ETag: ',
-            data.ETag
-          );
-          console.log(
-            `URL: http://${Bucket}.s3.${
-              process.env.S3_REGION
-            }.amazonaws.com/${this.dir(id)}/${file_name}`
-          );
-          return (url = `http://${Bucket}.s3.${
-            process.env.S3_REGION
-          }.amazonaws.com/${this.dir(id)}/${file_name}`);
-        })
-        .catch((err) =>
-          console.error(
-            `Error uploading original file "${file_name}". Message: `,
-            err
-          )
-        );
-      //sanity test this to see if .then and .catch will block the delete function from running in below catch block
+      const command = new PutObjectCommand({
+        Bucket,
+        Body: body,
+        Key: `${this.dir(id)}/${file_name}`,
+        ContentType: content_type,
+        ContentMD5: md5,
+        ACL: 'public-read'
+      });
+
+      const data = await this.s3.send(command);
+
+      console.log(
+        'Original image uploaded successfully. ETag: ',
+        data.ETag
+      );
+      const url = `http://${Bucket}.s3.${
+        process.env.S3_REGION
+      }.amazonaws.com/${this.dir(id)}/${file_name}`;
+      console.log(`URL: ${url}`);
+      return url;
     } catch (err) {
       console.error(
-        `Error uploading original image "${file_name}". Message: `,
+        `Error uploading original file "${file_name}". Message: `,
         err
       );
-    }
-    return url;
+    } // TO DO: use delete function in catch block
   }
 
   //method to upload resized images (resized with Sharp)
@@ -140,22 +134,18 @@ class ImageUploader {
             })
             .toBuffer();
 
-          await this.s3
-            .upload({
-              Bucket,
-              Body: sizedBody,
-              Key: `${this.dir(id)}/${name}_${file_name}`,
-              ContentType: content_type,
-              ACL: 'public-read'
-            })
-            .promise()
-            .then(() => {
-              console.log(
-                `Resized version "${name}" of image was uploaded successfully.`
-              );
-              sizeName = name;
-            })
-            .catch((err) => console.error('Error message: ', err));
+          const command = new PutObjectCommand({
+            Bucket,
+            Body: sizedBody,
+            Key: `${this.dir(id)}/${name}_${file_name}`,
+            ContentType: content_type,
+            ACL: 'public-read'
+          });
+          await this.s3.send(command);
+
+          console.log(
+            `Resized version "${name}" of image was uploaded successfully.`
+          );
         }
         //what is purpose of below if/else statement? To avoid infinite loop?
         if (sizeName === 'thumb') {
