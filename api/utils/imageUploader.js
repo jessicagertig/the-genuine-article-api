@@ -8,9 +8,10 @@ const Sharp = require('sharp');
 //modelName is type of image uploaded for example, in future it might be userProfile, but for now it's just going to be mainImage, additionalImage
 
 class ImageUploader {
-  constructor(modelName, sizes = {}) {
+  constructor(modelName, sizes = {}, types = []) {
     (this.modelName = modelName),
       (this.sizes = sizes),
+      (this.types = types),
       (this.config = {
         //current version of amazon S3 API (see: https://docs.aws.amazon.com/AmazonS3/latest/API/Welcome.html)
         apiVersion: '2006-03-01',
@@ -35,48 +36,21 @@ class ImageUploader {
   //THE MAIN IMAGE TABLE & RESIZED MAIN IMAGES TABLE HAVE BEEN CONSOLIDATED. For the time being, refactoring the function in the images router file allowed the original and resized versions of the main image to all be uploaded and urls saved to the db.
 
   //method to delete the original (unaltered) version of the image uploaded
-  // async deleteOriginalImage(id, file_name) {
-  //   const Bucket = process.env.S3_BUCKET_NAME;
-  //   //will the simple return await with a .promise.catch eliminate need for try/catch block?
-  //   return await this.s3
-  //     .deleteObject({ Bucket, Key: `${this.dir(id)}/${file_name}` })
-  //     .promise()
-  //     .catch((err) =>
-  //       console.log(
-  //         `Error deleting image at path: ${this.dir(
-  //           id
-  //         )}/${file_name}`,
-  //         err
-  //       )
-  //     );
-  // }
-
-  //method to be used by classes which include resizing imagages, to delete all different sizes, depending on class
-  async deleteResizedImages(id, file_name) {
+  async deleteOriginalImage(id, file_name) {
+    console.log('ID', id);
+    console.log('FILE NAME', file_name);
     const Bucket = process.env.S3_BUCKET_NAME;
-    //switch if statement to nest inside try block
     try {
-      if (this.sizes) {
-        const names = Object.keys(this.sizes);
-        for (const name of names) {
-          const command = new DeleteObjectCommand({
-            Bucket,
-            Key: `${this.dir(id)}/${name}_${file_name}`
-          });
-
-          try {
-            await this.s3.send(command);
-          } catch (err) {
-            console.error(
-              `Error deleting resized versions of image with filename "${file_name}".`,
-              err
-            );
-          }
-        }
-      }
+      const command = new DeleteObjectCommand({
+        Bucket,
+        Key: `${this.dir(id)}/${file_name}`
+      });
+      await this.s3.send(command);
+      const path = `${this.dir(id)}/${file_name}`;
+      console.log(`Success deleting image at path: ${path}`);
     } catch (err) {
-      console.error(
-        `Error deleting resized versions of image with filename "${file_name}".  Message: `,
+      console.log(
+        `Error deleting image at path: ${this.dir(id)}/${file_name}`,
         err
       );
     }
@@ -113,6 +87,74 @@ class ImageUploader {
         err
       );
     } // TO DO: use delete function in catch block
+  }
+}
+//End 'parent' class
+class DeleteResizedImage extends ImageUploader {
+  constructor(modelName) {
+    super(modelName, null, [
+      'large',
+      'display',
+      'admin_upload',
+      'small',
+      'thumb'
+    ]);
+  }
+
+  //method to be used by classes which include resizing imagages, to delete all different sizes, depending on class
+  async deleteResizedImages(id, file_name) {
+    return new Promise((resolve, reject) => {
+      const Bucket = process.env.S3_BUCKET_NAME;
+      try {
+        if (this.types) {
+          const types = this.types;
+          for (const type of types) {
+            try {
+              const command = new DeleteObjectCommand({
+                Bucket,
+                Key: `${this.dir(id)}/${type}_${file_name}`
+              });
+
+              this.s3.send(command);
+              console.log(
+                `Success deleting resized image of type "${type}" with filename "${file_name}".`
+              );
+            } catch (err) {
+              console.log(
+                `Error deleting resized image of type "${type}". Message:`,
+                err
+              );
+              reject(err);
+            }
+          }
+        } else {
+          const error = new Error(
+            'The file types were not defined. No resized images were deleted from S3.'
+          );
+          console.log('Error message:', error);
+          reject(error);
+        }
+      } catch (err) {
+        console.log(
+          `Error deleting resized versions of image with filename "${file_name}".  Message: `,
+          err
+        );
+        reject(err);
+      }
+      resolve();
+    });
+  }
+}
+
+class ResizedMainImageUploader extends ImageUploader {
+  constructor(modelName) {
+    super(modelName, {
+      large: [500, 609],
+      display: [400, 600], //for search view
+      admin_upload: [250, 305], //for upload page
+      small: [96, 117],
+      thumb: [64, 78]
+    });
   }
 
   //method to upload resized images (resized with Sharp)
@@ -159,28 +201,13 @@ class ImageUploader {
       );
     }
   }
-  //end methods
-}
-//End 'parent' class
-
-class ResizedMainImageUploader extends ImageUploader {
-  constructor(modelName) {
-    super(modelName, {
-      large: [500, 609],
-      display: [400, 600], //for search view
-      admin_upload: [250, 305], //for upload page
-      small: [96, 117],
-      thumb: [64, 78]
-    });
-  }
 }
 
 class SecondaryImagesUploader extends ImageUploader {
   constructor(modelName) {
     super(modelName, {
-      large: [500, 609],
-      small: [96, 117],
-      thumb: [64, 78]
+      large: [640, 768],
+      thumb: [64, 64]
     });
   }
 }
@@ -188,5 +215,6 @@ class SecondaryImagesUploader extends ImageUploader {
 module.exports = {
   ImageUploader,
   ResizedMainImageUploader,
-  SecondaryImagesUploader
+  SecondaryImagesUploader,
+  DeleteResizedImage
 };

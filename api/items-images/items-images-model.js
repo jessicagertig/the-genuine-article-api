@@ -9,13 +9,33 @@ function findImageById(id) {
 }
 
 async function findMainImageByItemId(item_id) {
+  const image_info = await db('main_images')
+    .where('item_id', item_id)
+    .select(
+      'id',
+      'item_id',
+      'file_name',
+      'main_image_url',
+      'large_url',
+      'display_url',
+      'thumb_url'
+    )
+    .first();
+
+  if (image_info) {
+    return image_info;
+  } else {
+    return null;
+  }
+}
+
+async function findMainImageUrlsByItemId(item_id) {
   const image_urls = await db('main_images')
     .where('item_id', item_id)
     .select(
       'main_image_url',
       'large_url',
       'display_url',
-      'small_url',
       'thumb_url'
     )
     .first();
@@ -89,6 +109,7 @@ module.exports = {
   addMainImageSizes,
   findImageById,
   findMainImageByItemId,
+  findMainImageUrlsByItemId,
   addSecondaryImageSizes,
   removeMainImage
 };
