@@ -11,6 +11,7 @@ const {
   findMainImageByItemId
 } = require('../items-images/items-images-model');
 const { withTransaction } = require('../utils/withTransaction');
+const { calculateDecades } = require('../utils/helpers');
 
 module.exports = {
   findAllGarmentTitles,
@@ -120,6 +121,13 @@ async function getAllItems() {
 */
 async function createItem(item_info, item_colors, item_materials) {
   return withTransaction(async (trx) => {
+    const decadesArray = calculateDecades(
+      item_info['begin_year'],
+      item_info['end_year']
+    );
+
+    item_info['decade'] = decadesArray[0];
+    item_info['secondary_decade'] = decadesArray[1];
     // insert item info and return the info including the new id
     const new_item_info = await db('items')
       .insert(item_info)
