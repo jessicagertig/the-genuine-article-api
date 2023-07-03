@@ -72,16 +72,12 @@ function findInfoById(id) {
 async function findItemById(id) {
   const info = await findInfoById(id);
   const materials = await findMaterialsByItemId(id);
-  const materialsList = materials.map(
-    (material) => material.material
-  );
   const colors = await findColorsByItemId(id);
-  const colorsList = colors.map((color) => color.color);
   const image_urls = await findMainImageByItemId(id);
   const returned = {
     ...info,
-    colors: colorsList,
-    materials: materialsList,
+    colors: colors,
+    materials: materials,
     image_urls
   };
   return returned;
