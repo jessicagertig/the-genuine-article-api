@@ -106,7 +106,8 @@ router.put('/:item_id', async (req, res) => {
         req.body.item_colors,
         req.body.item_materials
       );
-      return res.status(200).json(edited_item[0]);
+      console.log('edited item', edited_item);
+      return res.status(200).json(edited_item);
     } else {
       return res.status(400).json({
         message: `No item with id ${item_id} exists. Error on client end.`
