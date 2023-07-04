@@ -17,7 +17,7 @@ function findAllMaterials() {
 //findMaterialsByItemId
 function findMaterialsByItemId(item_id) {
   return db('item_materials as im')
-    .select('im.item_id', 'im.material_id', 'materials.material')
+    .select('im.material_id', 'materials.material')
     .join('materials', 'im.material_id', 'materials.id')
     .where('item_id', item_id);
 }
@@ -71,7 +71,7 @@ function removeItemMaterial(item_id, material_id) {
 //Edit Item_Materials --> for editing item materials after initial entry - will delete all item_materials for item_id and insert new ones or none
 async function editItemMaterials(
   item_id,
-  material_fields,
+  materials_array,
   context = {}
 ) {
   const { trx } = context;
@@ -79,7 +79,7 @@ async function editItemMaterials(
   // if item_materials is undefined, we are not editing materials,
   // so return all existing item_materials for item_id
   // TODO: consider sending null instead of undefined
-  if (material_fields === undefined) {
+  if (materials_array === undefined) {
     item_materials = await findItemsByMaterialId(item_id);
   } else {
     //delete all item_materials for item_id
@@ -89,15 +89,13 @@ async function editItemMaterials(
       .transacting(trx);
 
     //insert new item_materials for item_id
-    if (material_fields.length === 0) {
+    if (materials_array.length === 0) {
       return [];
     } else {
-      const fieldsToInsert = material_fields.map(
-        (material_field) => ({
-          item_id: item_id,
-          material_id: material_field.id
-        })
-      );
+      const fieldsToInsert = materials_array.map((material_id) => ({
+        item_id: item_id,
+        material_id: material_id
+      }));
       item_materials = await db('item_materials')
         .insert(fieldsToInsert)
         .transacting(trx)

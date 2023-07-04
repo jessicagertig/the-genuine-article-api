@@ -17,7 +17,7 @@ function findAllColors() {
 //findColorsByItemId
 function findColorsByItemId(item_id) {
   return db('item_colors as ic')
-    .select('ic.item_id', 'ic.color_id', 'colors.color')
+    .select('ic.color_id', 'colors.color')
     .join('colors', 'ic.color_id', 'colors.id')
     .where('item_id', item_id);
 }
@@ -70,12 +70,12 @@ function removeItemColor(item_id, color_id) {
 }
 
 //Edit Item_Colors --> for editing item colors after initial entry - will delete all item_colors for item_id and insert new ones or none
-async function editItemColors(item_id, color_fields, context = {}) {
+async function editItemColors(item_id, colors_array, context = {}) {
   const { trx } = context;
   let item_colors;
   // if item_colors is undefined, we are not editing colors,
   // so return all existing item_colors for item_id
-  if (color_fields === undefined) {
+  if (colors_array === undefined) {
     item_colors = await findItemsByColorId(item_id);
   } else {
     //delete all item_colors for item_id
@@ -85,12 +85,12 @@ async function editItemColors(item_id, color_fields, context = {}) {
       .transacting(trx);
 
     //insert new item_colors for item_id
-    if (color_fields.length === 0) {
+    if (colors_array.length === 0) {
       return [];
     } else {
-      const fieldsToInsert = color_fields.map((color_field) => ({
+      const fieldsToInsert = colors_array.map((color_id) => ({
         item_id: item_id,
-        color_id: color_field.id
+        color_id: color_id
       }));
       item_colors = await db('item_colors')
         .insert(fieldsToInsert)

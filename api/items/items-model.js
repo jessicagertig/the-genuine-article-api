@@ -11,6 +11,7 @@ const {
   findMainImageByItemId
 } = require('../items-images/items-images-model');
 const { withTransaction } = require('../utils/withTransaction');
+const { calculateDecades } = require('../utils/helpers');
 
 module.exports = {
   findAllGarmentTitles,
@@ -51,6 +52,14 @@ function findAllGarmentTitles() {
   return db('garment_titles').select('*');
 }
 
+// find GarmentTitleId by garment_title name
+async function findGarmentTitleId(garment_title) {
+  const data = await db('garment_titles')
+    .select('id')
+    .where({ garment_title });
+  return data[0]['id'];
+}
+
 //find by collection url (for validation middleware)
 function findByCollectionUrl(collection_url) {
   return db('items').where({ collection_url }).first();
@@ -77,8 +86,11 @@ async function findItemById(id) {
   const colors = await findColorsByItemId(id);
   const colorsList = colors.map((color) => color.color);
   const image_urls = await findMainImageByItemId(id);
+  const garment_name = info['garment_title'];
+  const garment_title_id = await findGarmentTitleId(garment_name);
   const returned = {
     ...info,
+    garment_title_id,
     colors: colorsList,
     materials: materialsList,
     image_urls
@@ -120,6 +132,13 @@ async function getAllItems() {
 */
 async function createItem(item_info, item_colors, item_materials) {
   return withTransaction(async (trx) => {
+    const decadesArray = calculateDecades(
+      item_info['begin_year'],
+      item_info['end_year']
+    );
+
+    item_info['decade'] = decadesArray[0];
+    item_info['secondary_decade'] = decadesArray[1];
     // insert item info and return the info including the new id
     const new_item_info = await db('items')
       .insert(item_info)

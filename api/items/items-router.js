@@ -106,14 +106,15 @@ router.put('/:item_id', async (req, res) => {
         req.body.item_colors,
         req.body.item_materials
       );
-      res.status(200).json(edited_item[0]);
+      console.log('edited item', edited_item);
+      return res.status(200).json(edited_item);
     } else {
-      res.status(400).json({
+      return res.status(400).json({
         message: `No item with id ${item_id} exists. Error on client end.`
       });
     }
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       message: `Error on server end updating item by id ${item_id}.`,
       error
     });
