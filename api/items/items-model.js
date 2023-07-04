@@ -52,6 +52,14 @@ function findAllGarmentTitles() {
   return db('garment_titles').select('*');
 }
 
+// find GarmentTitleId by garment_title name
+async function findGarmentTitleId(garment_title) {
+  const data = await db('garment_titles')
+    .select('id')
+    .where({ garment_title });
+  return data[0]['id'];
+}
+
 //find by collection url (for validation middleware)
 function findByCollectionUrl(collection_url) {
   return db('items').where({ collection_url }).first();
@@ -72,12 +80,19 @@ function findInfoById(id) {
 async function findItemById(id) {
   const info = await findInfoById(id);
   const materials = await findMaterialsByItemId(id);
+  const materialsList = materials.map(
+    (material) => material.material
+  );
   const colors = await findColorsByItemId(id);
+  const colorsList = colors.map((color) => color.color);
   const image_urls = await findMainImageByItemId(id);
+  const garment_name = info['garment_title'];
+  const garment_title_id = await findGarmentTitleId(garment_name);
   const returned = {
     ...info,
-    colors: colors,
-    materials: materials,
+    garment_title_id,
+    colors: colorsList,
+    materials: materialsList,
     image_urls
   };
   return returned;
