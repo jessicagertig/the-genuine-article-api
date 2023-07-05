@@ -16,7 +16,7 @@ router.get('/main_image/:item_id', (req, res) => {
   Images.findMainImageByItemId(item_id)
     .then((img) => {
       if (img === null) {
-        return res.status(400).json({
+        return res.status(404).json({
           message: `No main image exists for item with id ${item_id}.`
         });
       } else {

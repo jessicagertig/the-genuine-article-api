@@ -31,7 +31,8 @@ router.get('/:item_id', (req, res) => {
   Materials.findMaterialsByItemId(item_id)
     .then((item_materials) => {
       const item_id = item_materials[0].item_id;
-      if (item_materials) {
+      console.log('Item materials:', item_materials);
+      if (item_materials.length > 0) {
         item_materials.forEach((material) => {
           delete material['item_id'];
         });
@@ -39,8 +40,8 @@ router.get('/:item_id', (req, res) => {
           .status(200)
           .json({ item_id: item_id, materials: item_materials });
       } else {
-        res.status(400).json({
-          message: `No materials have been added for item with id ${item_id}. Error on client end.`
+        res.status(404).json({
+          message: `No materials have been added for item with id ${item_id}.`
         });
       }
     })
