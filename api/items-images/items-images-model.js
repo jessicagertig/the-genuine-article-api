@@ -1,4 +1,8 @@
 const db = require('../../database/db-config');
+const {
+  ImageUploader,
+  DeleteResizedImage
+} = require('../utils/imageUploader');
 
 function find() {
   return db('main_images').select('*').orderBy('id');
@@ -71,8 +75,6 @@ async function addMainImageSizes(
     main_image_url: main_image_url,
     large_url: `${baseUrl}/large_${file_name}`,
     display_url: `${baseUrl}/display_${file_name}`,
-    admin_upload_url: `${baseUrl}/admin_upload_${file_name}`,
-    small_url: `${baseUrl}/small_${file_name}`,
     thumb_url: `${baseUrl}/thumb_${file_name}`,
     item_id: item_id
   };
@@ -97,9 +99,70 @@ async function addSecondaryImageSizes(baseUrl, file_name, item_id) {
 
 async function removeMainImage(item_id) {
   console.log('item_id', item_id);
-  return await db('main_images')
-    .where({ item_id })
-    .del(['id', 'file_name', 'item_id']);
+  return await db('main_images').where({ item_id }).del();
+}
+
+async function deleteMainImageFromS3(item_id) {
+  let file_name;
+
+  try {
+    const image_info = await findMainImageByItemId(item_id);
+    console.log('GET FILE', image_info);
+    file_name = image_info ? image_info.file_name : null;
+
+    if (file_name !== undefined && file_name !== null) {
+      const deleteUpload = new ImageUploader('original_main_image');
+      await deleteUpload.deleteOriginalImage(item_id, file_name);
+
+      const deleteResizedUpload = new DeleteResizedImage(
+        'resized_main_image'
+      );
+      await deleteResizedUpload.deleteResizedImages(
+        item_id,
+        file_name
+      );
+
+      console.log(
+        'The images should have been successfully deleted from AWS S3'
+      );
+    } else {
+      console.log(
+        'There is no image information in the database for this item.'
+      );
+    }
+  } catch (err) {
+    console.error(
+      'There was an error deleting the image from AWS S3.'
+    );
+    throw err;
+  }
+}
+
+async function deleteMainImageRecord(item_id, context = {}) {
+  const { trx } = context;
+
+  try {
+    await db('main_images')
+      .where({ item_id })
+      .del()
+      .transacting(trx)
+      .then((result) => {
+        if (result) {
+          console.log(
+            `The main image for item with id ${item_id} has been deleted from the DB. Result: ${result}`
+          );
+        } else {
+          throw new Error(
+            `No main image existed for item with id ${item_id} in the DB.`
+          );
+        }
+      });
+  } catch (error) {
+    console.error(
+      `An error occurred while deleting the main image from the DB for item with id ${item_id}. Error: ${error}`
+    );
+    throw error;
+  }
 }
 
 module.exports = {
@@ -111,5 +174,7 @@ module.exports = {
   findMainImageByItemId,
   findMainImageUrlsByItemId,
   addSecondaryImageSizes,
-  removeMainImage
+  removeMainImage,
+  deleteMainImageRecord,
+  deleteMainImageFromS3
 };

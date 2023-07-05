@@ -61,8 +61,14 @@ router.get('/:item_id', async (req, res) => {
 
   try {
     const item = await Items.findItemById(item_id);
-
-    return res.status(200).json(item);
+    console.log(item);
+    if (item) {
+      return res.status(200).json(item);
+    } else {
+      return res.status(404).json({
+        Message: `No item with id ${item_id} was found.`
+      });
+    }
   } catch (error) {
     res.status(500).json({
       Message: `Error retrieving item with id ${item_id}.`,
@@ -109,13 +115,43 @@ router.put('/:item_id', async (req, res) => {
       console.log('edited item', edited_item);
       return res.status(200).json(edited_item);
     } else {
-      return res.status(400).json({
-        message: `No item with id ${item_id} exists. Error on client end.`
+      return res.status(404).json({
+        message: `No item with id ${item_id} exists.`
       });
     }
   } catch (error) {
     return res.status(500).json({
       message: `Error on server end updating item by id ${item_id}.`,
+      error
+    });
+  }
+});
+
+//delete item by item id
+router.delete('/:item_id', async (req, res) => {
+  const item_id = req.params.item_id;
+
+  try {
+    const item = await Items.deleteItem(item_id);
+    return res.status(200).json(item[0]);
+  } catch (error) {
+    res.status(500).json({
+      Message: `Error deleting item with id ${item_id}.`,
+      error
+    });
+  }
+});
+
+// for temp admin use delete item with no image record
+router.delete('/admin/:item_id', async (req, res) => {
+  const item_id = req.params.item_id;
+
+  try {
+    const item = await Items.deleteItemNoImage(item_id);
+    return res.status(200).json(item[0]);
+  } catch (error) {
+    res.status(500).json({
+      Message: `Error deleting item with id ${item_id}.`,
       error
     });
   }

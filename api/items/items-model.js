@@ -1,14 +1,18 @@
 const db = require('../../database/db-config');
 const {
   findColorsByItemId,
-  editItemColors
+  editItemColors,
+  deleteItemColors
 } = require('../items-colors/items-colors-model');
 const {
   findMaterialsByItemId,
-  editItemMaterials
+  editItemMaterials,
+  deleteItemMaterials
 } = require('../items-materials/items-materials-model');
 const {
-  findMainImageByItemId
+  findMainImageByItemId,
+  deleteMainImageRecord,
+  deleteMainImageFromS3
 } = require('../items-images/items-images-model');
 const { withTransaction } = require('../utils/withTransaction');
 const { calculateDecades } = require('../utils/helpers');
@@ -22,7 +26,9 @@ module.exports = {
   findInfoById,
   findItemById,
   createItem,
-  updateItem
+  updateItem,
+  deleteItem,
+  deleteItemNoImage
 };
 
 //finds all items (excluding colors and materials)
@@ -78,24 +84,28 @@ function findInfoById(id) {
 //findItemById
 /* note: the color and material tables are separate from the items table because each item can have multiple colors and materials, and each color and material can be associated with multiple items. The item_colors and item_materials tables are join tables. Sepration also facilitates searching by color or material. */
 async function findItemById(id) {
-  const info = await findInfoById(id);
-  const materials = await findMaterialsByItemId(id);
-  const materialsList = materials.map(
-    (material) => material.material
-  );
-  const colors = await findColorsByItemId(id);
-  const colorsList = colors.map((color) => color.color);
-  const image_urls = await findMainImageByItemId(id);
-  const garment_name = info['garment_title'];
-  const garment_title_id = await findGarmentTitleId(garment_name);
-  const returned = {
-    ...info,
-    garment_title_id,
-    colors: colorsList,
-    materials: materialsList,
-    image_urls
-  };
-  return returned;
+  try {
+    const info = await findInfoById(id);
+    const materials = await findMaterialsByItemId(id);
+    const materialsList = materials.map(
+      (material) => material.material
+    );
+    const colors = await findColorsByItemId(id);
+    const colorsList = colors.map((color) => color.color);
+    const image_urls = await findMainImageByItemId(id);
+    const garment_name = info['garment_title'];
+    const garment_title_id = await findGarmentTitleId(garment_name);
+    const returned = {
+      ...info,
+      garment_title_id,
+      colors: colorsList,
+      materials: materialsList,
+      image_urls
+    };
+    return returned;
+  } catch (error) {
+    console.log('Error getting item. MESSAGE:', error);
+  }
 }
 
 async function getAllItems() {
@@ -118,7 +128,7 @@ async function getAllItems() {
     }
     return info;
   } catch (error) {
-    console.log(error);
+    console.log('Error getting items', error);
   }
 }
 
@@ -232,5 +242,46 @@ async function updateItem(
     };
 
     return edited_item;
+  });
+}
+
+async function deleteItem(item_id) {
+  return withTransaction(async (trx) => {
+    // Delete the main image from s3 first
+    await deleteMainImageFromS3(item_id);
+
+    await deleteMainImageRecord(item_id, { trx });
+
+    // If the main image deletion is successful, proceed with other deletions
+    const item_deleted = await db('items')
+      .where('id', item_id)
+      .first({})
+      .del()
+      .transacting(trx)
+      .returning('id');
+
+    await deleteItemColors(item_id, { trx });
+
+    await deleteItemMaterials(item_id, { trx });
+
+    return item_deleted;
+  });
+}
+
+// interal use for item with no image
+async function deleteItemNoImage(item_id) {
+  return withTransaction(async (trx) => {
+    const item_deleted = await db('items')
+      .where('id', item_id)
+      .first({})
+      .del()
+      .transacting(trx)
+      .returning('id');
+
+    await deleteItemColors(item_id, { trx });
+
+    await deleteItemMaterials(item_id, { trx });
+
+    return item_deleted;
   });
 }

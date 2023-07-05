@@ -6,7 +6,8 @@ module.exports = {
   findItemsByColorId,
   insertItemColors,
   removeItemColor,
-  editItemColors
+  editItemColors,
+  deleteItemColors
 };
 
 //find all colors
@@ -99,4 +100,9 @@ async function editItemColors(item_id, colors_array, context = {}) {
     }
   }
   return item_colors;
+}
+
+async function deleteItemColors(item_id, context = {}) {
+  const { trx } = context;
+  await db('item_colors').where({ item_id }).del().transacting(trx);
 }
