@@ -102,20 +102,18 @@ async function removeMainImage(item_id) {
   return await db('main_images').where({ item_id }).del();
 }
 
-async function deleteMainImage(item_id, context = {}) {
-  const { trx } = context;
+async function deleteMainImageFromS3(item_id) {
   let file_name;
 
   try {
-    // get file_name from db
     const image_info = await findMainImageByItemId(item_id);
     console.log('GET FILE', image_info);
     file_name = image_info ? image_info.file_name : null;
-    // delete original main image from s3
+
     if (file_name !== undefined && file_name !== null) {
       const deleteUpload = new ImageUploader('original_main_image');
       await deleteUpload.deleteOriginalImage(item_id, file_name);
-      // delete resized main image from s3
+
       const deleteResizedUpload = new DeleteResizedImage(
         'resized_main_image'
       );
@@ -123,8 +121,9 @@ async function deleteMainImage(item_id, context = {}) {
         item_id,
         file_name
       );
+
       console.log(
-        'The images should have been successfuly deleted from AWS S3'
+        'The images should have been successfully deleted from AWS S3'
       );
     } else {
       console.log(
@@ -137,8 +136,11 @@ async function deleteMainImage(item_id, context = {}) {
     );
     throw err;
   }
+}
 
-  // delete main image record from db
+async function deleteMainImageRecord(item_id, context = {}) {
+  const { trx } = context;
+
   try {
     await db('main_images')
       .where({ item_id })
@@ -156,8 +158,9 @@ async function deleteMainImage(item_id, context = {}) {
         }
       });
   } catch (error) {
-    console.error(`An error occured while deleting the main image from the 
-        DB for item with id ${item_id}. Error: ${error}`);
+    console.error(
+      `An error occurred while deleting the main image from the DB for item with id ${item_id}. Error: ${error}`
+    );
     throw error;
   }
 }
@@ -172,5 +175,6 @@ module.exports = {
   findMainImageUrlsByItemId,
   addSecondaryImageSizes,
   removeMainImage,
-  deleteMainImage
+  deleteMainImageRecord,
+  deleteMainImageFromS3
 };

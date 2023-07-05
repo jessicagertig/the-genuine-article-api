@@ -3,8 +3,7 @@ const Images = require('./items-images-model');
 const {
   ImageUploader,
   ResizedMainImageUploader,
-  SecondaryImagesUploader,
-  DeleteResizedImage
+  SecondaryImagesUploader
 } = require('../utils/imageUploader');
 const { defineParams } = require('../utils/parseFiles');
 const checkItemImageExists = require('./image-middleware');
@@ -118,31 +117,7 @@ router.put('/main_image/:item_id', async (req, res) => {
 router.delete('/main_image/:item_id', async (req, res) => {
   const item_id = req.params.item_id;
   try {
-    // get file_name from db
-    const image_info = await Images.findMainImageByItemId(item_id);
-    console.log('GET FILE', image_info);
-    const file_name = image_info ? image_info.file_name : null;
-    // delete original main image from s3
-    if (file_name !== undefined && file_name !== null) {
-      const deleteUpload = new ImageUploader('original_main_image');
-      await deleteUpload.deleteOriginalImage(item_id, file_name);
-      // delete resized main image from s3
-      const deleteResizedUpload = new DeleteResizedImage(
-        'resized_main_image'
-      );
-      await deleteResizedUpload.deleteResizedImages(
-        item_id,
-        file_name
-      );
-      console.log(
-        'The images should have been successfuly deleted from AWS S3'
-      );
-    } else {
-      return res.status(500).json({
-        message:
-          'There was an error retrieving the image information from the DB. The item could not be deleted.'
-      });
-    }
+    await Images.deleteMainImageFromS3(item_id);
   } catch (err) {
     return res.status(500).json({
       message: 'There was an error deleting the image from AWS S3.'

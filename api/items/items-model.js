@@ -11,7 +11,8 @@ const {
 } = require('../items-materials/items-materials-model');
 const {
   findMainImageByItemId,
-  deleteMainImage
+  deleteMainImageRecord,
+  deleteMainImageFromS3
 } = require('../items-images/items-images-model');
 const { withTransaction } = require('../utils/withTransaction');
 const { calculateDecades } = require('../utils/helpers');
@@ -246,8 +247,10 @@ async function updateItem(
 
 async function deleteItem(item_id) {
   return withTransaction(async (trx) => {
-    // Delete the main image first
-    await deleteMainImage(item_id, { trx });
+    // Delete the main image from s3 first
+    await deleteMainImageFromS3(item_id);
+
+    await deleteMainImageRecord(item_id, { trx });
 
     // If the main image deletion is successful, proceed with other deletions
     const item_deleted = await db('items')
