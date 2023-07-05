@@ -6,7 +6,8 @@ module.exports = {
   findItemsByMaterialId,
   addItemMaterials,
   removeItemMaterial,
-  editItemMaterials
+  editItemMaterials,
+  deleteItemMaterials
 };
 
 //find materials for dropdown menus (forms and searchs)
@@ -103,4 +104,12 @@ async function editItemMaterials(
     }
   }
   return item_materials;
+}
+
+async function deleteItemMaterials(item_id, context = {}) {
+  const { trx } = context;
+  await db('item_materials')
+    .where({ item_id })
+    .del()
+    .transacting(trx);
 }
