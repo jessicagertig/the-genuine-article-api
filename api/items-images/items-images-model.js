@@ -1,4 +1,8 @@
 const db = require('../../database/db-config');
+const {
+  ImageUploader,
+  DeleteResizedImage
+} = require('../utils/imageUploader');
 
 function find() {
   return db('main_images').select('*').orderBy('id');
@@ -97,9 +101,67 @@ async function addSecondaryImageSizes(baseUrl, file_name, item_id) {
 
 async function removeMainImage(item_id) {
   console.log('item_id', item_id);
-  return await db('main_images')
-    .where({ item_id })
-    .del(['id', 'file_name', 'item_id']);
+  return await db('main_images').where({ item_id }).del();
+}
+
+async function deleteMainImage(item_id, context = {}) {
+  const { trx } = context;
+  let file_name;
+
+  try {
+    // get file_name from db
+    const image_info = await findMainImageByItemId(item_id);
+    console.log('GET FILE', image_info);
+    file_name = image_info ? image_info.file_name : null;
+    // delete original main image from s3
+    if (file_name !== undefined && file_name !== null) {
+      const deleteUpload = new ImageUploader('original_main_image');
+      await deleteUpload.deleteOriginalImage(item_id, file_name);
+      // delete resized main image from s3
+      const deleteResizedUpload = new DeleteResizedImage(
+        'resized_main_image'
+      );
+      await deleteResizedUpload.deleteResizedImages(
+        item_id,
+        file_name
+      );
+      console.log(
+        'The images should have been successfuly deleted from AWS S3'
+      );
+    } else {
+      throw new Error(
+        'There was an error retrieving the image information from the DB. The item could not be deleted.'
+      );
+    }
+  } catch (err) {
+    console.error(
+      'There was an error deleting the image from AWS S3.'
+    );
+    throw err;
+  }
+
+  // delete main image record from db
+  try {
+    await db('main_images')
+      .where({ item_id })
+      .del()
+      .transacting(trx)
+      .then((result) => {
+        if (result) {
+          console.log(
+            `The main image for item with id ${item_id} has been deleted from the DB. Result: ${result}`
+          );
+        } else {
+          throw new Error(
+            `No main image existed for item with id ${item_id} in the DB.`
+          );
+        }
+      });
+  } catch (error) {
+    console.error(`An error occured while deleting the main image from the 
+        DB for item with id ${item_id}. Error: ${error}`);
+    throw error;
+  }
 }
 
 module.exports = {
@@ -111,5 +173,6 @@ module.exports = {
   findMainImageByItemId,
   findMainImageUrlsByItemId,
   addSecondaryImageSizes,
-  removeMainImage
+  removeMainImage,
+  deleteMainImage
 };
