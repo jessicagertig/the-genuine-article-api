@@ -26,7 +26,8 @@ module.exports = {
   findItemById,
   createItem,
   updateItem,
-  deleteItem
+  deleteItem,
+  deleteItemNoImage
 };
 
 //finds all items (excluding colors and materials)
@@ -249,6 +250,24 @@ async function deleteItem(item_id) {
     await deleteMainImage(item_id, { trx });
 
     // If the main image deletion is successful, proceed with other deletions
+    const item_deleted = await db('items')
+      .where('id', item_id)
+      .first({})
+      .del()
+      .transacting(trx)
+      .returning('id');
+
+    await deleteItemColors(item_id, { trx });
+
+    await deleteItemMaterials(item_id, { trx });
+
+    return item_deleted;
+  });
+}
+
+// interal use for item with no image
+async function deleteItemNoImage(item_id) {
+  return withTransaction(async (trx) => {
     const item_deleted = await db('items')
       .where('id', item_id)
       .first({})

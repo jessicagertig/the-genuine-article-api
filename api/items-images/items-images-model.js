@@ -129,8 +129,8 @@ async function deleteMainImage(item_id, context = {}) {
         'The images should have been successfuly deleted from AWS S3'
       );
     } else {
-      throw new Error(
-        'There was an error retrieving the image information from the DB. The item could not be deleted.'
+      console.log(
+        'There is no image information in the database for this item.'
       );
     }
   } catch (err) {

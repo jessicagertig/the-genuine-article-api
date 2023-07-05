@@ -133,14 +133,22 @@ router.delete('/:item_id', async (req, res) => {
 
   try {
     const item = await Items.deleteItem(item_id);
-    const returned_id = item[0].id;
-    if (returned_id === item_id) {
-      return res.status(200).json(item);
-    } else {
-      return res.status(400).json({
-        Message: `Something went wrong while deleting the item.`
-      });
-    }
+    return res.status(200).json(item[0]);
+  } catch (error) {
+    res.status(500).json({
+      Message: `Error deleting item with id ${item_id}.`,
+      error
+    });
+  }
+});
+
+// for temp admin use delete item with no image record
+router.delete('/admin/:item_id', async (req, res) => {
+  const item_id = req.params.item_id;
+
+  try {
+    const item = await Items.deleteItemNoImage(item_id);
+    return res.status(200).json(item[0]);
   } catch (error) {
     res.status(500).json({
       Message: `Error deleting item with id ${item_id}.`,
