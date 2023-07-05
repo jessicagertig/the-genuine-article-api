@@ -149,11 +149,9 @@ class DeleteResizedImage extends ImageUploader {
 class ResizedMainImageUploader extends ImageUploader {
   constructor(modelName) {
     super(modelName, {
-      large: [500, 609],
+      large: [640, 768],
       display: [400, 600], //for search view
-      admin_upload: [250, 305], //for upload page
-      small: [96, 117],
-      thumb: [64, 78]
+      thumb: [64, 64]
     });
   }
 
