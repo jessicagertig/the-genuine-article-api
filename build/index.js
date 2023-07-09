@@ -2,10 +2,15 @@ require('dotenv').config();
 
 const server = require('../app');
 const debug = require('debug')('the-genuine-article-api:server');
+const cronJobs = require('../cron/index');
 
 const port = process.env.PORT || 4000;
 server.set('port', port);
 
+// excuting chron job(s)
+cronJobs();
+
+// call server to listen for requests
 server.listen(port, () => {
   console.log(`Server is listening now on port ${port}`);
 });
