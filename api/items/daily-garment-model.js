@@ -3,7 +3,8 @@ const db = require('../../database/db-config');
 const { withTransaction } = require('../utils/withTransaction');
 
 module.exports = {
-  getGarmentOfTheDay
+  getGarmentOfTheDay,
+  dailyGarmentJob
 };
 
 async function selectGarmentOfTheDay(excluded_ids) {
@@ -60,6 +61,25 @@ async function getExcludedIds() {
   const excluded_ids = existing_ids.map((record) => record.item_id);
 
   return excluded_ids;
+}
+
+async function dailyGarmentJob() {
+  try {
+    const excludedIds = await getExcludedIds();
+    const newRecord = await selectGarmentOfTheDay(excludedIds);
+    console.log('New record selected:', newRecord);
+
+    const recordsMaxed = await rows_count();
+    if (recordsMaxed) {
+      await replace_oldest_daily_item(newRecord.id);
+    } else {
+      await db('garment_of_the_day').insert({
+        item_id: newRecord.id
+      });
+    }
+  } catch (error) {
+    console.error('Error in cron job:', error);
+  }
 }
 
 async function getGarmentOfTheDay() {
