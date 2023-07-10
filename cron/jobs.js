@@ -1,4 +1,4 @@
-const { dailyGarmentJob } = require('../items/daily-garment-model');
+const { dailyGarmentJob } = require('../api/daily-garment-model');
 
 module.exports = async (req, res) => {
   try {
