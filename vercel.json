@@ -23,7 +23,7 @@
   ],
   "crons": [
     {
-      "schedule": "0 0 * * *",
+      "schedule": "0 7 * * *",
       "path": "/cron/jobs.js"
     }
   ]
