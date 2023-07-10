@@ -9,8 +9,8 @@ module.exports = {
 
 async function selectGarmentOfTheDay(excluded_ids) {
   const totalRecords = await db('items').count();
-  let selectedRecord;
-  while (!selectedRecord.length) {
+  let selectedRecord = [];
+  while (selectedRecord.length === 0) {
     const randomIndex = Math.floor(
       Math.random() * totalRecords[0].count
     );
