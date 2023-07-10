@@ -17,8 +17,8 @@
       "dest": "/app.js"
     },
     {
-      "src": "cron/jobs.js",
-      "dest": "cron/jobs.js"
+      "src": "/cron/jobs.js",
+      "dest": "/cron/jobs.js"
     }
   ],
   "crons": [
