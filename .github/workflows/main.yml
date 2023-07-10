@@ -23,4 +23,4 @@ jobs:
         with: 
           node-version: '16.x'
       - name: Trigger POST request
-        run: curl -X POST `${{ vars.API_URL }}/items/daily`
+        run: curl -X POST "${{ vars.API_URL }}/items/daily"
