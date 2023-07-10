@@ -2,7 +2,10 @@ const router = require('express').Router();
 const Colors = require('../items-colors/items-colors-model');
 const Materials = require('../items-materials/items-materials-model');
 const Items = require('./items-model');
-const { getGarmentOfTheDay } = require('./daily-garment-model');
+const {
+  getGarmentOfTheDay,
+  dailyGarmentJob
+} = require('./daily-garment-model');
 const {
   checkForRequestBody,
   checkForDuplicateItem
@@ -68,6 +71,26 @@ router.get('/daily', async (req, res) => {
         Message: `Garment of the day not found.`
       });
     }
+  } catch (error) {
+    res.status(500).json({
+      Message: `Error retrieving garment of the day.`,
+      error
+    });
+  }
+});
+
+router.post('/daily', async (req, res) => {
+  console.log('dailyGarmentJob is running...');
+  try {
+    const item = await dailyGarmentJob();
+    console.log(item);
+    // if (item) {
+    return res.status(201).json(item);
+    // } else {
+    // return res.status(404).json({
+    //   Message: `Garment of the day not found.`
+    // });
+    // }
   } catch (error) {
     res.status(500).json({
       Message: `Error retrieving garment of the day.`,
