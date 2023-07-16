@@ -30,6 +30,47 @@ router.get('/', async (req, res) => {
   }
 });
 
+//Get paginated items
+router.get('/list', async (req, res) => {
+  const page = req.query?.page ? Number(req.query.page) : null;
+  const limit = req.query?.limit ? Number(req.query.limit) : null;
+  try {
+    const result = await Items.getPaginatedItems(page, limit);
+    if (result) {
+      res.status(200).json(result);
+    } else {
+      res.status(400).json({
+        message: 'There are no items listed. Error on client end.'
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      message: 'Error on server end getting items.',
+      error
+    });
+  }
+});
+
+router.get('/pages', async (req, res) => {
+  const limit = req.query?.limit ? Number(req.query.limit) : 15;
+  try {
+    const result = await Items.getPageCount(limit);
+    console.log(result);
+    if (result) {
+      res.status(200).json(result);
+    } else {
+      res.status(400).json({
+        message: 'There are no items.'
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      message: 'Error on server end getting count.',
+      error
+    });
+  }
+});
+
 //get menus, populate dropdown menus on clientside
 //function must come before get by item_id else pg will try to insert 'menus' as id
 router.get('/menus', async (req, res) => {
