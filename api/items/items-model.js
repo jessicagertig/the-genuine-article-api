@@ -22,6 +22,8 @@ module.exports = {
   findByCollectionUrl,
   findByCollectionNo,
   getAllItems,
+  getPaginatedItems,
+  getPageCount,
   findAllItemsInfo,
   findInfoById,
   findItemById,
@@ -52,6 +54,33 @@ function findAllItemsInfo() {
     .orderBy('id');
 }
 
+function findPaginatedItemsInfo(offset, limit) {
+  return db('items')
+    .select(
+      'id',
+      'garment_title',
+      'garment_type',
+      'begin_year',
+      'end_year',
+      'decade',
+      'secondary_decade',
+      'culture_country',
+      'collection',
+      'collection_url',
+      'creator',
+      'source',
+      'item_collection_no',
+      'description'
+    )
+    .orderBy('id')
+    .limit(limit)
+    .offset(offset);
+}
+
+async function getItemsCount() {
+  const result = await db('items').count('id as count').first();
+  return result.count;
+}
 //findsAllGarmentTitles (for menu/search)
 function findAllGarmentTitles() {
   return db('garment_titles').select('*');
@@ -131,6 +160,38 @@ async function getAllItems() {
   }
 }
 
+async function getPaginatedItems(page = 1, limit = 15) {
+  try {
+    const offset = (page - 1) * limit; // calculate offset
+    const info = await findPaginatedItemsInfo(offset, limit);
+    for (let i = 0; i < info.length; i++) {
+      let item = info[i];
+      let item_id = item.id;
+      const materials = await findMaterialsByItemId(item_id);
+      const materialsList = materials.map(
+        (material) => material.material
+      );
+      item['materials'] = materialsList;
+      const colors = await findColorsByItemId(item_id);
+      const colorsList = colors.map((color) => color.color);
+      item['colors'] = colorsList;
+      const image_urls = await findMainImageByItemId(item_id);
+      const item_image_urls = image_urls ? image_urls : null;
+      item['image_urls'] = item_image_urls;
+    }
+    return info;
+  } catch (error) {
+    console.log('Error getting items', error);
+  }
+}
+
+async function getPageCount(limit = 15) {
+  // get num of pages
+  const count = await getItemsCount();
+  console.log('count', count);
+  const pages = Math.ceil(count / limit);
+  return pages;
+}
 /* 
   Refactored createItem function to use transactions.
   Abstracted the transaction logic to a separate file (withTransaction.js).
