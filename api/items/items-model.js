@@ -73,7 +73,7 @@ function findPaginatedItemsInfo(offset, limit) {
       'description'
     )
     .orderBy('id')
-    .limit(limit)
+    .limit(limit + 1)
     .offset(offset);
 }
 
@@ -163,7 +163,14 @@ async function getAllItems() {
 async function getPaginatedItems(page = 1, limit = 15) {
   try {
     const offset = (page - 1) * limit; // calculate offset
-    const info = await findPaginatedItemsInfo(offset, limit);
+    let info = await findPaginatedItemsInfo(offset, limit);
+    let hasMore = false;
+
+    if (info.length > limit) {
+      hasMore = true;
+      info = info.slice(0, limit); // Remove the extra item
+    }
+
     for (let i = 0; i < info.length; i++) {
       let item = info[i];
       let item_id = item.id;
@@ -179,7 +186,8 @@ async function getPaginatedItems(page = 1, limit = 15) {
       const item_image_urls = image_urls ? image_urls : null;
       item['image_urls'] = item_image_urls;
     }
-    return info;
+    const pages = await getPageCount();
+    return { items: info, hasMore: hasMore, pages: pages };
   } catch (error) {
     console.log('Error getting items', error);
   }
