@@ -31,7 +31,8 @@ module.exports = {
   findItemById,
   createItem,
   updateItem,
-  deleteItem
+  deleteItem,
+  searchItems
 };
 
 const infoToSelect = [
@@ -293,4 +294,40 @@ async function deleteItem(item_id) {
 
     return item_deleted;
   });
+}
+
+//paginated, on FE useInfiniteQuery but implement load more instead of pagination
+async function searchItems(search_term, page = 1, limit = 30) {
+  const offset = (page - 1) * limit;
+  try {
+    const results = await db('items')
+      .whereRaw(
+        "search_vector @@ plainto_tsquery('english', ?)",
+        search_term
+      )
+      .select(...infoToSelect)
+      .limit(limit)
+      .offset(offset);
+
+    for (let i = 0; i < results.length; i++) {
+      let item = results[i];
+      let item_id = item.id;
+      const materials = await findMaterialsByItemId(item_id);
+      const materialsList = materials.map(
+        (material) => material.material
+      );
+      item['materials'] = materialsList;
+      const colors = await findColorsByItemId(item_id);
+      const colorsList = colors.map((color) => color.color);
+      item['colors'] = colorsList;
+      const image_urls = await findMainImageByItemId(item_id);
+      const item_image_urls = image_urls ? image_urls : null;
+      item['image_urls'] = item_image_urls;
+    }
+
+    return results;
+  } catch (error) {
+    console.error('Error with search query:', error);
+    throw new Error('Error with search');
+  }
 }
