@@ -37,6 +37,7 @@ router.get('/list', async (req, res) => {
   try {
     const result = await Items.getPaginatedItems(page, limit);
     if (result) {
+      console.log('hasMore?', result.hasMore);
       res.status(200).json(result);
     } else {
       res.status(400).json({
@@ -100,6 +101,27 @@ router.get('/menus', async (req, res) => {
   }
 });
 
+router.get('/search', async (req, res) => {
+  const search_term = req.query?.q;
+  console.log('SEARCH TERM', search_term);
+  const page = req.query?.page ? Number(req.query.page) : 1;
+  const limit = req.query?.limit ? Number(req.query.limit) : 15;
+  try {
+    const search_results = await Items.searchItems(
+      search_term,
+      page,
+      limit
+    );
+    console.log(search_results);
+    return res.status(200).json(search_results);
+  } catch (error) {
+    return res.status(500).json({
+      Message: `Error searching for ${search_term}. ERROR:`,
+      error
+    });
+  }
+});
+
 //must be before get item by id so it does not try to use 'daily' as id
 router.get('/daily', async (req, res) => {
   try {
@@ -134,7 +156,7 @@ router.post('/daily', async (req, res) => {
     // }
   } catch (error) {
     res.status(500).json({
-      Message: `Error retrieving garment of the day.`,
+      Message: `Error in daily garment job post request.`,
       error
     });
   }

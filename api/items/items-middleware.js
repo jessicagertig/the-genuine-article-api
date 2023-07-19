@@ -1,4 +1,4 @@
-const Items = require('./items-model');
+const ItemsInfo = require('../items-info/items-info-model');
 
 const checkForRequestBody = (req, res, next) => {
   if (!req.body.item_info) {
@@ -22,10 +22,10 @@ const checkForDuplicateItem = async (req, res, next) => {
   const new_collection_url = req.body.item_info.collection_url;
   const new_collection_no = req.body.item_info.item_collection_no;
 
-  const existing_url = await Items.findByCollectionUrl(
+  const existing_url = await ItemsInfo.findByCollectionUrl(
     new_collection_url
   );
-  const existing_collection_no = await Items.findByCollectionNo(
+  const existing_collection_no = await ItemsInfo.findByCollectionNo(
     new_collection_no
   );
 
