@@ -88,15 +88,22 @@ async function getGarmentOfTheDay() {
       .orderBy('updated_at', 'desc')
       .limit(1)
       .first('item_id');
-
-    const item_id = mostRecentRecord.item_id;
-
-    const garment_of_the_day = await Items.findItemById(item_id);
-
-    return garment_of_the_day;
+    console.log('Most recent record:', mostRecentRecord);
+    if (mostRecentRecord !== undefined) {
+      const item_id = mostRecentRecord.item_id;
+      const garment_of_the_day = await Items.findItemById(item_id);
+      return garment_of_the_day;
+    } else {
+      console.error(
+        'The most recent record query returned undefined.'
+      );
+      throw new Error(
+        'The most recent record query returned undefined.'
+      );
+    }
   } catch (error) {
     console.error(
-      `An error occurred while getting the item of the day from the DB. Error: ${error}`
+      `An error occurred while getting the item of the day from the DB. ${error}`
     );
     throw error;
   }
