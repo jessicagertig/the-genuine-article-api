@@ -1,5 +1,11 @@
 const db = require('../../database/db-config');
 const {
+  findAllItemsInfo,
+  findInfoById,
+  findPaginatedItemsInfo,
+  getItemsCount
+} = require('../items-info/items-info-model');
+const {
   findColorsByItemId,
   editItemColors,
   deleteItemColors
@@ -19,68 +25,33 @@ const { calculateDecades } = require('../utils/helpers');
 
 module.exports = {
   findAllGarmentTitles,
-  findByCollectionUrl,
-  findByCollectionNo,
   getAllItems,
   getPaginatedItems,
   getPageCount,
-  findAllItemsInfo,
-  findInfoById,
   findItemById,
   createItem,
   updateItem,
-  deleteItem
+  deleteItem,
+  searchItems
 };
 
-//finds all items (excluding colors and materials)
-function findAllItemsInfo() {
-  return db('items')
-    .select(
-      'id',
-      'garment_title',
-      'garment_type',
-      'begin_year',
-      'end_year',
-      'decade',
-      'secondary_decade',
-      'culture_country',
-      'collection',
-      'collection_url',
-      'creator',
-      'source',
-      'item_collection_no',
-      'description'
-    )
-    .orderBy('id');
-}
+const infoToSelect = [
+  'id',
+  'garment_title',
+  'garment_type',
+  'begin_year',
+  'end_year',
+  'decade',
+  'secondary_decade',
+  'culture_country',
+  'collection',
+  'collection_url',
+  'creator',
+  'source',
+  'item_collection_no',
+  'description'
+];
 
-function findPaginatedItemsInfo(offset, limit) {
-  return db('items')
-    .select(
-      'id',
-      'garment_title',
-      'garment_type',
-      'begin_year',
-      'end_year',
-      'decade',
-      'secondary_decade',
-      'culture_country',
-      'collection',
-      'collection_url',
-      'creator',
-      'source',
-      'item_collection_no',
-      'description'
-    )
-    .orderBy('id')
-    .limit(limit + 1)
-    .offset(offset);
-}
-
-async function getItemsCount() {
-  const result = await db('items').count('id as count').first();
-  return result.count;
-}
 //findsAllGarmentTitles (for menu/search)
 function findAllGarmentTitles() {
   return db('garment_titles').select('*');
@@ -92,21 +63,6 @@ async function findGarmentTitleId(garment_title) {
     .select('id')
     .where({ garment_title });
   return data[0]['id'];
-}
-
-//find by collection url (for validation middleware)
-function findByCollectionUrl(collection_url) {
-  return db('items').where({ collection_url }).first();
-}
-
-//function find by item collection no (for validation middleware)
-function findByCollectionNo(item_collection_no) {
-  return db('items').where({ item_collection_no }).first();
-}
-
-//findInfoById
-function findInfoById(id) {
-  return db('items').where({ id }).first();
 }
 
 //findItemById
@@ -338,4 +294,40 @@ async function deleteItem(item_id) {
 
     return item_deleted;
   });
+}
+
+//paginated, on FE useInfiniteQuery but implement load more instead of pagination
+async function searchItems(search_term, page = 1, limit = 30) {
+  const offset = (page - 1) * limit;
+  try {
+    const results = await db('items')
+      .whereRaw(
+        "search_vector @@ plainto_tsquery('english', ?)",
+        search_term
+      )
+      .select(...infoToSelect)
+      .limit(limit)
+      .offset(offset);
+
+    for (let i = 0; i < results.length; i++) {
+      let item = results[i];
+      let item_id = item.id;
+      const materials = await findMaterialsByItemId(item_id);
+      const materialsList = materials.map(
+        (material) => material.material
+      );
+      item['materials'] = materialsList;
+      const colors = await findColorsByItemId(item_id);
+      const colorsList = colors.map((color) => color.color);
+      item['colors'] = colorsList;
+      const image_urls = await findMainImageByItemId(item_id);
+      const item_image_urls = image_urls ? image_urls : null;
+      item['image_urls'] = item_image_urls;
+    }
+
+    return results;
+  } catch (error) {
+    console.error('Error with search query:', error);
+    throw new Error('Error with search');
+  }
 }
