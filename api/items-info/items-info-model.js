@@ -1,4 +1,5 @@
 const db = require('../../database/db-config');
+const { calculateDecades } = require('../utils/helpers');
 
 module.exports = {
   findAllItemsInfo,
@@ -6,7 +7,10 @@ module.exports = {
   findPaginatedItemsInfo,
   getItemsCount,
   findByCollectionNo,
-  findByCollectionUrl
+  findByCollectionUrl,
+  addItemInfo,
+  editItemInfo,
+  deleteItemInfo
 };
 
 const infoToSelect = [
@@ -60,4 +64,52 @@ function findByCollectionNo(item_collection_no) {
 //findInfoById
 function findInfoById(id) {
   return db('items').where({ id }).first();
+}
+
+// addItemInfo
+async function addItemInfo(item_info, context = {}) {
+  const { trx } = context;
+
+  const decadesArray = calculateDecades(
+    item_info['begin_year'],
+    item_info['end_year']
+  );
+
+  item_info['decade'] = decadesArray[0];
+  item_info['secondary_decade'] = decadesArray[1];
+
+  const new_item_info = await db('items')
+    .insert(item_info)
+    .transacting(trx)
+    .returning('*');
+
+  return new_item_info;
+}
+
+// editItemInfo
+async function editItemInfo(item_id, item_info, context = {}) {
+  const { trx } = context;
+
+  const edited_item_info = await db('items')
+    .where('id', item_id)
+    .first({})
+    .update(item_info)
+    .transacting(trx)
+    .returning('*');
+
+  return edited_item_info;
+}
+
+//delete item info
+async function deleteItemInfo(item_id, context = {}) {
+  const { trx } = context;
+
+  const item_deleted = await db('items')
+    .where('id', item_id)
+    .first({})
+    .del()
+    .transacting(trx)
+    .returning('id');
+
+  return item_deleted;
 }
