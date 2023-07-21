@@ -76,7 +76,7 @@ class ImageUploader {
         'Original image uploaded successfully. ETag: ',
         data.ETag
       );
-      const url = `http://${Bucket}.s3.${
+      const url = `https://${Bucket}.s3.${
         process.env.S3_REGION
       }.amazonaws.com/${this.dir(id)}/${file_name}`;
       console.log(`URL: ${url}`);
