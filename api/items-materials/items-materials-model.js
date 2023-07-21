@@ -49,16 +49,32 @@ function findItemsByMaterialId(material_id) {
     .where('material_id', material_id);
 }
 
-//put item-materials with item_id --> for editing materials after initial entry
-function addItemMaterials(item_id, material_fields) {
-  //material_fields should be an object containing an array of objects named fields (json format)
-  //such as { 'fields': [{'id': 2, 'material': 'red'}, {'id': 6, 'material': turquoise}] }
-  const fieldsToInsert = material_fields.map((material_field) => ({
-    item_id: item_id,
-    material_id: material_field.id //how is this data going to come from frontend?
-  }));
-  //fieldsToInsert needs to be an array of objects, via knex, postgresql will then insert each object as separate row
-  return db('item_materials').insert(fieldsToInsert).returning('*');
+async function addItemMaterials(
+  item_id,
+  materials_array,
+  context = {}
+) {
+  const { trx } = context;
+  let material_ids = [];
+
+  //insert new item_materials for item_id
+  if (materials_array.length > 0) {
+    const fieldsToInsert = materials_array.map((material_id) => ({
+      item_id: item_id,
+      material_id: material_id
+    }));
+    const item_materials = await db('item_materials')
+      .insert(fieldsToInsert)
+      .transacting(trx)
+      .returning(['item_id', 'material_id']);
+
+    // define material_ids for return
+    material_ids = item_materials.map(
+      (material) => material.material_id
+    );
+  }
+
+  return material_ids;
 }
 
 //Delete Item_Material --> for editing item materials after initial post

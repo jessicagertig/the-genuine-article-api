@@ -4,7 +4,7 @@ module.exports = {
   findAllColors,
   findColorsByItemId,
   findItemsByColorId,
-  insertItemColors,
+  addItemColors,
   removeItemColor,
   editItemColors,
   deleteItemColors
@@ -50,16 +50,26 @@ function findItemsByColorId(color_id) {
     .where('color_id', color_id);
 }
 
-//For editing Item colors after initial entry
-function insertItemColors(item_id, color_fields) {
-  //color_fields should be an object containing an array of objects named fields (json format)
-  //such as { 'fields': [{'id': 2, 'color': 'red'}, {'id': 6, 'color': turquoise}] }
-  const fieldsToInsert = color_fields.map((color_field) => ({
-    item_id: item_id,
-    color_id: color_field.id //how is this data going to come from frontend?
-  }));
-  //fieldsToInsert needs to be an array of objects, via knex, postgresql will then insert each object as separate row
-  return db('item_colors').insert(fieldsToInsert).returning('*');
+async function addItemColors(item_id, colors_array, context = {}) {
+  const { trx } = context;
+  let color_ids = [];
+
+  //insert new item_colors for item_id
+  if (colors_array.length > 0) {
+    const fieldsToInsert = colors_array.map((color_id) => ({
+      item_id: item_id,
+      color_id: color_id
+    }));
+    const item_colors = await db('item_colors')
+      .insert(fieldsToInsert)
+      .transacting(trx)
+      .returning(['item_id', 'color_id']);
+
+    // define color_ids for return
+    color_ids = item_colors.map((color) => color.color_id);
+  }
+
+  return color_ids;
 }
 
 //Delete Item_Color --> for editing item colors after initial entry
