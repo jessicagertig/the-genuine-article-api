@@ -2,6 +2,7 @@ const router = require('express').Router();
 const Colors = require('../items-colors/items-colors-model');
 const Materials = require('../items-materials/items-materials-model');
 const Items = require('./items-model');
+const ItemsInfo = require('../items-info/items-info-model');
 const {
   getGarmentOfTheDay,
   dailyGarmentJob
@@ -208,9 +209,10 @@ router.post(
 //put item-info (edit main info section only)
 router.put('/:item_id', async (req, res) => {
   const item_id = req.params.item_id;
+  console.log('item_id', item_id);
   console.log('req.body', req.body);
   try {
-    const existing_item_info = await Items.findInfoById(item_id);
+    const existing_item_info = await ItemsInfo.findInfoById(item_id);
     console.log('existing item info', existing_item_info);
     if (existing_item_info !== undefined) {
       const edited_item = await Items.updateItem(
