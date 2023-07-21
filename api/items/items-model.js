@@ -3,15 +3,20 @@ const {
   findAllItemsInfo,
   findInfoById,
   findPaginatedItemsInfo,
-  getItemsCount
+  getItemsCount,
+  addItemInfo,
+  editItemInfo,
+  deleteItemInfo
 } = require('../items-info/items-info-model');
 const {
   findColorsByItemId,
+  addItemColors,
   editItemColors,
   deleteItemColors
 } = require('../items-colors/items-colors-model');
 const {
   findMaterialsByItemId,
+  addItemMaterials,
   editItemMaterials,
   deleteItemMaterials
 } = require('../items-materials/items-materials-model');
@@ -21,7 +26,6 @@ const {
   deleteMainImageFromS3
 } = require('../items-images/items-images-model');
 const { withTransaction } = require('../utils/withTransaction');
-const { calculateDecades } = require('../utils/helpers');
 
 module.exports = {
   findAllGarmentTitles,
@@ -166,59 +170,21 @@ async function getPageCount(limit = 15) {
 */
 async function createItem(item_info, item_colors, item_materials) {
   return withTransaction(async (trx) => {
-    const decadesArray = calculateDecades(
-      item_info['begin_year'],
-      item_info['end_year']
-    );
-
-    item_info['decade'] = decadesArray[0];
-    item_info['secondary_decade'] = decadesArray[1];
     // insert item info and return the info including the new id
-    const new_item_info = await db('items')
-      .insert(item_info)
-      .transacting(trx)
-      .returning('*');
+    const new_item_info = await addItemInfo(item_info, { trx });
     // assign the new item id to a variable to use in the colors and materials inserts
     const new_item_id = new_item_info[0].id;
 
     // Handle the color insert //
-    // explicetly handle empty array
-    let color_ids = [];
-    if (item_colors.length > 0) {
-      const colorFieldsToInsert = item_colors.map(
-        (item_color_id) => ({
-          item_id: new_item_id,
-          color_id: item_color_id
-        })
-      );
-
-      const new_item_colors = await db('item_colors')
-        .insert(colorFieldsToInsert)
-        .transacting(trx)
-        .returning(['item_id', 'color_id']);
-
-      color_ids = new_item_colors.map((color) => color.color_id);
-    }
+    const color_ids = await addItemColors(new_item_id, item_colors, {
+      trx
+    });
     // handle the material insert //
-    // explicetly handle empty array
-    let material_ids = [];
-    if (item_materials.length > 0) {
-      const materialFieldsToInsert = item_materials.map(
-        (item_material_id) => ({
-          item_id: new_item_id,
-          material_id: item_material_id
-        })
-      );
-
-      const new_item_materials = await db('item_materials')
-        .insert(materialFieldsToInsert)
-        .transacting(trx)
-        .returning(['item_id', 'material_id']);
-      // define material_ids for return
-      material_ids = new_item_materials.map(
-        (material) => material.material_id
-      );
-    }
+    const material_ids = await addItemMaterials(
+      new_item_id,
+      item_materials,
+      { trx }
+    );
 
     // define the new item object for return
     const new_item = {
@@ -240,12 +206,9 @@ async function updateItem(
   item_materials
 ) {
   return withTransaction(async (trx) => {
-    const edited_item_info = await db('items')
-      .where('id', item_id)
-      .first({})
-      .update(item_info)
-      .transacting(trx)
-      .returning('*');
+    const edited_item_info = await editItemInfo(item_id, item_info, {
+      trx
+    });
 
     const edited_item_colors = await editItemColors(
       item_id,
@@ -281,12 +244,7 @@ async function deleteItem(item_id) {
     }
 
     // If the main image deletion is successful, proceed with other deletions
-    const item_deleted = await db('items')
-      .where('id', item_id)
-      .first({})
-      .del()
-      .transacting(trx)
-      .returning('id');
+    const item_deleted = await deleteItemInfo(item_id, { trx });
 
     await deleteItemColors(item_id, { trx });
 
