@@ -81,36 +81,25 @@ router.put('/main_image/:item_id', async (req, res) => {
   const [body, content_type, file_name, md5] = await defineParams(
     req
   );
-  const upload = new ImageUploader('original_main_image');
-  const main_image_url = await upload.uploadOriginalImage(
-    item_id,
-    file_name,
-    body,
-    content_type,
-    md5
-  );
-
-  Images.updateMainImage({ main_image_url, item_id }).then(
-    (imgUpdate) => {
-      Images.findMainImageByItemId(item_id)
-        .then((img) => {
-          if (imgUpdate === 1) {
-            res.status(200).json(img);
-          } else {
-            res.status(406).json({
-              message: 'The server returned an incorrect response'
-            });
-          }
-        })
-        .catch((error) => {
-          res.status(500).json({
-            message:
-              'There was an error while modifying the user in the database',
-            error
-          });
+  const image_info = { body, content_type, file_name, md5 };
+  Images.replaceMainImage(item_id, image_info)
+    .then((result) => {
+      if (result) {
+        return res.status(200).json({
+          message: `The main image for item with id ${item_id} has been replaced.`
         });
-    }
-  );
+      } else {
+        return res.status(400).json({
+          message: `No main image existed for item with id ${item_id} in the DB.`
+        });
+      }
+    })
+    .catch((error) => {
+      return res.status(500).json({
+        message: `An error occured while replacing the main image for item with id ${item_id}`,
+        error
+      });
+    });
 });
 
 //delete original unaltered main image from database
@@ -126,21 +115,14 @@ router.delete('/main_image/:item_id', async (req, res) => {
 
   // delete main image record from db
   Images.removeMainImage(item_id)
-    .then((result) => {
-      if (result) {
-        return res.status(200).json({
-          message: `The main image for item with id ${item_id} has been deleted from the DB.`
-        });
-      } else {
-        return res.status(400).json({
-          message: `No main image existed for item with id ${item_id} in the DB.`
-        });
-      }
+    .then(() => {
+      return res.status(200).json({
+        message: `The main image for item with id ${item_id} has been deleted from the DB.`
+      });
     })
     .catch((error) => {
       return res.status(500).json({
-        message: `An error occured while deleting the main image from the 
-        DB for item with id ${item_id}`,
+        message: `An error occured while deleting the main image from the DB for item with id ${item_id}`,
         error
       });
     });
