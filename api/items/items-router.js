@@ -114,6 +114,12 @@ router.get('/search', async (req, res) => {
   const decades = req.query?.decades
     ? JSON.parse(req.query.decades)
     : '';
+  const colors = req.query?.colors
+    ? JSON.parse(req.query.colors)
+    : '';
+  const materials = req.query?.materials
+    ? JSON.parse(req.query.materials)
+    : '';
   try {
     const search_results = await Items.searchItems(
       search_term,
@@ -121,7 +127,9 @@ router.get('/search', async (req, res) => {
       limit,
       order,
       sort,
-      decades
+      decades,
+      colors,
+      materials
     );
     console.log(search_results);
     return res.status(200).json(search_results);

@@ -271,15 +271,32 @@ async function searchItems(
   limit = 30,
   order = 'asc',
   sort = 'id',
-  decades = ''
+  decades = '',
+  colors = '',
+  materials = ''
 ) {
   const offset = (page - 1) * limit;
 
-  // Convert the decades string into an array
+  // Convert the string into an array
   const decadeArray = decades.split(',');
+  const colorArray = colors.split(',').map(Number);
+  const materialArray = materials.split(',').map(Number);
+
   console.log('decadeArray', decadeArray);
   try {
     let query = db('items')
+      .leftJoin(
+        'item_colors',
+        'items.id',
+        '=',
+        'item_colors.item_id'
+      )
+      .leftJoin(
+        'item_materials',
+        'items.id',
+        '=',
+        'item_materials.item_id'
+      )
       .whereRaw(
         "search_vector @@ plainto_tsquery('english', ?)",
         search_term
@@ -288,8 +305,29 @@ async function searchItems(
       .limit(limit)
       .offset(offset);
 
+    // handle decade, colors, and materials filters
     if (decadeArray.length > 0 && decadeArray[0] !== '') {
       query = query.whereIn('decade', decadeArray);
+    }
+    const invalidColorArray =
+      colorArray[0] === '' ||
+      colorArray[0] === 0 ||
+      isNaN(colorArray[0]);
+
+    if (colorArray.length > 0 && !invalidColorArray) {
+      query = query.whereIn('item_colors.color_id', colorArray);
+    }
+
+    const invalidMaterialArray =
+      materialArray[0] === '' ||
+      materialArray[0] === 0 ||
+      isNaN(materialArray[0]);
+
+    if (materialArray.length > 0 && !invalidMaterialArray) {
+      query = query.whereIn(
+        'item_materials.material_id',
+        materialArray
+      );
     }
 
     // protect against unpermitted query values
@@ -303,8 +341,23 @@ async function searchItems(
       }
     }
 
-    const results = await query;
+    const preProcessedResults = await query;
 
+    console.log('preprocessedResults', preProcessedResults);
+    // the materials and colors join may cause multiple instances of the same record
+    // use acc to only add one instance of each item from preProcessedResults
+    let acc = {};
+    preProcessedResults.forEach((result) => {
+      // If the item_id is not in the accumulator, add it
+      console.log('result id', result.id);
+      if (!acc[result.id]) {
+        acc[result.id] = { ...result }; // copy all the item properties
+      }
+    });
+    // get array of values only as results
+    const results = Object.values(acc);
+
+    //add colors, materials, imagesUrls
     for (let i = 0; i < results.length; i++) {
       let item = results[i];
       let item_id = item.id;
