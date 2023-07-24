@@ -187,7 +187,7 @@ class ResizedMainImageUploader extends ImageUploader {
           );
         }
 
-        baseUrl = `http://${Bucket}.s3.${
+        baseUrl = `https://${Bucket}.s3.${
           process.env.S3_REGION
         }.amazonaws.com/${this.dir(id)}`;
       }
