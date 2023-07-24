@@ -14,6 +14,7 @@ const {
 
 //Get all items
 router.get('/', async (req, res) => {
+  console.log('Request:', req.params);
   try {
     const result = await Items.getAllItems();
     if (result) {
@@ -107,11 +108,20 @@ router.get('/search', async (req, res) => {
   console.log('SEARCH TERM', search_term);
   const page = req.query?.page ? Number(req.query.page) : 1;
   const limit = req.query?.limit ? Number(req.query.limit) : 15;
+  const order = req.query?.order || 'asc';
+  const sort = req.query?.sort || 'id';
+  console.log('sort', sort);
+  const decades = req.query?.decades
+    ? JSON.parse(req.query.decades)
+    : '';
   try {
     const search_results = await Items.searchItems(
       search_term,
       page,
-      limit
+      limit,
+      order,
+      sort,
+      decades
     );
     console.log(search_results);
     return res.status(200).json(search_results);
@@ -166,6 +176,7 @@ router.post('/daily', async (req, res) => {
 //get item by item id
 router.get('/:item_id', async (req, res) => {
   const item_id = req.params.item_id;
+  console.log('Request params:', req.params);
 
   try {
     const item = await Items.findItemById(item_id);
@@ -191,6 +202,7 @@ router.post(
   checkForRequestBody,
   checkForDuplicateItem,
   async (req, res) => {
+    console.log('Request body:', req.body);
     try {
       const newItem = await Items.createItem(
         req.body.item_info,
@@ -239,7 +251,7 @@ router.put('/:item_id', async (req, res) => {
 //delete item by item id
 router.delete('/:item_id', async (req, res) => {
   const item_id = req.params.item_id;
-
+  console.log('Request params:', req.params);
   try {
     const item = await Items.deleteItem(item_id);
     return res.status(200).json(item[0]);

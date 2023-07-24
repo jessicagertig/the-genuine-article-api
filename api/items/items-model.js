@@ -25,6 +25,7 @@ const {
   deleteMainImageRecord,
   deleteMainImageFromS3
 } = require('../items-images/items-images-model');
+const { deleteByItemId } = require('./daily-garment-model');
 const { withTransaction } = require('../utils/withTransaction');
 
 module.exports = {
@@ -63,10 +64,16 @@ function findAllGarmentTitles() {
 
 // find GarmentTitleId by garment_title name
 async function findGarmentTitleId(garment_title) {
-  const data = await db('garment_titles')
-    .select('id')
-    .where({ garment_title });
-  return data[0]['id'];
+  try {
+    const data = await db('garment_titles')
+      .select('id')
+      .where({ garment_title });
+    return data[0]['id'];
+  } catch (error) {
+    console.error(
+      `Problem finding id for garment title: ${garment_title}`
+    );
+  }
 }
 
 //findItemById
@@ -74,6 +81,7 @@ async function findGarmentTitleId(garment_title) {
 async function findItemById(id) {
   try {
     const info = await findInfoById(id);
+    console.log(info);
     const materials = await findMaterialsByItemId(id);
     const materialsList = materials.map(
       (material) => material.material
@@ -234,6 +242,8 @@ async function updateItem(
 
 async function deleteItem(item_id) {
   return withTransaction(async (trx) => {
+    // delete any associated garment of the day record
+    await deleteByItemId(item_id, { trx });
     // Check if a main image exists
     const image_info = await findMainImageByItemId(item_id);
     if (image_info !== null) {
@@ -255,10 +265,21 @@ async function deleteItem(item_id) {
 }
 
 //paginated, on FE useInfiniteQuery but implement load more instead of pagination
-async function searchItems(search_term, page = 1, limit = 30) {
+async function searchItems(
+  search_term,
+  page = 1,
+  limit = 30,
+  order = 'asc',
+  sort = 'id',
+  decades = ''
+) {
   const offset = (page - 1) * limit;
+
+  // Convert the decades string into an array
+  const decadeArray = decades.split(',');
+  console.log('decadeArray', decadeArray);
   try {
-    const results = await db('items')
+    let query = db('items')
       .whereRaw(
         "search_vector @@ plainto_tsquery('english', ?)",
         search_term
@@ -266,6 +287,23 @@ async function searchItems(search_term, page = 1, limit = 30) {
       .select(...infoToSelect)
       .limit(limit)
       .offset(offset);
+
+    if (decadeArray.length > 0 && decadeArray[0] !== '') {
+      query = query.whereIn('decade', decadeArray);
+    }
+
+    // protect against unpermitted query values
+    if (order === 'asc' || order === 'desc') {
+      if (sort === 'begin_year') {
+        query = query.orderByRaw(
+          `CAST(begin_year AS INTEGER) ${order}`
+        );
+      } else {
+        query = query.orderBy('id', order);
+      }
+    }
+
+    const results = await query;
 
     for (let i = 0; i < results.length; i++) {
       let item = results[i];
