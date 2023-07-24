@@ -1,6 +1,7 @@
 const db = require('../../database/db-config');
 const {
   ImageUploader,
+  ResizedMainImageUploader,
   DeleteResizedImage
 } = require('../utils/imageUploader');
 
@@ -51,11 +52,43 @@ async function findMainImageUrlsByItemId(item_id) {
   }
 }
 
-// async function addMainImage(main_image_info) {
-//   const [id] = await db('main_images').insert(main_image_info, 'id')
-
-//   return findImageById(id)
-// }
+async function addMainImage(item_id, image_info) {
+  const { body, content_type, file_name, md5 } = image_info;
+  console.log('image_info file_name', file_name);
+  try {
+    // upload the original image to s3
+    const upload = new ImageUploader('original_main_image');
+    const main_image_url = await upload.uploadOriginalImage(
+      item_id,
+      file_name,
+      body,
+      content_type,
+      md5
+    );
+    const resizedUpload = new ResizedMainImageUploader(
+      'resized_main_image'
+    );
+    const baseUrl = await resizedUpload.uploadResizedImages(
+      item_id,
+      file_name,
+      body,
+      content_type
+    );
+    // add info to the db
+    const result = await addMainImageSizes(
+      main_image_url,
+      baseUrl,
+      file_name,
+      item_id
+    );
+    return result;
+  } catch (error) {
+    console.error(
+      `An error occurred while adding the main image for item with id ${item_id}. Error: ${error}`
+    );
+    throw error;
+  }
+}
 
 async function updateMainImage({ main_image_url, item_id }) {
   return db('main_images')
@@ -99,7 +132,20 @@ async function addSecondaryImageSizes(baseUrl, file_name, item_id) {
 
 async function removeMainImage(item_id) {
   console.log('item_id', item_id);
-  return await db('main_images').where({ item_id }).del();
+  await db('main_images')
+    .where({ item_id })
+    .del()
+    .then((result) => {
+      if (result) {
+        console.log(
+          `The main image for item with id ${item_id} has been deleted from the DB. Result: ${result}`
+        );
+      } else {
+        throw new Error(
+          `No main image existed for item with id ${item_id} in the DB.`
+        );
+      }
+    });
 }
 
 async function deleteMainImageFromS3(item_id) {
@@ -165,6 +211,20 @@ async function deleteMainImageRecord(item_id, context = {}) {
   }
 }
 
+async function replaceMainImage(item_id, new_image_info) {
+  try {
+    await deleteMainImageFromS3(item_id);
+    await removeMainImage(item_id);
+    const result = await addMainImage(item_id, new_image_info);
+    return result;
+  } catch (error) {
+    console.error(
+      `An error occurred while replacing the main image from the DB for item with id ${item_id}. Error: ${error}`
+    );
+    throw error;
+  }
+}
+
 module.exports = {
   find,
   // addMainImage,
@@ -176,5 +236,6 @@ module.exports = {
   addSecondaryImageSizes,
   removeMainImage,
   deleteMainImageRecord,
-  deleteMainImageFromS3
+  deleteMainImageFromS3,
+  replaceMainImage
 };
