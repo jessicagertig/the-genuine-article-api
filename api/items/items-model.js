@@ -25,7 +25,6 @@ const {
   deleteMainImageRecord,
   deleteMainImageFromS3
 } = require('../items-images/items-images-model');
-const { deleteByItemId } = require('./daily-garment-model');
 const { withTransaction } = require('../utils/withTransaction');
 
 module.exports = {
@@ -243,7 +242,10 @@ async function updateItem(
 async function deleteItem(item_id) {
   return withTransaction(async (trx) => {
     // delete any associated garment of the day record
-    await deleteByItemId(item_id, { trx });
+    await db('garment_of_the_day')
+      .where('item_id', item_id)
+      .del()
+      .transacting(trx);
     // Check if a main image exists
     const image_info = await findMainImageByItemId(item_id);
     if (image_info !== null) {
