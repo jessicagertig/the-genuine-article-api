@@ -4,8 +4,18 @@ const { withTransaction } = require('../utils/withTransaction');
 
 module.exports = {
   getGarmentOfTheDay,
-  dailyGarmentJob
+  dailyGarmentJob,
+  deleteByItemId
 };
+
+async function deleteByItemId(item_id, context = {}) {
+  const { trx } = context;
+
+  await db('garment_of_the_day')
+    .where('item_id', item_id)
+    .del()
+    .transacting(trx);
+}
 
 async function selectGarmentOfTheDay(excluded_ids) {
   const totalRecords = await db('items').count();
