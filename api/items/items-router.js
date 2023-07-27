@@ -145,7 +145,7 @@ router.get('/keyword_search', async (req, res) => {
   const search_term = req.query?.q;
   console.log('SEARCH TERM', search_term);
   const page = req.query?.page ? Number(req.query.page) : 1;
-  const limit = req.query?.limit ? Number(req.query.limit) : 30;
+  const limit = req.query?.limit ? Number(req.query.limit) : 15;
   try {
     const search_results = await Items.simpleSearch(
       search_term,
