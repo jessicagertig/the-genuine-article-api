@@ -36,7 +36,8 @@ module.exports = {
   createItem,
   updateItem,
   deleteItem,
-  searchItems
+  searchItems,
+  simpleSearch
 };
 
 const infoToSelect = [
@@ -266,6 +267,44 @@ async function deleteItem(item_id) {
   });
 }
 
+async function simpleSearch(search_term, page = 1, limit = 30) {
+  const offset = (page - 1) * limit;
+
+  try {
+    const results = await db('items')
+      .whereRaw(
+        "search_vector @@ plainto_tsquery('pg_catalog.english', ?)",
+        search_term
+      )
+      .select(...infoToSelect)
+      .orderBy('id', 'asc')
+      .limit(limit)
+      .offset(offset);
+
+    for (let i = 0; i < results.length; i++) {
+      let item = results[i];
+      let item_id = item.id;
+      console.log('KEYWORD SEARCH RESULT ID', item_id);
+      const materials = await findMaterialsByItemId(item_id);
+      const materialsList = materials.map(
+        (material) => material.material
+      );
+      item['materials'] = materialsList;
+      const colors = await findColorsByItemId(item_id);
+      const colorsList = colors.map((color) => color.color);
+      item['colors'] = colorsList;
+      const image_urls = await findMainImageByItemId(item_id);
+      const item_image_urls = image_urls ? image_urls : null;
+      item['image_urls'] = item_image_urls;
+    }
+
+    return results;
+  } catch (error) {
+    console.error('Error with search query:', error);
+    throw new Error('Error with search');
+  }
+}
+
 //paginated, on FE useInfiniteQuery but implement load more instead of pagination
 async function searchItems(
   search_term,
@@ -300,7 +339,7 @@ async function searchItems(
         'item_materials.item_id'
       )
       .whereRaw(
-        "search_vector @@ plainto_tsquery('english', ?)",
+        "search_vector @@ plainto_tsquery('pg_catalog.english', ?)",
         search_term
       )
       .select(...infoToSelect)
