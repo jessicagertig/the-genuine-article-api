@@ -267,9 +267,7 @@ async function deleteItem(item_id) {
   });
 }
 
-async function simpleSearch(search_term, page = 1, limit = 30) {
-  const offset = (page - 1) * limit;
-
+async function simpleSearch(search_term, page = 1, limit = 15) {
   try {
     const results = await db('items')
       .whereRaw(
@@ -278,11 +276,14 @@ async function simpleSearch(search_term, page = 1, limit = 30) {
       )
       .select(...infoToSelect)
       .orderBy('id', 'asc')
-      .limit(limit)
-      .offset(offset);
-
-    for (let i = 0; i < results.length; i++) {
-      let item = results[i];
+      .paginate({
+        perPage: limit,
+        currentPage: page,
+        isLengthAware: true
+      });
+    const data = results.data;
+    for (let i = 0; i < data.length; i++) {
+      let item = data[i];
       let item_id = item.id;
       console.log('KEYWORD SEARCH RESULT ID', item_id);
       const materials = await findMaterialsByItemId(item_id);
@@ -297,6 +298,8 @@ async function simpleSearch(search_term, page = 1, limit = 30) {
       const item_image_urls = image_urls ? image_urls : null;
       item['image_urls'] = item_image_urls;
     }
+
+    results['data'] = data;
 
     return results;
   } catch (error) {
