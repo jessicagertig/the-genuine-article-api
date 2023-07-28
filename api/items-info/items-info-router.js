@@ -5,7 +5,7 @@ const {
 } = require('../items/items-middleware');
 
 // post a url and have item-info scraped
-// currently options are 'MET'
+// currently options are 'MET' and 'VA'
 // body format: { "url": "", "src": "MET"}
 router.post('/', checkForDuplicateUrl, async (req, res) => {
   console.log('BODY:', req.body);
