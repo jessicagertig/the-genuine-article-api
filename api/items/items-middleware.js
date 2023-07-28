@@ -58,7 +58,24 @@ const checkForDuplicateItem = async (req, res, next) => {
   }
 };
 
+const checkForDuplicateUrl = async (req, res, next) => {
+  const new_collection_url = req.body.url;
+
+  const existing_url = await ItemsInfo.findByCollectionUrl(
+    new_collection_url
+  );
+
+  if (existing_url === undefined) {
+    next();
+  } else if (existing_url !== undefined) {
+    res.status(400).json({
+      message: `An item with url ${existing_url.collection_url} exists. The collection url may not be correct. Please review item with id no. ${existing_url.id} and verify the collection url is correct.`
+    });
+  }
+};
+
 module.exports = {
   checkForDuplicateItem,
-  checkForRequestBody
+  checkForRequestBody,
+  checkForDuplicateUrl
 };
