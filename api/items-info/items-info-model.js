@@ -1,5 +1,11 @@
 const db = require('../../database/db-config');
 const { calculateDecades } = require('../utils/helpers');
+const {
+  scrapeMET,
+  scrapeVA,
+  scrapeCAM,
+  scrapePHILA
+} = require('../scraper');
 
 module.exports = {
   findAllItemsInfo,
@@ -9,6 +15,7 @@ module.exports = {
   findByCollectionNo,
   findByCollectionUrl,
   addItemInfo,
+  addScrapedItemInfo,
   editItemInfo,
   deleteItemInfo
 };
@@ -64,6 +71,34 @@ function findByCollectionNo(item_collection_no) {
 //findInfoById
 function findInfoById(id) {
   return db('items').where({ id }).first();
+}
+
+// addItemScrapedInfo
+async function addScrapedItemInfo(src, url) {
+  let item_info;
+  if (src === 'MET') {
+    item_info = await scrapeMET(url);
+  } else if (src === 'VA') {
+    item_info = await scrapeVA(url);
+  } else if (src === 'CAM') {
+    item_info = await scrapeCAM(url);
+  } else if (src === 'PHILA') {
+    item_info = await scrapePHILA(url);
+  }
+
+  const decadesArray = calculateDecades(
+    item_info['begin_year'],
+    item_info['end_year']
+  );
+
+  item_info['decade'] = decadesArray[0];
+  item_info['secondary_decade'] = decadesArray[1];
+
+  const new_item_info = await db('items')
+    .insert(item_info)
+    .returning('*');
+
+  return new_item_info;
 }
 
 // addItemInfo
