@@ -1,6 +1,6 @@
 const db = require('../../database/db-config');
 const { calculateDecades } = require('../utils/helpers');
-const { scrapeMET, scrapeVA } = require('../scraper');
+const { scrapeMET, scrapeVA, scrapeCAM } = require('../scraper');
 
 module.exports = {
   findAllItemsInfo,
@@ -75,6 +75,8 @@ async function addScrapedItemInfo(src, url) {
     item_info = await scrapeMET(url);
   } else if (src === 'VA') {
     item_info = await scrapeVA(url);
+  } else if (src === 'CAM') {
+    item_info = await scrapeCAM(url);
   }
 
   const decadesArray = calculateDecades(

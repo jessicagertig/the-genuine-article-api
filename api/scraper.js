@@ -3,7 +3,8 @@ const cheerio = require('cheerio');
 
 module.exports = {
   scrapeMET,
-  scrapeVA
+  scrapeVA,
+  scrapeCAM
 };
 
 // Metropolitan Museum of Art scraper function
@@ -121,18 +122,83 @@ async function scrapeVA(url) {
         item['item_collection_no'] = value;
       } else if (title === 'Record URL') {
         item['collection_url'] = value;
-      } else if (title === 'Object history') {
+      } else if (title === 'Credit line') {
         item['source'] = value;
       } else if (title === 'Summary') {
         desc_array[0] = value;
       } else if (title === 'Physical description') {
         desc_array[1] = value;
+      } else if (title === 'Object history') {
+        desc_array[2] = value;
       } else if (title === 'Materials and techniques') {
         const desc_item = `${title}:\n${value}`;
-        desc_array[2] = desc_item;
+        desc_array[3] = desc_item;
       } else if (title === 'Dimensions') {
         const desc_item = `${title}:\n${value}`;
-        desc_array[3] = desc_item;
+        desc_array[4] = desc_item;
+      }
+    });
+    item['description'] = desc_array.join('\n\n');
+
+    console.log(item);
+    return item;
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+// Cincinnati Art Museum scraper function
+// const camUrl = `https://www.cincinnatiartmuseum.org/art/explore-the-collection?id=11682053`;
+
+async function scrapeCAM(url) {
+  try {
+    // Fetch HTML of the page we want to scrape
+    const { data } = await axios.get(url);
+    // Load HTML we fetched in the previous line
+    const ch = cheerio.load(data);
+    // define item object
+    const item = {
+      garment_title: 'Dress',
+      garment_type: '',
+      begin_year: '',
+      end_year: '',
+      culture_country: '',
+      collection: 'The Cincinnati Art Museum',
+      collection_url: url,
+      creator: 'unknown',
+      source: '',
+      item_collection_no: '',
+      description: ''
+    };
+
+    // get rows of data
+    const rows = ch('.artDetail.row');
+    let desc_array = [];
+
+    rows.each(function (i, el) {
+      const title_str = ch(el).children('.label').text();
+      const title = title_str.trim();
+      const value_str = ch(el).children('.value').text();
+      const value = value_str.trim();
+      // console.log('TITLE _________:', title);
+      // console.log('VALUE _________:', value);
+
+      if (title === 'Artist:') {
+        item['creator'] = value;
+      } else if (title === 'Date:') {
+        item['begin_year'] = value;
+      } else if (title === 'Place:') {
+        item['culture_country'] = value;
+      } else if (title === 'Accession No:') {
+        item['item_collection_no'] = value;
+      } else if (title === 'Credit Line:') {
+        item['source'] = value;
+      } else if (title === 'Name:') {
+        item['garment_type'] = value;
+        desc_array[0] = value;
+      } else if (title === 'Medium:') {
+        const desc_item = `${title}:\n${value}`;
+        desc_array[1] = desc_item;
       }
     });
     item['description'] = desc_array.join('\n\n');
