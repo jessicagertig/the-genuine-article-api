@@ -26,6 +26,7 @@ const {
   deleteMainImageFromS3
 } = require('../items-images/items-images-model');
 const { withTransaction } = require('../utils/withTransaction');
+const { sortByYear } = require('../utils/helpers');
 
 module.exports = {
   findAllGarmentTitles,
@@ -329,6 +330,7 @@ async function searchItems(
   console.log('decadeArray', decadeArray);
   try {
     let query = db('items')
+      .distinctOn('items.id')
       .leftJoin(
         'item_colors',
         'items.id',
@@ -346,6 +348,7 @@ async function searchItems(
         search_term
       )
       .select(...infoToSelect)
+      .orderBy('items.id')
       .limit(limit)
       .offset(offset);
 
@@ -374,32 +377,18 @@ async function searchItems(
       );
     }
 
-    // protect against unpermitted query values
-    if (order === 'asc' || order === 'desc') {
-      if (sort === 'begin_year') {
-        query = query.orderByRaw(
-          `CAST(begin_year AS INTEGER) ${order}`
-        );
-      } else {
-        query = query.orderBy('id', order);
-      }
+    const preprocessed_results = await query;
+
+    const result_ids = preprocessed_results.map((item) => item.id);
+
+    console.log('preprocessedResults ids', result_ids);
+
+    let results;
+    if (sort === 'begin_year') {
+      results = sortByYear(order, preprocessed_results);
+    } else {
+      results = preprocessed_results;
     }
-
-    const preProcessedResults = await query;
-
-    console.log('preprocessedResults', preProcessedResults);
-    // the materials and colors join may cause multiple instances of the same record
-    // use acc to only add one instance of each item from preProcessedResults
-    let acc = {};
-    preProcessedResults.forEach((result) => {
-      // If the item_id is not in the accumulator, add it
-      console.log('result id', result.id);
-      if (!acc[result.id]) {
-        acc[result.id] = { ...result }; // copy all the item properties
-      }
-    });
-    // get array of values only as results
-    const results = Object.values(acc);
 
     //add colors, materials, imagesUrls
     for (let i = 0; i < results.length; i++) {

@@ -131,7 +131,7 @@ router.get('/search', async (req, res) => {
       colors,
       materials
     );
-    console.log(search_results);
+    console.log('Number of results:', search_results.length);
     return res.status(200).json(search_results);
   } catch (error) {
     return res.status(500).json({
