@@ -4,7 +4,8 @@ const cheerio = require('cheerio');
 module.exports = {
   scrapeMET,
   scrapeVA,
-  scrapeCAM
+  scrapeCAM,
+  scrapePHILA
 };
 
 // Metropolitan Museum of Art scraper function
@@ -197,8 +198,87 @@ async function scrapeCAM(url) {
         item['garment_type'] = value;
         desc_array[0] = value;
       } else if (title === 'Medium:') {
-        const desc_item = `${title}:\n${value}`;
+        const desc_item = `${title}\n${value}`;
         desc_array[1] = desc_item;
+      }
+    });
+    item['description'] = desc_array.join('\n\n');
+
+    console.log(item);
+    return item;
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+// Philadelphia Museum of Art
+// const url = 'https://www.philamuseum.org/collection/object/59168';
+
+async function scrapePHILA(url) {
+  try {
+    // Fetch HTML of the page we want to scrape
+    const { data } = await axios.get(url);
+    // Load HTML we fetched in the previous line
+    const ch = cheerio.load(data);
+    // define item object
+    const item = {
+      garment_title: 'Dress',
+      garment_type: '',
+      begin_year: '',
+      end_year: '',
+      culture_country: '',
+      collection: 'The Philadeliphia Museum of Art',
+      collection_url: url,
+      creator: 'unknown',
+      source: '',
+      item_collection_no: '',
+      description: ''
+    };
+
+    let desc_array = [];
+    const desc_summary = ch('.object-label').text();
+    console.log('desc_summary_____', desc_summary);
+    desc_array[0] = desc_summary;
+    // get rows of data
+    const table_body = ch('.object-description').children('tbody');
+    const rows = ch(table_body).children();
+
+    rows.each(function (i, el) {
+      const title_str = ch(el)
+        .children('.object-description-label')
+        .text();
+      const title = title_str.trim();
+      const value_str = ch(el)
+        .children('.object-description-text')
+        .text();
+      const value = value_str.trim();
+      // console.log('TITLE _________:', title);
+      // console.log('VALUE _________:', value);
+
+      if (title === 'Title:') {
+        item['garment_type'] = value;
+      } else if (title === 'Date:') {
+        const end_index = value.length;
+        const year = value.slice(end_index - 4, end_index);
+        item['begin_year'] = year;
+      } else if (title === 'Artist:') {
+        const str_array = value.split(',');
+        item['culture_country'] = str_array[1].trim();
+        item['creator'] = str_array[0].trim();
+      } else if (title === 'Place:') {
+        item['culture_country'] = value;
+      } else if (title === 'Accession Number:') {
+        item['item_collection_no'] = value;
+      } else if (title === 'Credit Line:') {
+        item['source'] = value;
+      } else if (title === 'Geography:') {
+        desc_array[3] = value;
+      } else if (title === 'Medium:') {
+        const desc_item = `${title}\n${value}`;
+        desc_array[1] = desc_item;
+      } else if (title === 'Dimensions:') {
+        const desc_item = `${title}\n${value}`;
+        desc_array[2] = desc_item;
       }
     });
     item['description'] = desc_array.join('\n\n');
