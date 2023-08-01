@@ -5,7 +5,7 @@ module.exports = {
   scrape
 };
 
-async function scrape(url, src) {
+async function scrape(src, url) {
   try {
     // Fetch HTML of the page we want to scrape
     const { data } = await axios.get(url);
@@ -270,7 +270,7 @@ function canConvertToInteger(value) {
 // const philaUrl =
 //   'https://www.philamuseum.org/collection/object/59168';
 
-// scrape(metUrl, 'MET');
-// scrape(vaUrl, 'VA');
-// scrape(camUrl, 'CAM');
-// scrape(philaUrl, 'PHILA');
+// scrape('MET', metUrl);
+// scrape('VA', vaUrl);
+// scrape'CAM', camUrl);
+// scrape('PHILA', philaUrl);
