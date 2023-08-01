@@ -10,8 +10,9 @@ module.exports = {
 
 // Metropolitan Museum of Art scraper function
 // const metUrl =
+//   'https://www.metmuseum.org/art/collection/search/158923';
 //   'https://www.metmuseum.org/art/collection/search/107620';
-
+// scrapeMET(metUrl);
 async function scrapeMET(url) {
   try {
     // Fetch HTML of the page we want to scrape
@@ -22,7 +23,7 @@ async function scrapeMET(url) {
     const item = {
       garment_title: 'Dress',
       garment_type: '',
-      begin_year: '',
+      begin_year: '1800',
       end_year: '',
       culture_country: '',
       collection: 'The Metropolitan Museum of Art',
@@ -42,8 +43,18 @@ async function scrapeMET(url) {
     const dateStr = ch('.artwork__creation-date')
       .children('time')
       .text();
-    const year = dateStr.trim().slice(4);
-    item['begin_year'] = year;
+    console.log('dateStr', dateStr.trim());
+    const trimmedStr = dateStr.trim();
+    let year;
+    if (trimmedStr.length === 4) {
+      year = trimmedStr;
+    } else if (trimmedStr.length > 4) {
+      year = trimmedStr.slice(4);
+    }
+    const year_valid = canConvertToInteger(year);
+    if (year_valid && year.length === 4) {
+      item['begin_year'] = year;
+    }
     // get description
     const description = ch('.artwork__intro__desc')
       .children('p')
@@ -72,8 +83,9 @@ async function scrapeMET(url) {
 
 // Victoria and Albert Museum Scraper function
 // const vaUrl =
+//   'https://collections.vam.ac.uk/item/O13844/dress-unknown/';
 //   'https://collections.vam.ac.uk/item/O108865/dress-liberty--co/';
-
+// scrapeVA(vaUrl);
 async function scrapeVA(url) {
   try {
     // Fetch HTML of the page we want to scrape
@@ -84,7 +96,7 @@ async function scrapeVA(url) {
     const item = {
       garment_title: 'Dress',
       garment_type: '',
-      begin_year: '',
+      begin_year: '1800',
       end_year: '',
       culture_country: '',
       collection: 'The Victoria and Albert Museum',
@@ -99,9 +111,21 @@ async function scrapeVA(url) {
     item['garment_type'] = title;
     // get begin_year
     const dateStr = ch('.object-page__credit').text();
-    const year = dateStr.trim().slice(0, 4);
-    item['begin_year'] = year;
-
+    console.log('date', dateStr.trim().length);
+    const trimmedStr = dateStr.trim();
+    const ca_date = trimmedStr.includes('ca');
+    const range_date = trimmedStr.includes('-');
+    let year;
+    if (ca_date) {
+      year = trimmedStr.slice(4, 8);
+    } else if (range_date) {
+      year = trimmedStr.slice(0, 4);
+    }
+    console.log('year', year);
+    const year_valid = canConvertToInteger(year);
+    if (year_valid && year.length === 4) {
+      item['begin_year'] = year;
+    }
     // get rows of table data
     const rows = ch('.b-object-details__body').children(
       '.b-object-details__row'
@@ -161,7 +185,7 @@ async function scrapeCAM(url) {
     const item = {
       garment_title: 'Dress',
       garment_type: '',
-      begin_year: '',
+      begin_year: '1800',
       end_year: '',
       culture_country: '',
       collection: 'The Cincinnati Art Museum',
@@ -187,7 +211,10 @@ async function scrapeCAM(url) {
       if (title === 'Artist:') {
         item['creator'] = value;
       } else if (title === 'Date:') {
-        item['begin_year'] = value;
+        const year_valid = canConvertToInteger(value);
+        if (year_valid && value.length === 4) {
+          item['begin_year'] = value;
+        }
       } else if (title === 'Place:') {
         item['culture_country'] = value;
       } else if (title === 'Accession No:') {
@@ -224,7 +251,7 @@ async function scrapePHILA(url) {
     const item = {
       garment_title: 'Dress',
       garment_type: '',
-      begin_year: '',
+      begin_year: '1800',
       end_year: '',
       culture_country: '',
       collection: 'The Philadeliphia Museum of Art',
@@ -260,7 +287,10 @@ async function scrapePHILA(url) {
       } else if (title === 'Date:') {
         const end_index = value.length;
         const year = value.slice(end_index - 4, end_index);
-        item['begin_year'] = year;
+        const year_valid = canConvertToInteger(year);
+        if (year_valid && year.length === 4) {
+          item['begin_year'] = year;
+        }
       } else if (title === 'Artist:') {
         const str_array = value.split(',');
         item['culture_country'] = str_array[1].trim();
@@ -288,4 +318,9 @@ async function scrapePHILA(url) {
   } catch (err) {
     console.error(err);
   }
+}
+
+//helper
+function canConvertToInteger(value) {
+  return parseInt(value, 10).toString() === value;
 }
