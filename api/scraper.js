@@ -45,6 +45,14 @@ async function scrape(src, url) {
 async function scrapeMET(ch, item) {
   item['collection'] = 'The Metropolitan Museum of Art';
 
+  // cleanup url
+  const initial_url = item['collection_url'];
+  const has_query = initial_url.includes('?');
+  if (has_query) {
+    const end_index = initial_url.indexOf('?');
+    const url = initial_url.slice(0, end_index);
+    item['collection_url'] = url;
+  }
   // get title
   const title = ch('.artwork__title--text').text();
   item['garment_type'] = title;
@@ -60,7 +68,7 @@ async function scrapeMET(ch, item) {
   if (trimmedStr.length === 4) {
     year = trimmedStr;
   } else if (trimmedStr.length > 4) {
-    year = trimmedStr.slice(4);
+    year = trimmedStr.slice(0, 4);
   }
   const year_valid = canConvertToInteger(year);
   if (year_valid && year.length === 4) {
@@ -264,6 +272,7 @@ function canConvertToInteger(value) {
 
 // const metUrl = 'https://www.metmuseum.org/art/collection/search/158923';
 // const metUrl = 'https://www.metmuseum.org/art/collection/search/107620';
+// const metUrl = 'https://www.metmuseum.org/art/collection/search/159292?sortBy=DateDesc&amp;deptids=8&amp;when=A.D.+1800-1900&amp;ao=on&amp;showOnly=openAccess&amp;ft=dress&amp;offset=40&amp;rpp=40&amp;pos=76'
 // const vaUrl = 'https://collections.vam.ac.uk/item/O13844/dress-unknown/';
 // const vaUrl = 'https://collections.vam.ac.uk/item/O108865/dress-liberty--co/'
 // const camUrl = `https://www.cincinnatiartmuseum.org/art/explore-the-collection?id=11682053`;
@@ -272,5 +281,5 @@ function canConvertToInteger(value) {
 
 // scrape('MET', metUrl);
 // scrape('VA', vaUrl);
-// scrape'CAM', camUrl);
+// scrape('CAM', camUrl);
 // scrape('PHILA', philaUrl);
