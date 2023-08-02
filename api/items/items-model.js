@@ -276,7 +276,7 @@ async function simpleSearch(search_term, page = 1, limit = 15) {
         search_term
       )
       .select(...infoToSelect)
-      .orderBy('id', 'asc')
+      .orderBy('id', 'desc')
       .paginate({
         perPage: limit,
         currentPage: page,
@@ -314,7 +314,7 @@ async function searchItems(
   search_term,
   page = 1,
   limit = 30,
-  order = 'asc',
+  order = 'desc',
   sort = 'id',
   decades = '',
   colors = '',
@@ -348,7 +348,7 @@ async function searchItems(
         search_term
       )
       .select(...infoToSelect)
-      .orderBy('items.id')
+      .orderBy('items.id', 'desc')
       .limit(limit)
       .offset(offset);
 

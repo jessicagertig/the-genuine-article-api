@@ -36,14 +36,14 @@ const infoToSelect = [
 function findAllItemsInfo() {
   return db('items')
     .select(...infoToSelect)
-    .orderBy('id');
+    .orderBy('id', 'desc');
 }
 
 // fetch one extra item to calculate has more
 function findPaginatedItemsInfo(offset, limit) {
   return db('items')
     .select(...infoToSelect)
-    .orderBy('id')
+    .orderBy('id', 'desc')
     .limit(limit + 1)
     .offset(offset);
 }
