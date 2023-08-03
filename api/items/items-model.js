@@ -38,7 +38,9 @@ module.exports = {
   updateItem,
   deleteItem,
   searchItems,
-  simpleSearch
+  simpleSearch,
+  addGarmentTitle,
+  deleteGarmentTitle
 };
 
 const infoToSelect = [
@@ -63,6 +65,32 @@ function findAllGarmentTitles() {
   return db('garment_titles').select('*');
 }
 
+async function addGarmentTitle(garment_title) {
+  return db('garment_titles')
+    .insert({ garment_title: garment_title })
+    .returning('*');
+}
+
+async function deleteGarmentTitle(garment_title_id) {
+  const title = await db('garment_titles')
+    .where({ id: garment_title_id })
+    .returning('*');
+  const title_string = title[0]['garment_title'];
+  const allowed = await db('items').where({
+    garment_title: title_string
+  });
+  console.log('allowed', allowed);
+  if (allowed.length === 0 || allowed === null) {
+    return db('garment_titles')
+      .where({ id: garment_title_id })
+      .del()
+      .returning('*');
+  } else {
+    throw new Error(
+      'Cannot delete garment title while associated with items.'
+    );
+  }
+}
 // find GarmentTitleId by garment_title name
 async function findGarmentTitleId(garment_title) {
   try {
