@@ -4,6 +4,36 @@ const {
 } = require('./item-materials-validation');
 const Materials = require('./items-materials-model');
 
+router.post('/materials', async (req, res) => {
+  console.log('req.body', req.body);
+  const material = req.body.material;
+  Materials.addMaterial(material)
+    .then((item) => {
+      res.status(201).json(item);
+    })
+    .catch((error) => {
+      res.status(500).json({
+        message: `Error on server end adding material.`,
+        error
+      });
+    });
+});
+
+router.delete('/materials/:material_id', async (req, res) => {
+  console.log('req.body', req.body);
+  const material_id = req.params.material_id;
+  Materials.deleteMaterial(material_id)
+    .then((item) => {
+      res.status(200).json(item);
+    })
+    .catch((error) => {
+      res.status(500).json({
+        message: `Error on server end deleting material.`,
+        error
+      });
+    });
+});
+
 //post item-materials
 router.post(
   '/:item_id',
