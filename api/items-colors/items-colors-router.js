@@ -4,6 +4,36 @@ const {
   checkForDuplicateColors
 } = require('./items-colors-validation');
 
+router.post('/colors', async (req, res) => {
+  console.log('req.body', req.body);
+  const color = req.body.color;
+  ItemColors.addColor(color)
+    .then((item) => {
+      res.status(201).json(item);
+    })
+    .catch((error) => {
+      res.status(500).json({
+        message: `Error on server end adding color.`,
+        error
+      });
+    });
+});
+
+router.delete('/colors/:color_id', async (req, res) => {
+  console.log('req.body', req.body);
+  const color_id = req.params.color_id;
+  ItemColors.deleteColor(color_id)
+    .then((item) => {
+      res.status(200).json(item);
+    })
+    .catch((error) => {
+      res.status(500).json({
+        message: `Error on server end deleting color.`,
+        error
+      });
+    });
+});
+
 //post item-colors
 router.post(
   '/:item_id',
@@ -90,7 +120,7 @@ router.delete('/:item_id', (req, res) => {
         });
       } else {
         res.status(400).json({
-          message: `No record with item_id ${item_id} and material_id ${color_id} exists.`
+          message: `No record with item_id ${item_id} and color_id ${color_id} exists.`
         });
       }
     })

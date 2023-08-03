@@ -307,4 +307,37 @@ router.delete('/admin/:item_id', async (req, res) => {
   }
 });
 
+router.post('/garment_titles', async (req, res) => {
+  console.log('req.body', req.body);
+  const garment_title = req.body.garment_title;
+  Items.addGarmentTitle(garment_title)
+    .then((item) => {
+      res.status(201).json(item);
+    })
+    .catch((error) => {
+      res.status(500).json({
+        message: `Error on server end adding garment_title.`,
+        error
+      });
+    });
+});
+
+router.delete(
+  '/garment_titles/:garment_title_id',
+  async (req, res) => {
+    console.log('req.body', req.body);
+    const garment_title_id = req.params.garment_title_id;
+    Items.deleteGarmentTitle(garment_title_id)
+      .then((item) => {
+        res.status(200).json(item);
+      })
+      .catch((error) => {
+        res.status(500).json({
+          message: `Error on server end deleting garment_title.`,
+          error
+        });
+      });
+  }
+);
+
 module.exports = router;

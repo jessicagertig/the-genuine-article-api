@@ -7,7 +7,9 @@ module.exports = {
   addItemColors,
   removeItemColor,
   editItemColors,
-  deleteItemColors
+  deleteItemColors,
+  addColor,
+  deleteColor
 };
 
 //find all colors
@@ -48,6 +50,22 @@ function findItemsByColorId(color_id) {
       'items.description'
     )
     .where('color_id', color_id);
+}
+
+async function addColor(color) {
+  return db('colors').insert({ color: color }).returning('*');
+}
+
+async function deleteColor(color_id) {
+  const allowed = await findItemsByColorId(color_id);
+  console.log('allowed', allowed);
+  if (allowed.length === 0) {
+    return db('colors').where({ id: color_id }).del().returning('*');
+  } else {
+    throw new Error(
+      'Cannot delete color while associated with items.'
+    );
+  }
 }
 
 async function addItemColors(item_id, colors_array, context = {}) {

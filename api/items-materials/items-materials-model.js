@@ -7,7 +7,9 @@ module.exports = {
   addItemMaterials,
   removeItemMaterial,
   editItemMaterials,
-  deleteItemMaterials
+  deleteItemMaterials,
+  addMaterial,
+  deleteMaterial
 };
 
 //find materials for dropdown menus (forms and searchs)
@@ -47,6 +49,27 @@ function findItemsByMaterialId(material_id) {
       'items.description'
     )
     .where('material_id', material_id);
+}
+
+async function addMaterial(material) {
+  return db('materials')
+    .insert({ material: material })
+    .returning('*');
+}
+
+async function deleteMaterial(material_id) {
+  const allowed = await findItemsByMaterialId(material_id);
+  console.log('allowed', allowed);
+  if (allowed.length === 0) {
+    return db('materials')
+      .where({ id: material_id })
+      .del()
+      .returning('*');
+  } else {
+    throw new Error(
+      'Cannot delete material while associated with items.'
+    );
+  }
 }
 
 async function addItemMaterials(
