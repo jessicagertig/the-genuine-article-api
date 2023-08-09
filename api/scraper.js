@@ -64,14 +64,8 @@ async function scrapeMET(ch, item) {
     .children('time')
     .text();
   const trimmedStr = dateStr.trim();
-  let year;
-  if (trimmedStr.length === 4) {
-    year = trimmedStr;
-  } else if (trimmedStr.length > 4) {
-    year = trimmedStr.slice(0, 4);
-  }
-  const year_valid = canConvertToInteger(year);
-  if (year_valid && year.length === 4) {
+  const year = extractValidYear(trimmedStr);
+  if (year !== null) {
     item['begin_year'] = year;
   }
   // get description
@@ -106,16 +100,8 @@ async function scrapeVA(ch, item) {
   // get begin_year
   const dateStr = ch('.object-page__credit').text();
   const trimmedStr = dateStr.trim();
-  const ca_date = trimmedStr.includes('ca');
-  const range_date = trimmedStr.includes('-');
-  let year;
-  if (ca_date) {
-    year = trimmedStr.slice(4, 8);
-  } else if (range_date) {
-    year = trimmedStr.slice(0, 4);
-  }
-  const year_valid = canConvertToInteger(year);
-  if (year_valid && year.length === 4) {
+  const year = extractValidYear(trimmedStr);
+  if (year !== null) {
     item['begin_year'] = year;
   }
   // get rows of table data
@@ -179,9 +165,9 @@ async function scrapeCAM(ch, item) {
     if (title === 'Artist:') {
       item['creator'] = value;
     } else if (title === 'Date:') {
-      const year_valid = canConvertToInteger(value);
-      if (year_valid && value.length === 4) {
-        item['begin_year'] = value;
+      const year = extractValidYear(value);
+      if (year !== null) {
+        item['begin_year'] = year;
       }
     } else if (title === 'Place:') {
       item['culture_country'] = value;
@@ -263,6 +249,17 @@ async function scrapePHILA(ch, item) {
 }
 
 //helper
+function extractValidYear(yearStr) {
+  let year;
+  if (yearStr.length >= 4) {
+    const beginIndex = yearStr.indexOf('1');
+    year = yearStr.slice(beginIndex, beginIndex + 4);
+  }
+  const year_valid = canConvertToInteger(year);
+  const return_value = year_valid && year.length === 4 ? year : null;
+  return return_value;
+}
+
 function canConvertToInteger(value) {
   return parseInt(value, 10).toString() === value;
 }
