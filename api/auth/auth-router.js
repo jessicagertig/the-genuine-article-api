@@ -22,13 +22,20 @@ router.post('/login', (req, res) => {
   let { email, password } = req.body;
 
   UserAuth.findBy({ email }).then((user) => {
+    console.log('email', email);
+    console.log('user', user);
     if (user && bcrypt.compareSync(password, user.password)) {
       // sign token
       const token = signToken(user);
 
+      const returned_user = {
+        username: user.username,
+        email: user.email
+      };
+
       // send the token
       res.status(200).json({
-        message: `Welcome ${user.username}!`,
+        user: returned_user,
         token: token // added token as part of the response sent
       });
     } else {
