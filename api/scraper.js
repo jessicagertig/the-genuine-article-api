@@ -5,7 +5,8 @@ module.exports = {
   scrape
 };
 
-async function scrape(src, url) {
+async function scrape(url) {
+  const src = getSourceFromUrl(url);
   try {
     // Fetch HTML of the page we want to scrape
     const { data } = await axios.get(url);
@@ -248,7 +249,10 @@ async function scrapePHILA(ch, item) {
   return item;
 }
 
-//helper
+/* Helper Functions
+----------------------------------- */
+
+// don't use this function for the PhilaMuseum because sometimes the date of the fabric is listed first
 function extractValidYear(yearStr) {
   let year;
   if (yearStr.length >= 4) {
@@ -264,6 +268,22 @@ function canConvertToInteger(value) {
   return parseInt(value, 10).toString() === value;
 }
 
+function getSourceFromUrl(url) {
+  const options = {
+    metmuseum: 'MET',
+    'collections.vam': 'VA',
+    cincinnatiartmuseum: 'CAM',
+    philamuseum: 'PHILA'
+  };
+  let src;
+  for (const [key, value] of Object.entries(options)) {
+    if (url.includes(key)) {
+      src = value;
+    }
+  }
+  return src;
+}
+
 /* TEST Functions
 ------------------------ */
 
@@ -276,7 +296,7 @@ function canConvertToInteger(value) {
 // const philaUrl =
 //   'https://www.philamuseum.org/collection/object/59168';
 
-// scrape('MET', metUrl);
-// scrape('VA', vaUrl);
-// scrape('CAM', camUrl);
-// scrape('PHILA', philaUrl);
+// scrape(metUrl);
+// scrape(vaUrl);
+// scrape(camUrl);
+// scrape(philaUrl);

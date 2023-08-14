@@ -24,7 +24,7 @@ app.use(cors());
 app.use(logger('dev'));
 
 // ------- Routers --------
-app.use('/', authRouter);
+app.use('/auth', authRouter);
 app.use('/items', itemsRouter);
 app.use('/items-info', itemsInfoRouter);
 app.use('/images', itemsImagesRouter);
