@@ -10,9 +10,8 @@ const {
 router.post('/', checkForDuplicateUrl, async (req, res) => {
   console.log('BODY:', req.body);
   const url = req.body.url;
-  const src = req.body.src;
   try {
-    const newItem = await ItemsInfo.addScrapedItemInfo(src, url);
+    const newItem = await ItemsInfo.addScrapedItemInfo(url);
     return res.status(201).json(newItem);
   } catch (error) {
     return res

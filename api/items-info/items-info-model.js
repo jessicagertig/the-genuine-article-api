@@ -69,8 +69,8 @@ function findInfoById(id) {
 }
 
 // addItemScrapedInfo
-async function addScrapedItemInfo(src, url) {
-  const item_info = await scrape(src, url);
+async function addScrapedItemInfo(url) {
+  const item_info = await scrape(url);
 
   const decadesArray = calculateDecades(
     item_info['begin_year'],
