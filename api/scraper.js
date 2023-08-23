@@ -37,6 +37,8 @@ async function scrape(url) {
       item_info = await scrapePHILA(ch, item);
     } else if (src === 'LACMA') {
       item_info = await scrapeLACMA(ch, item);
+    } else if (src === 'FIT') {
+      item_info = await scrapeFIT(ch, item);
     }
     console.log('Item in scrape fn', item_info);
     return item_info;
@@ -50,14 +52,7 @@ async function scrapeMET(ch, item) {
 
   // cleanup url
   const initial_url = item['collection_url'];
-  console.log(initial_url);
   removeQueryFromUrl(initial_url, item);
-  // const has_query = initial_url.includes('?');
-  // if (has_query) {
-  //   const end_index = initial_url.indexOf('?');
-  //   const url = initial_url.slice(0, end_index);
-  //   item['collection_url'] = url;
-  // }
   // get title
   const title = ch('.artwork__title--text').text();
   item['garment_type'] = title;
@@ -146,7 +141,11 @@ async function scrapeVA(ch, item) {
       desc_array[4] = desc_item;
     }
   });
-  item['description'] = desc_array.join('\n\n');
+
+  const final_desc_array = desc_array.filter(
+    (str) => str.length > 0
+  );
+  item['description'] = final_desc_array.join('\n\n');
 
   console.log('VA fn', item);
   return item;
@@ -188,7 +187,11 @@ async function scrapeCAM(ch, item) {
       desc_array[1] = desc_item;
     }
   });
-  item['description'] = desc_array.join('\n\n');
+
+  const final_desc_array = desc_array.filter(
+    (str) => str.length > 0
+  );
+  item['description'] = final_desc_array.join('\n\n');
 
   console.log('CAM fn', item);
   return item;
@@ -247,7 +250,11 @@ async function scrapePHILA(ch, item) {
       desc_array[2] = desc_item;
     }
   });
-  item['description'] = desc_array.join('\n\n');
+
+  const final_desc_array = desc_array.filter(
+    (str) => str.length > 0
+  );
+  item['description'] = final_desc_array.join('\n\n');
 
   console.log('Phila fn', item);
   return item;
@@ -318,9 +325,71 @@ async function scrapeLACMA(ch, item) {
   const source = text.substring(0, last_opening_paren_index).trim();
   item['source'] = source;
 
-  item['description'] = desc_array.join('\n\n');
+  const final_desc_array = desc_array.filter(
+    (str) => str.length > 0
+  );
+  item['description'] = final_desc_array.join('\n\n');
 
   // console.log('Lacma fn', item);
+  return item;
+}
+
+// Metropolitan Museum of Art scraper function
+async function scrapeFIT(ch, item) {
+  item['collection'] = 'The Museum at FIT';
+
+  // cleanup url
+  const initial_url = item['collection_url'];
+  removeQueryFromUrl(initial_url, item);
+  let desc_array = [];
+
+  // get rows of data
+  const rows = ch('.item-details-inner').children();
+
+  rows.each(function (i, el) {
+    const title_str = ch(el).children('.detailFieldLabel').text();
+    const title = title_str.trim();
+    const value_str = ch(el).children('.detailFieldValue').text();
+    const value = value_str.trim();
+    // console.log('TITLE _________:', title);
+    // console.log('VALUE _________:', value);
+
+    if (title === 'Object:') {
+      item['garment_type'] = value;
+    } else if (title === 'Brand:') {
+      item['creator'] = value;
+    } else if (title === 'Date:') {
+      const end_index = value.length;
+      const year = value.slice(end_index - 4, end_index);
+      const year_valid = canConvertToInteger(year);
+      if (year_valid && year.length === 4) {
+        item['begin_year'] = year;
+      }
+    } else if (title === 'Country:') {
+      item['culture_country'] = value;
+    } else if (title === 'Credit Line:') {
+      item['source'] = value;
+    } else if (title === 'Object number:') {
+      item['item_collection_no'] = value;
+    } else if (title === 'Label Text:' && value.length > 0) {
+      desc_array[0] = value;
+    } else if (title === 'Medium:' && value.length > 0) {
+      const desc_item = `${title}\n${value}`;
+      desc_array[2] = desc_item;
+    } else if (title === 'Description') {
+      const span = ch(el).children('.detailFieldLabel').next();
+      const desc = span.text();
+      desc_array[1] = desc;
+    }
+  });
+
+  const final_desc_array = desc_array.filter(
+    (str) => str.length > 0
+  );
+
+  item['description'] = final_desc_array.join('\n\n');
+
+  console.log('FIT fn', item);
   return item;
 }
 
@@ -349,7 +418,8 @@ function getSourceFromUrl(url) {
     'collections.vam': 'VA',
     cincinnatiartmuseum: 'CAM',
     philamuseum: 'PHILA',
-    lacma: 'LACMA'
+    lacma: 'LACMA',
+    fitnyc: 'FIT'
   };
   let src;
   for (const [key, value] of Object.entries(options)) {
@@ -374,8 +444,8 @@ function removeQueryFromUrl(initial_url, item) {
 
 // const metUrl = 'https://www.metmuseum.org/art/collection/search/158923';
 // const metUrl = 'https://www.metmuseum.org/art/collection/search/107620';
-const metUrl =
-  'https://www.metmuseum.org/art/collection/search/159292?sortBy=DateDesc&amp;deptids=8&amp;when=A.D.+1800-1900&amp;ao=on&amp;showOnly=openAccess&amp;ft=dress&amp;offset=40&amp;rpp=40&amp;pos=76';
+// const metUrl =
+//   'https://www.metmuseum.org/art/collection/search/159292?sortBy=DateDesc&amp;deptids=8&amp;when=A.D.+1800-1900&amp;ao=on&amp;showOnly=openAccess&amp;ft=dress&amp;offset=40&amp;rpp=40&amp;pos=76';
 // const vaUrl = 'https://collections.vam.ac.uk/item/O13844/dress-unknown/';
 // const vaUrl = 'https://collections.vam.ac.uk/item/O108865/dress-liberty--co/'
 // const camUrl = `https://www.cincinnatiartmuseum.org/art/explore-the-collection?id=11682053`;
@@ -385,10 +455,12 @@ const metUrl =
 // const lacmaUrl = 'https://collections.lacma.org/node/213825'
 // const lacmaUrl = 'https://collections.lacma.org/node/214606';
 // const lacmaUrl = 'https://collections.lacma.org/node/214655'
-// const fitUrl = 'https://fashionmuseum.fitnyc.edu/objects/63303/p83199?ctx=6c509986-10fc-4036-ac06-6d1d6ba07a9f&idx=51'
+// const fitUrl =
+//   'https://fashionmuseum.fitnyc.edu/objects/11416/p80114?ctx=a9866620-1fb6-4519-a45c-c25238153093&idx=44';
 
-scrape(metUrl);
+// scrape(metUrl);
 // scrape(vaUrl);
 // scrape(camUrl);
 // scrape(philaUrl);
 // scrape(lacmaUrl);
+// scrape(fitUrl);
