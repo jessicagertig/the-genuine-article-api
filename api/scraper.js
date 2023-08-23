@@ -50,12 +50,14 @@ async function scrapeMET(ch, item) {
 
   // cleanup url
   const initial_url = item['collection_url'];
-  const has_query = initial_url.includes('?');
-  if (has_query) {
-    const end_index = initial_url.indexOf('?');
-    const url = initial_url.slice(0, end_index);
-    item['collection_url'] = url;
-  }
+  console.log(initial_url);
+  removeQueryFromUrl(initial_url, item);
+  // const has_query = initial_url.includes('?');
+  // if (has_query) {
+  //   const end_index = initial_url.indexOf('?');
+  //   const url = initial_url.slice(0, end_index);
+  //   item['collection_url'] = url;
+  // }
   // get title
   const title = ch('.artwork__title--text').text();
   item['garment_type'] = title;
@@ -358,12 +360,22 @@ function getSourceFromUrl(url) {
   return src;
 }
 
+function removeQueryFromUrl(initial_url, item) {
+  const has_query = initial_url.includes('?');
+  if (has_query) {
+    const end_index = initial_url.indexOf('?');
+    const url = initial_url.slice(0, end_index);
+    item['collection_url'] = url;
+  }
+}
+
 /* TEST Functions
 ------------------------ */
 
 // const metUrl = 'https://www.metmuseum.org/art/collection/search/158923';
 // const metUrl = 'https://www.metmuseum.org/art/collection/search/107620';
-// const metUrl = 'https://www.metmuseum.org/art/collection/search/159292?sortBy=DateDesc&amp;deptids=8&amp;when=A.D.+1800-1900&amp;ao=on&amp;showOnly=openAccess&amp;ft=dress&amp;offset=40&amp;rpp=40&amp;pos=76'
+const metUrl =
+  'https://www.metmuseum.org/art/collection/search/159292?sortBy=DateDesc&amp;deptids=8&amp;when=A.D.+1800-1900&amp;ao=on&amp;showOnly=openAccess&amp;ft=dress&amp;offset=40&amp;rpp=40&amp;pos=76';
 // const vaUrl = 'https://collections.vam.ac.uk/item/O13844/dress-unknown/';
 // const vaUrl = 'https://collections.vam.ac.uk/item/O108865/dress-liberty--co/'
 // const camUrl = `https://www.cincinnatiartmuseum.org/art/explore-the-collection?id=11682053`;
@@ -373,8 +385,9 @@ function getSourceFromUrl(url) {
 // const lacmaUrl = 'https://collections.lacma.org/node/213825'
 // const lacmaUrl = 'https://collections.lacma.org/node/214606';
 // const lacmaUrl = 'https://collections.lacma.org/node/214655'
+// const fitUrl = 'https://fashionmuseum.fitnyc.edu/objects/63303/p83199?ctx=6c509986-10fc-4036-ac06-6d1d6ba07a9f&idx=51'
 
-// scrape(metUrl);
+scrape(metUrl);
 // scrape(vaUrl);
 // scrape(camUrl);
 // scrape(philaUrl);
