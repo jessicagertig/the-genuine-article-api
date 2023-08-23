@@ -18,7 +18,7 @@ async function scrape(url) {
       garment_type: '',
       begin_year: '1800',
       end_year: '',
-      culture_country: '',
+      culture_country: 'Western',
       collection: '',
       collection_url: url,
       creator: 'unknown',
@@ -39,6 +39,8 @@ async function scrape(url) {
       item_info = await scrapeLACMA(ch, item);
     } else if (src === 'FIT') {
       item_info = await scrapeFIT(ch, item);
+    } else if (src === 'ROM') {
+      item_info = await scrapeROM(ch, item);
     }
     console.log('Item in scrape fn', item_info);
     return item_info;
@@ -65,9 +67,7 @@ async function scrapeMET(ch, item) {
     .text();
   const trimmedStr = dateStr.trim();
   const year = extractValidYear(trimmedStr);
-  if (year !== null) {
-    item['begin_year'] = year;
-  }
+  item['begin_year'] = year;
   // get description
   const description = ch('.artwork__intro__desc')
     .children('p')
@@ -101,9 +101,7 @@ async function scrapeVA(ch, item) {
   const dateStr = ch('.object-page__credit').text();
   const trimmedStr = dateStr.trim();
   const year = extractValidYear(trimmedStr);
-  if (year !== null) {
-    item['begin_year'] = year;
-  }
+  item['begin_year'] = year;
   // get rows of table data
   const rows = ch('.b-object-details__body').children(
     '.b-object-details__row'
@@ -170,9 +168,7 @@ async function scrapeCAM(ch, item) {
       item['creator'] = value;
     } else if (title === 'Date:') {
       const year = extractValidYear(value);
-      if (year !== null) {
-        item['begin_year'] = year;
-      }
+      item['begin_year'] = year;
     } else if (title === 'Place:') {
       item['culture_country'] = value;
     } else if (title === 'Accession No:') {
@@ -334,7 +330,7 @@ async function scrapeLACMA(ch, item) {
   return item;
 }
 
-// Metropolitan Museum of Art scraper function
+// FIT scraper function
 async function scrapeFIT(ch, item) {
   item['collection'] = 'The Museum at FIT';
 
@@ -393,18 +389,87 @@ async function scrapeFIT(ch, item) {
   return item;
 }
 
+// ROM scraper fn
+async function scrapeROM(ch, item) {
+  item['collection'] = 'Royal Ontario Museum';
+
+  // cleanup url
+  const initial_url = item['collection_url'];
+  removeQueryFromUrl(initial_url, item);
+  let desc_array = [];
+
+  const title = ch('.titleField').text().trim();
+  console.log('TITLE', title);
+  item['garment_type'] = title;
+  desc_array[0] = title;
+
+  // get rows of data
+  const rows = ch('.item-details-inner').children();
+
+  rows.each(function (i, el) {
+    const title_str = ch(el).children('.detailFieldLabel').text();
+    const title = title_str.trim();
+    const value_str = ch(el).children('.detailFieldValue').text();
+    const value = value_str.trim();
+    // console.log('TITLE _________:', title);
+    // console.log('VALUE _________:', value);
+
+    if (title === 'Maker:') {
+      item['creator'] = value;
+    } else if (title === 'Date:') {
+      console.log('DATE:', value);
+      const year = extractValidYear(value);
+      item['begin_year'] = year;
+    } else if (title === 'Credit Line:') {
+      item['source'] = value;
+    } else if (title === 'Object number:') {
+      item['item_collection_no'] = value;
+    } else if (title === 'Description') {
+      const span = ch(el).children('.detailFieldLabel').next();
+      const desc = span.text();
+      desc_array[1] = desc;
+    } else if (title === 'Medium:' && value.length > 0) {
+      const desc_item = `${title}\n${value}`;
+      desc_array[2] = desc_item;
+    } else if (title === 'Dimensions:' && value.length > 0) {
+      const desc_item = `${title} ${value}`;
+      desc_array[3] = desc_item;
+    } else if (title === 'Period:' && value.length > 0) {
+      const desc_item = `${title} ${value}`;
+      desc_array[4] = desc_item;
+    } else if (title === 'Geography:' && value.length > 0) {
+      desc_array[5] = value;
+    }
+  });
+
+  console.log('desc', desc_array);
+  const filtered_desc_array = desc_array.filter(
+    (str) => str.length > 0
+  );
+  const final_desc_array = filtered_desc_array.map((item) =>
+    item.replace(/(\r\n|\n|\r)/gm, ' ').trim()
+  );
+  console.log('final', final_desc_array);
+  item['description'] = final_desc_array.join('\n\n');
+
+  console.log('ROM fn', item);
+  return item;
+}
+
 /* Helper Functions
 ----------------------------------- */
 
 // don't use this function for the PhilaMuseum or LACMA because sometimes the date of the fabric is listed first
 function extractValidYear(yearStr) {
+  console.log('year str', yearStr);
   let year;
   if (yearStr.length >= 4) {
     const beginIndex = yearStr.indexOf('1');
     year = yearStr.slice(beginIndex, beginIndex + 4);
   }
   const year_valid = canConvertToInteger(year);
-  const return_value = year_valid && year.length === 4 ? year : null;
+  const return_value =
+    year_valid && year.length === 4 ? year : '1800';
   return return_value;
 }
 
@@ -419,7 +484,8 @@ function getSourceFromUrl(url) {
     cincinnatiartmuseum: 'CAM',
     philamuseum: 'PHILA',
     lacma: 'LACMA',
-    fitnyc: 'FIT'
+    fitnyc: 'FIT',
+    'collections.rom.on': 'ROM'
   };
   let src;
   for (const [key, value] of Object.entries(options)) {
@@ -457,10 +523,14 @@ function removeQueryFromUrl(initial_url, item) {
 // const lacmaUrl = 'https://collections.lacma.org/node/214655'
 // const fitUrl =
 //   'https://fashionmuseum.fitnyc.edu/objects/11416/p80114?ctx=a9866620-1fb6-4519-a45c-c25238153093&idx=44';
-
+// const romUrl = 'https://collections.rom.on.ca/objects/394286/womans-semiformal-dress?ctx=abb69080-0824-4853-ae5f-f29dd769c436&idx=10'
+const romUrl =
+  'https://collections.rom.on.ca/objects/548150/robe-en-fourreau-or-robe-a-langlaise-or-grand-habit-court?ctx=abb69080-0824-4853-ae5f-f29dd769c436&idx=15';
 // scrape(metUrl);
 // scrape(vaUrl);
 // scrape(camUrl);
 // scrape(philaUrl);
 // scrape(lacmaUrl);
 // scrape(fitUrl);
+scrape(romUrl);
+//note - the ROM & the Colonial Williamsburg collections use eMuseum (like FIT)
