@@ -26,24 +26,24 @@ async function scrape(url) {
       item_collection_no: '',
       description: ''
     };
+
+    const scrapeFunctions = {
+      MET: scrapeMET,
+      VA: scrapeVA,
+      CAM: scrapeCAM,
+      PHILA: scrapePHILA,
+      LACMA: scrapeLACMA,
+      FIT: scrapeFIT,
+      ROM: scrapeROM,
+      CW: scrapeCW
+    };
+
     let item_info;
-    if (src === 'MET') {
-      item_info = await scrapeMET(ch, item);
-    } else if (src === 'VA') {
-      item_info = await scrapeVA(ch, item);
-    } else if (src === 'CAM') {
-      item_info = await scrapeCAM(ch, item);
-    } else if (src === 'PHILA') {
-      item_info = await scrapePHILA(ch, item);
-    } else if (src === 'LACMA') {
-      item_info = await scrapeLACMA(ch, item);
-    } else if (src === 'FIT') {
-      item_info = await scrapeFIT(ch, item);
-    } else if (src === 'ROM') {
-      item_info = await scrapeROM(ch, item);
-    } else if (src === 'CW') {
-      item_info = await scrapeCW(ch, item);
+
+    if (src in scrapeFunctions) {
+      item_info = await scrapeFunctions[src](ch, item);
     }
+
     console.log('Item in scrape fn', item_info);
     return item_info;
   } catch (err) {
