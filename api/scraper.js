@@ -18,7 +18,7 @@ async function scrape(url) {
       garment_type: '',
       begin_year: '1800',
       end_year: '',
-      culture_country: '',
+      culture_country: 'Western',
       collection: '',
       collection_url: url,
       creator: 'unknown',
@@ -26,18 +26,24 @@ async function scrape(url) {
       item_collection_no: '',
       description: ''
     };
+
+    const scrapeFunctions = {
+      MET: scrapeMET,
+      VA: scrapeVA,
+      CAM: scrapeCAM,
+      PHILA: scrapePHILA,
+      LACMA: scrapeLACMA,
+      FIT: scrapeFIT,
+      ROM: scrapeROM,
+      CW: scrapeCW
+    };
+
     let item_info;
-    if (src === 'MET') {
-      item_info = await scrapeMET(ch, item);
-    } else if (src === 'VA') {
-      item_info = await scrapeVA(ch, item);
-    } else if (src === 'CAM') {
-      item_info = await scrapeCAM(ch, item);
-    } else if (src === 'PHILA') {
-      item_info = await scrapePHILA(ch, item);
-    } else if (src === 'LACMA') {
-      item_info = await scrapeLACMA(ch, item);
+
+    if (src in scrapeFunctions) {
+      item_info = await scrapeFunctions[src](ch, item);
     }
+
     console.log('Item in scrape fn', item_info);
     return item_info;
   } catch (err) {
@@ -50,12 +56,7 @@ async function scrapeMET(ch, item) {
 
   // cleanup url
   const initial_url = item['collection_url'];
-  const has_query = initial_url.includes('?');
-  if (has_query) {
-    const end_index = initial_url.indexOf('?');
-    const url = initial_url.slice(0, end_index);
-    item['collection_url'] = url;
-  }
+  removeQueryFromUrl(initial_url, item);
   // get title
   const title = ch('.artwork__title--text').text();
   item['garment_type'] = title;
@@ -68,9 +69,7 @@ async function scrapeMET(ch, item) {
     .text();
   const trimmedStr = dateStr.trim();
   const year = extractValidYear(trimmedStr);
-  if (year !== null) {
-    item['begin_year'] = year;
-  }
+  item['begin_year'] = year;
   // get description
   const description = ch('.artwork__intro__desc')
     .children('p')
@@ -104,9 +103,7 @@ async function scrapeVA(ch, item) {
   const dateStr = ch('.object-page__credit').text();
   const trimmedStr = dateStr.trim();
   const year = extractValidYear(trimmedStr);
-  if (year !== null) {
-    item['begin_year'] = year;
-  }
+  item['begin_year'] = year;
   // get rows of table data
   const rows = ch('.b-object-details__body').children(
     '.b-object-details__row'
@@ -137,16 +134,21 @@ async function scrapeVA(ch, item) {
     } else if (title === 'Object history') {
       desc_array[2] = value;
     } else if (title === 'Materials and techniques') {
-      const desc_item = `${title}:\n${value}`;
+      const value_text = ch(cells[1])
+        .children(
+          '.b-object-details__controlled-vocab-string-container'
+        )
+        .text();
+      const desc_item = `${title}: ${value_text}`;
       desc_array[3] = desc_item;
     } else if (title === 'Dimensions') {
-      const desc_item = `${title}:\n${value}`;
-      desc_array[4] = desc_item;
+      desc_array[4] = value;
     }
   });
-  item['description'] = desc_array.join('\n\n');
 
-  console.log('VA fn', item);
+  processDescArray(desc_array, item);
+
+  // console.log('VA fn', item);
   return item;
 }
 
@@ -169,9 +171,7 @@ async function scrapeCAM(ch, item) {
       item['creator'] = value;
     } else if (title === 'Date:') {
       const year = extractValidYear(value);
-      if (year !== null) {
-        item['begin_year'] = year;
-      }
+      item['begin_year'] = year;
     } else if (title === 'Place:') {
       item['culture_country'] = value;
     } else if (title === 'Accession No:') {
@@ -182,13 +182,14 @@ async function scrapeCAM(ch, item) {
       item['garment_type'] = value;
       desc_array[0] = value;
     } else if (title === 'Medium:') {
-      const desc_item = `${title}\n${value}`;
+      const desc_item = `${title} ${value}`;
       desc_array[1] = desc_item;
     }
   });
-  item['description'] = desc_array.join('\n\n');
 
-  console.log('CAM fn', item);
+  processDescArray(desc_array, item);
+
+  // console.log('CAM fn', item);
   return item;
 }
 
@@ -238,20 +239,20 @@ async function scrapePHILA(ch, item) {
     } else if (title === 'Geography:') {
       desc_array[3] = value;
     } else if (title === 'Medium:') {
-      const desc_item = `${title}\n${value}`;
+      const desc_item = `${title} ${value}`;
       desc_array[1] = desc_item;
     } else if (title === 'Dimensions:') {
-      const desc_item = `${title}\n${value}`;
-      desc_array[2] = desc_item;
+      desc_array[2] = value;
     }
   });
-  item['description'] = desc_array.join('\n\n');
 
-  console.log('Phila fn', item);
+  processDescArray(desc_array, item);
+
+  // console.log('Phila fn', item);
   return item;
 }
 
-// Philadelphia Museum of Art
+// LACMA
 async function scrapeLACMA(ch, item) {
   item['collection'] = 'LACMA';
 
@@ -316,9 +317,177 @@ async function scrapeLACMA(ch, item) {
   const source = text.substring(0, last_opening_paren_index).trim();
   item['source'] = source;
 
-  item['description'] = desc_array.join('\n\n');
+  processDescArray(desc_array, item);
 
   // console.log('Lacma fn', item);
+  return item;
+}
+
+// FIT scraper function
+async function scrapeFIT(ch, item) {
+  item['collection'] = 'The Museum at FIT';
+
+  // cleanup url
+  const initial_url = item['collection_url'];
+  removeQueryFromUrl(initial_url, item);
+  let desc_array = [];
+
+  // get rows of data
+  const rows = ch('.item-details-inner').children();
+
+  rows.each(function (i, el) {
+    const title_str = ch(el).children('.detailFieldLabel').text();
+    const title = title_str.trim();
+    const value_str = ch(el).children('.detailFieldValue').text();
+    const value = value_str.trim();
+    // console.log('TITLE _________:', title);
+    // console.log('VALUE _________:', value);
+
+    if (title === 'Object:') {
+      item['garment_type'] = value;
+    } else if (title === 'Brand:') {
+      item['creator'] = value;
+    } else if (title === 'Date:') {
+      const end_index = value.length;
+      const year = value.slice(end_index - 4, end_index);
+      const year_valid = canConvertToInteger(year);
+      if (year_valid && year.length === 4) {
+        item['begin_year'] = year;
+      }
+    } else if (title === 'Country:') {
+      item['culture_country'] = value;
+    } else if (title === 'Credit Line:') {
+      item['source'] = value;
+    } else if (title === 'Object number:') {
+      item['item_collection_no'] = value;
+    } else if (title === 'Label Text:' && value.length > 0) {
+      desc_array[0] = value;
+    } else if (title === 'Medium:' && value.length > 0) {
+      const desc_item = `${title} ${value}`;
+      desc_array[2] = desc_item;
+    } else if (title === 'Description') {
+      const span = ch(el).children('.detailFieldLabel').next();
+      const desc = span.text();
+      desc_array[1] = desc;
+    }
+  });
+
+  processDescArray(desc_array, item);
+
+  console.log('FIT fn', item);
+  return item;
+}
+
+// ROM scraper fn
+async function scrapeROM(ch, item) {
+  item['collection'] = 'Royal Ontario Museum';
+
+  // cleanup url
+  const initial_url = item['collection_url'];
+  removeQueryFromUrl(initial_url, item);
+  let desc_array = [];
+
+  const title = ch('.titleField').text().trim();
+  console.log('TITLE', title);
+  item['garment_type'] = title;
+  desc_array[0] = title;
+
+  // get rows of data
+  const rows = ch('.item-details-inner').children();
+
+  rows.each(function (i, el) {
+    const title_str = ch(el).children('.detailFieldLabel').text();
+    const title = title_str.trim();
+    const value_str = ch(el).children('.detailFieldValue').text();
+    const value = value_str.trim();
+    // console.log('TITLE _________:', title);
+    // console.log('VALUE _________:', value);
+
+    if (title === 'Maker:') {
+      item['creator'] = value;
+    } else if (title === 'Date:') {
+      console.log('DATE:', value);
+      const year = extractValidYear(value);
+      item['begin_year'] = year;
+    } else if (title === 'Credit Line:') {
+      item['source'] = value;
+    } else if (title === 'Object number:') {
+      item['item_collection_no'] = value;
+    } else if (title === 'Description') {
+      const span = ch(el).children('.detailFieldLabel').next();
+      const desc = span.text();
+      desc_array[1] = desc;
+    } else if (title === 'Medium:' && value.length > 0) {
+      const desc_item = `${title} ${value}`;
+      desc_array[2] = desc_item;
+    } else if (title === 'Dimensions:' && value.length > 0) {
+      const desc_item = `${title} ${value}`;
+      desc_array[3] = desc_item;
+    } else if (title === 'Period:' && value.length > 0) {
+      const desc_item = `${title} ${value}`;
+      desc_array[4] = desc_item;
+    } else if (title === 'Geography:' && value.length > 0) {
+      desc_array[5] = value;
+    }
+  });
+
+  processDescArray(desc_array, item);
+
+  console.log('ROM fn', item);
+  return item;
+}
+
+// Colonial Williamsburg scraper function
+async function scrapeCW(ch, item) {
+  item['collection'] = 'Colonial Williamsburg';
+
+  // cleanup url
+  const initial_url = item['collection_url'];
+  removeQueryFromUrl(initial_url, item);
+  let desc_array = [];
+
+  const garmentTitle = ch('.titleField').text();
+  item['garment_type'] = garmentTitle.trim();
+  // get rows of data
+  const rows = ch('.item-details-inner').children();
+
+  rows.each(function (i, el) {
+    const title_str = ch(el).children('.detailFieldLabel').text();
+    const title = title_str.trim();
+    const value_str = ch(el).children('.detailFieldValue').text();
+    const value = value_str.trim();
+    // console.log('TITLE _________:', title);
+    // console.log('VALUE _________:', value);
+
+    if (title === 'Date') {
+      const year = extractValidYear(value);
+      item['begin_year'] = year;
+    } else if (title === 'Origin') {
+      item['culture_country'] = value;
+    } else if (title === 'Credit Line') {
+      item['source'] = value;
+    } else if (title === 'Object number') {
+      item['item_collection_no'] = value;
+    } else if (title === 'Label Text') {
+      const span = ch(el).children('.detailFieldLabel').next();
+      const desc = span.text();
+      desc_array[0] = desc;
+    } else if (title === 'Description') {
+      const span = ch(el).children('.detailFieldLabel').next();
+      const desc = span.text();
+      desc_array[1] = desc;
+    } else if (title === 'Medium' && value.length > 0) {
+      const desc_item = `${title}: ${value}`;
+      desc_array[2] = desc_item;
+    } else if (title === 'Dimensions' && value.length > 0) {
+      const desc_item = `${title}: ${value}`;
+      desc_array[3] = desc_item;
+    }
+  });
+
+  processDescArray(desc_array, item);
+
+  console.log('CW fn', item);
   return item;
 }
 
@@ -327,13 +496,15 @@ async function scrapeLACMA(ch, item) {
 
 // don't use this function for the PhilaMuseum or LACMA because sometimes the date of the fabric is listed first
 function extractValidYear(yearStr) {
+  console.log('year str', yearStr);
   let year;
   if (yearStr.length >= 4) {
     const beginIndex = yearStr.indexOf('1');
     year = yearStr.slice(beginIndex, beginIndex + 4);
   }
   const year_valid = canConvertToInteger(year);
-  const return_value = year_valid && year.length === 4 ? year : null;
+  const return_value =
+    year_valid && year.length === 4 ? year : '1800';
   return return_value;
 }
 
@@ -347,7 +518,10 @@ function getSourceFromUrl(url) {
     'collections.vam': 'VA',
     cincinnatiartmuseum: 'CAM',
     philamuseum: 'PHILA',
-    lacma: 'LACMA'
+    lacma: 'LACMA',
+    fitnyc: 'FIT',
+    'collections.rom.on': 'ROM',
+    'emuseum.history.org': 'CW'
   };
   let src;
   for (const [key, value] of Object.entries(options)) {
@@ -358,14 +532,37 @@ function getSourceFromUrl(url) {
   return src;
 }
 
+function removeQueryFromUrl(initial_url, item) {
+  const has_query = initial_url.includes('?');
+  if (has_query) {
+    const end_index = initial_url.indexOf('?');
+    const url = initial_url.slice(0, end_index);
+    item['collection_url'] = url;
+  }
+}
+
+function processDescArray(desc_array, item) {
+  console.log('desc', desc_array);
+  const filtered_desc_array = desc_array.filter(
+    (str) => str.length > 0
+  );
+  const final_desc_array = filtered_desc_array.map((item) =>
+    item.replace(/(\r\n|\n|\r)/gm, ' ').trim()
+  );
+  console.log('final', final_desc_array);
+  item['description'] = final_desc_array.join('\n\n');
+}
+
 /* TEST Functions
 ------------------------ */
 
 // const metUrl = 'https://www.metmuseum.org/art/collection/search/158923';
 // const metUrl = 'https://www.metmuseum.org/art/collection/search/107620';
-// const metUrl = 'https://www.metmuseum.org/art/collection/search/159292?sortBy=DateDesc&amp;deptids=8&amp;when=A.D.+1800-1900&amp;ao=on&amp;showOnly=openAccess&amp;ft=dress&amp;offset=40&amp;rpp=40&amp;pos=76'
+// const metUrl =
+//   'https://www.metmuseum.org/art/collection/search/159292?sortBy=DateDesc&amp;deptids=8&amp;when=A.D.+1800-1900&amp;ao=on&amp;showOnly=openAccess&amp;ft=dress&amp;offset=40&amp;rpp=40&amp;pos=76';
 // const vaUrl = 'https://collections.vam.ac.uk/item/O13844/dress-unknown/';
-// const vaUrl = 'https://collections.vam.ac.uk/item/O108865/dress-liberty--co/'
+// const vaUrl =
+//   'https://collections.vam.ac.uk/item/O108865/dress-liberty--co/';
 // const camUrl = `https://www.cincinnatiartmuseum.org/art/explore-the-collection?id=11682053`;
 // const philaUrl =
 //   'https://www.philamuseum.org/collection/object/59168';
@@ -373,9 +570,19 @@ function getSourceFromUrl(url) {
 // const lacmaUrl = 'https://collections.lacma.org/node/213825'
 // const lacmaUrl = 'https://collections.lacma.org/node/214606';
 // const lacmaUrl = 'https://collections.lacma.org/node/214655'
-
+// const fitUrl =
+//   'https://fashionmuseum.fitnyc.edu/objects/11416/p80114?ctx=a9866620-1fb6-4519-a45c-c25238153093&idx=44';
+// const romUrl = 'https://collections.rom.on.ca/objects/394286/womans-semiformal-dress?ctx=abb69080-0824-4853-ae5f-f29dd769c436&idx=10'
+// const romUrl =
+//   'https://collections.rom.on.ca/objects/459363/womans-summer-day-dress?ctx=abb69080-0824-4853-ae5f-f29dd769c436&idx=9';
+// const cwUrl =
+//   'https://emuseum.history.org/objects/47797/dress?ctx=ee1c16b66c27cfc7d43c3de2269ee1d961178539&idx=47';
 // scrape(metUrl);
 // scrape(vaUrl);
 // scrape(camUrl);
 // scrape(philaUrl);
 // scrape(lacmaUrl);
+// scrape(fitUrl);
+// scrape(romUrl);
+// scrape(cwUrl);
+//note - the Colonial Williamsburg collections use eMuseum (will be similiar to FIT or ROM)
