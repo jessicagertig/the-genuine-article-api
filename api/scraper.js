@@ -41,6 +41,8 @@ async function scrape(url) {
       item_info = await scrapeFIT(ch, item);
     } else if (src === 'ROM') {
       item_info = await scrapeROM(ch, item);
+    } else if (src === 'CW') {
+      item_info = await scrapeCW(ch, item);
     }
     console.log('Item in scrape fn', item_info);
     return item_info;
@@ -435,6 +437,60 @@ async function scrapeROM(ch, item) {
   return item;
 }
 
+// Colonial Williamsburg scraper function
+async function scrapeCW(ch, item) {
+  item['collection'] = 'Colonial Williamsburg';
+
+  // cleanup url
+  const initial_url = item['collection_url'];
+  removeQueryFromUrl(initial_url, item);
+  let desc_array = [];
+
+  const garmentTitle = ch('.titleField').text();
+  item['garment_type'] = garmentTitle.trim();
+  // get rows of data
+  const rows = ch('.item-details-inner').children();
+
+  rows.each(function (i, el) {
+    const title_str = ch(el).children('.detailFieldLabel').text();
+    const title = title_str.trim();
+    const value_str = ch(el).children('.detailFieldValue').text();
+    const value = value_str.trim();
+    // console.log('TITLE _________:', title);
+    // console.log('VALUE _________:', value);
+
+    if (title === 'Date') {
+      const year = extractValidYear(value);
+      item['begin_year'] = year;
+    } else if (title === 'Origin') {
+      item['culture_country'] = value;
+    } else if (title === 'Credit Line') {
+      item['source'] = value;
+    } else if (title === 'Object number') {
+      item['item_collection_no'] = value;
+    } else if (title === 'Label Text') {
+      const span = ch(el).children('.detailFieldLabel').next();
+      const desc = span.text();
+      desc_array[0] = desc;
+    } else if (title === 'Description') {
+      const span = ch(el).children('.detailFieldLabel').next();
+      const desc = span.text();
+      desc_array[1] = desc;
+    } else if (title === 'Medium' && value.length > 0) {
+      const desc_item = `${title}: ${value}`;
+      desc_array[2] = desc_item;
+    } else if (title === 'Dimensions' && value.length > 0) {
+      const desc_item = `${title}: ${value}`;
+      desc_array[3] = desc_item;
+    }
+  });
+
+  processDescArray(desc_array, item);
+
+  console.log('CW fn', item);
+  return item;
+}
+
 /* Helper Functions
 ----------------------------------- */
 
@@ -464,7 +520,8 @@ function getSourceFromUrl(url) {
     philamuseum: 'PHILA',
     lacma: 'LACMA',
     fitnyc: 'FIT',
-    'collections.rom.on': 'ROM'
+    'collections.rom.on': 'ROM',
+    'emuseum.history.org': 'CW'
   };
   let src;
   for (const [key, value] of Object.entries(options)) {
@@ -518,6 +575,8 @@ function processDescArray(desc_array, item) {
 // const romUrl = 'https://collections.rom.on.ca/objects/394286/womans-semiformal-dress?ctx=abb69080-0824-4853-ae5f-f29dd769c436&idx=10'
 // const romUrl =
 //   'https://collections.rom.on.ca/objects/459363/womans-summer-day-dress?ctx=abb69080-0824-4853-ae5f-f29dd769c436&idx=9';
+// const cwUrl =
+//   'https://emuseum.history.org/objects/47797/dress?ctx=ee1c16b66c27cfc7d43c3de2269ee1d961178539&idx=47';
 // scrape(metUrl);
 // scrape(vaUrl);
 // scrape(camUrl);
@@ -525,4 +584,5 @@ function processDescArray(desc_array, item) {
 // scrape(lacmaUrl);
 // scrape(fitUrl);
 // scrape(romUrl);
+// scrape(cwUrl);
 //note - the Colonial Williamsburg collections use eMuseum (will be similiar to FIT or ROM)
