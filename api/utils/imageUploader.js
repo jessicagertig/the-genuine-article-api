@@ -166,9 +166,11 @@ class ResizedMainImageUploader extends ImageUploader {
         for (const name of names) {
           const [width, height] = this.sizes[name];
           const fitType = name === 'display' ? 'cover' : 'contain';
+          const positionType = name === 'display' ? 'top' : 'center';
           const sizedBody = await Sharp(body)
             .resize(width, height, {
               fit: fitType,
+              position: positionType,
               background: { r: 255, g: 255, b: 255, alpha: 1 }
             })
             .toBuffer();
