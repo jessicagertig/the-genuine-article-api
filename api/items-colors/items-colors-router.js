@@ -3,8 +3,9 @@ const ItemColors = require('./items-colors-model');
 const {
   checkForDuplicateColors
 } = require('./items-colors-validation');
+const restricted = require('../auth/restricted_middleware');
 
-router.post('/colors', async (req, res) => {
+router.post('/colors', restricted, async (req, res) => {
   console.log('req.body', req.body);
   const color = req.body.color;
   ItemColors.addColor(color)
@@ -19,7 +20,7 @@ router.post('/colors', async (req, res) => {
     });
 });
 
-router.delete('/colors/:color_id', async (req, res) => {
+router.delete('/colors/:color_id', restricted, async (req, res) => {
   console.log('req.body', req.body);
   const color_id = req.params.color_id;
   ItemColors.deleteColor(color_id)
@@ -37,6 +38,7 @@ router.delete('/colors/:color_id', async (req, res) => {
 //post item-colors
 router.post(
   '/:item_id',
+  restricted,
   checkForDuplicateColors,
   async (req, res) => {
     const item_id = req.params.item_id;
@@ -107,7 +109,7 @@ router.get('/color/:color_id', (req, res) => {
 });
 
 //delete item color by item_id and color_id
-router.delete('/:item_id', (req, res) => {
+router.delete('/:item_id', restricted, (req, res) => {
   const item_id = req.params.item_id;
   const color_id = req.body.color_id;
 

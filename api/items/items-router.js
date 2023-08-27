@@ -11,6 +11,7 @@ const {
   checkForRequestBody,
   checkForDuplicateItem
 } = require('./items-middleware');
+const restricted = require('../auth/restricted_middleware');
 
 //Get all items
 router.get('/', async (req, res) => {
@@ -228,6 +229,7 @@ router.get('/:item_id', async (req, res) => {
 //post an item
 router.post(
   '/',
+  restricted,
   checkForRequestBody,
   checkForDuplicateItem,
   async (req, res) => {
@@ -248,7 +250,7 @@ router.post(
 );
 
 //put item-info (edit main info section only)
-router.put('/:item_id', async (req, res) => {
+router.put('/:item_id', restricted, async (req, res) => {
   const item_id = req.params.item_id;
   console.log('item_id', item_id);
   console.log('req.body', req.body);
@@ -278,7 +280,7 @@ router.put('/:item_id', async (req, res) => {
 });
 
 //delete item by item id
-router.delete('/:item_id', async (req, res) => {
+router.delete('/:item_id', restricted, async (req, res) => {
   const item_id = req.params.item_id;
   console.log('Request params:', req.params);
   try {
@@ -293,7 +295,7 @@ router.delete('/:item_id', async (req, res) => {
 });
 
 // for temp admin use delete item with no image record
-router.delete('/admin/:item_id', async (req, res) => {
+router.delete('/admin/:item_id', restricted, async (req, res) => {
   const item_id = req.params.item_id;
 
   try {
@@ -307,7 +309,7 @@ router.delete('/admin/:item_id', async (req, res) => {
   }
 });
 
-router.post('/garment_titles', async (req, res) => {
+router.post('/garment_titles', restricted, async (req, res) => {
   console.log('req.body', req.body);
   const garment_title = req.body.garment_title;
   Items.addGarmentTitle(garment_title)
@@ -324,6 +326,7 @@ router.post('/garment_titles', async (req, res) => {
 
 router.delete(
   '/garment_titles/:garment_title_id',
+  restricted,
   async (req, res) => {
     console.log('req.body', req.body);
     const garment_title_id = req.params.garment_title_id;

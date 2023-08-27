@@ -7,6 +7,7 @@ const {
 } = require('../utils/imageUploader');
 const { defineParams } = require('../utils/parseFiles');
 const checkItemImageExists = require('./image-middleware');
+const restricted = require('../auth/restricted_middleware');
 
 //get original main_image by item_id
 router.get('/main_image/:item_id', (req, res) => {
@@ -33,6 +34,7 @@ router.get('/main_image/:item_id', (req, res) => {
 //post original main_image & resized versions by item_id
 router.post(
   '/main_image/:item_id',
+  restricted,
   checkItemImageExists,
   async (req, res) => {
     const item_id = req.params.item_id;
@@ -76,7 +78,7 @@ router.post(
 );
 
 //put original main_image by item_id
-router.put('/main_image/:item_id', async (req, res) => {
+router.put('/main_image/:item_id', restricted, async (req, res) => {
   const item_id = req.params.item_id;
   const [body, content_type, file_name, md5] = await defineParams(
     req
@@ -103,52 +105,60 @@ router.put('/main_image/:item_id', async (req, res) => {
 });
 
 //delete original unaltered main image from database
-router.delete('/main_image/:item_id', async (req, res) => {
-  const item_id = req.params.item_id;
-  try {
-    await Images.deleteMainImageFromS3(item_id);
-  } catch (err) {
-    return res.status(500).json({
-      message: 'There was an error deleting the image from AWS S3.'
-    });
-  }
-
-  // delete main image record from db
-  Images.removeMainImage(item_id)
-    .then(() => {
-      return res.status(200).json({
-        message: `The main image for item with id ${item_id} has been deleted from the DB.`
-      });
-    })
-    .catch((error) => {
+router.delete(
+  '/main_image/:item_id',
+  restricted,
+  async (req, res) => {
+    const item_id = req.params.item_id;
+    try {
+      await Images.deleteMainImageFromS3(item_id);
+    } catch (err) {
       return res.status(500).json({
-        message: `An error occured while deleting the main image from the DB for item with id ${item_id}`,
-        error
+        message: 'There was an error deleting the image from AWS S3.'
       });
-    });
-});
+    }
+
+    // delete main image record from db
+    Images.removeMainImage(item_id)
+      .then(() => {
+        return res.status(200).json({
+          message: `The main image for item with id ${item_id} has been deleted from the DB.`
+        });
+      })
+      .catch((error) => {
+        return res.status(500).json({
+          message: `An error occured while deleting the main image from the DB for item with id ${item_id}`,
+          error
+        });
+      });
+  }
+);
 
 //post secondary image in 3 sizes, orginal not posted
-router.post('/secondary_images/:item_id', async (req, res) => {
-  const item_id = req.params.item_id;
-  const [body, content_type, file_name] = await defineParams(req);
-  const upload = new SecondaryImagesUploader('secondary_images');
-  const baseUrl = await upload.uploadResizedImages(
-    item_id,
-    file_name,
-    body,
-    content_type
-  );
+router.post(
+  '/secondary_images/:item_id',
+  restricted,
+  async (req, res) => {
+    const item_id = req.params.item_id;
+    const [body, content_type, file_name] = await defineParams(req);
+    const upload = new SecondaryImagesUploader('secondary_images');
+    const baseUrl = await upload.uploadResizedImages(
+      item_id,
+      file_name,
+      body,
+      content_type
+    );
 
-  Images.addSecondaryImageSizes(baseUrl, file_name, item_id)
-    .then((img) => {
-      res.status(201).json({ ...img });
-    })
-    .catch((error) => {
-      res
-        .status(500)
-        .json({ message: 'Error on server end', error });
-    });
-});
+    Images.addSecondaryImageSizes(baseUrl, file_name, item_id)
+      .then((img) => {
+        res.status(201).json({ ...img });
+      })
+      .catch((error) => {
+        res
+          .status(500)
+          .json({ message: 'Error on server end', error });
+      });
+  }
+);
 
 module.exports = router;

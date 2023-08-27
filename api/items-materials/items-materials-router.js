@@ -3,6 +3,7 @@ const {
   checkForDuplicateMaterials
 } = require('./item-materials-validation');
 const Materials = require('./items-materials-model');
+const restricted = require('../auth/restricted_middleware');
 
 router.post('/materials', async (req, res) => {
   console.log('req.body', req.body);
@@ -19,24 +20,29 @@ router.post('/materials', async (req, res) => {
     });
 });
 
-router.delete('/materials/:material_id', async (req, res) => {
-  console.log('req.body', req.body);
-  const material_id = req.params.material_id;
-  Materials.deleteMaterial(material_id)
-    .then((item) => {
-      res.status(200).json(item);
-    })
-    .catch((error) => {
-      res.status(500).json({
-        message: `Error on server end deleting material.`,
-        error
+router.delete(
+  '/materials/:material_id',
+  restricted,
+  async (req, res) => {
+    console.log('req.body', req.body);
+    const material_id = req.params.material_id;
+    Materials.deleteMaterial(material_id)
+      .then((item) => {
+        res.status(200).json(item);
+      })
+      .catch((error) => {
+        res.status(500).json({
+          message: `Error on server end deleting material.`,
+          error
+        });
       });
-    });
-});
+  }
+);
 
 //post item-materials
 router.post(
   '/:item_id',
+  restricted,
   checkForDuplicateMaterials,
   async (req, res) => {
     const item_id = req.params.item_id;
@@ -106,7 +112,7 @@ router.get('/material/:material_id', (req, res) => {
 });
 
 //delete material from item's material list by material_id and item_id
-router.delete('/:item_id', (req, res) => {
+router.delete('/:item_id', restricted, (req, res) => {
   const item_id = req.params.item_id;
   const material_id = req.body.material_id;
 
