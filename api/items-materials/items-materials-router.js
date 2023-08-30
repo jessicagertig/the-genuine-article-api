@@ -4,6 +4,7 @@ const {
 } = require('./item-materials-validation');
 const Materials = require('./items-materials-model');
 const restricted = require('../auth/restricted_middleware');
+const { permit } = require('../auth/auth-middleware');
 
 router.post('/materials', async (req, res) => {
   console.log('req.body', req.body);
@@ -23,6 +24,7 @@ router.post('/materials', async (req, res) => {
 router.delete(
   '/materials/:material_id',
   restricted,
+  permit('admin'),
   async (req, res) => {
     console.log('req.body', req.body);
     const material_id = req.params.material_id;
@@ -43,6 +45,7 @@ router.delete(
 router.post(
   '/:item_id',
   restricted,
+  permit('admin'),
   checkForDuplicateMaterials,
   async (req, res) => {
     const item_id = req.params.item_id;
@@ -98,8 +101,8 @@ router.get('/material/:material_id', (req, res) => {
       if (items.length > 0) {
         res.status(200).json(items);
       } else {
-        res.status(400).json({
-          message: `No items exist which list the material with id ${material_id}. Error on client end.`
+        res.status(404).json({
+          message: `No items exist which list the material with id ${material_id}.`
         });
       }
     })
@@ -112,29 +115,34 @@ router.get('/material/:material_id', (req, res) => {
 });
 
 //delete material from item's material list by material_id and item_id
-router.delete('/:item_id', restricted, (req, res) => {
-  const item_id = req.params.item_id;
-  const material_id = req.body.material_id;
+router.delete(
+  '/:item_id',
+  restricted,
+  permit('admin'),
+  (req, res) => {
+    const item_id = req.params.item_id;
+    const material_id = req.body.material_id;
 
-  Materials.removeItemMaterial(item_id, material_id)
-    .then((item_material) => {
-      console.log('item_material', item_material);
-      if (item_material.length > 0) {
-        res.status(200).json({
-          message: `Material with id ${material_id} deleted from record of garment with id ${item_id}.`
+    Materials.removeItemMaterial(item_id, material_id)
+      .then((item_material) => {
+        console.log('item_material', item_material);
+        if (item_material.length > 0) {
+          res.status(200).json({
+            message: `Material with id ${material_id} deleted from record of garment with id ${item_id}.`
+          });
+        } else {
+          res.status(404).json({
+            message: `No record with item_id ${item_id} and material_id ${material_id} exists.`
+          });
+        }
+      })
+      .catch((error) => {
+        res.status(500).json({
+          message: `Error on server end deleting material from item with id ${item_id}.`,
+          error
         });
-      } else {
-        res.status(400).json({
-          message: `No record with item_id ${item_id} and material_id ${material_id} exists.`
-        });
-      }
-    })
-    .catch((error) => {
-      res.status(500).json({
-        message: `Error on server end deleting material from item with id ${item_id}.`,
-        error
       });
-    });
-});
+  }
+);
 
 module.exports = router;
