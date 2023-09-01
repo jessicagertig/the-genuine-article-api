@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 
 const UserAuth = require('./auth-model');
 const restricted = require('./restricted_middleware');
-const permit = require('./auth-middleware');
+const { permit } = require('./auth-middleware');
 
 router.post('/register', restricted, permit('admin'), (req, res) => {
   let user = req.body;
@@ -103,7 +103,7 @@ function signToken(user) {
   const secret = process.env.JWT_SECRET;
 
   const options = {
-    expiresIn: '7d'
+    expiresIn: '6h'
   };
 
   return jwt.sign(payload, secret, options);
