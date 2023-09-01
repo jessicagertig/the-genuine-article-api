@@ -22,6 +22,7 @@ async function findMainImageByItemId(item_id) {
       'file_name',
       'main_image_url',
       'large_url',
+      'small_url',
       'display_url',
       'thumb_url'
     )
@@ -40,6 +41,7 @@ async function findMainImageUrlsByItemId(item_id) {
     .select(
       'main_image_url',
       'large_url',
+      'small_url',
       'display_url',
       'thumb_url'
     )
@@ -108,6 +110,7 @@ async function addMainImageSizes(
     main_image_url: main_image_url,
     large_url: `${baseUrl}/large_${file_name}`,
     display_url: `${baseUrl}/display_${file_name}`,
+    small_url: `${baseUrl}/small_${file_name}`,
     thumb_url: `${baseUrl}/thumb_${file_name}`,
     item_id: item_id
   };
