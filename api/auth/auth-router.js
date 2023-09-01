@@ -4,8 +4,9 @@ const jwt = require('jsonwebtoken');
 
 const UserAuth = require('./auth-model');
 const restricted = require('./restricted_middleware');
+const permit = require('./auth-middleware');
 
-router.post('/register', (req, res) => {
+router.post('/register', restricted, permit('admin'), (req, res) => {
   let user = req.body;
   const hash = bcrypt.hashSync(user.password, 12);
   user.password = hash;
@@ -65,27 +66,32 @@ router.get('/', restricted, async (req, res) => {
   }
 });
 
-router.delete('/:user_id', restricted, async (req, res) => {
-  const user_id = req.params.user_id;
-  console.log('Deleting user', req.params.user_id);
-  if (user_id) {
-    UserAuth.destroy(user_id)
-      .then(() => {
-        res.status(200).json({
-          message: 'user deleted'
+router.delete(
+  '/:user_id',
+  restricted,
+  permit('admin'),
+  async (req, res) => {
+    const user_id = req.params.user_id;
+    console.log('Deleting user', req.params.user_id);
+    if (user_id) {
+      UserAuth.destroy(user_id)
+        .then(() => {
+          res.status(200).json({
+            message: 'user deleted'
+          });
+        })
+        .catch((error) => {
+          return res.status(500).json({
+            message: `Error: ${error}`
+          });
         });
-      })
-      .catch((error) => {
-        return res.status(500).json({
-          message: `Error: ${error}`
-        });
+    } else {
+      return res.status(400).json({
+        message: 'User id invalid!'
       });
-  } else {
-    return res.status(400).json({
-      message: 'User id invalid!'
-    });
+    }
   }
-});
+);
 
 // this functions creates and signs the token
 function signToken(user) {
