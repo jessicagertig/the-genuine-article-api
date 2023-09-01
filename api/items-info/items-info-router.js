@@ -4,6 +4,7 @@ const {
   checkForDuplicateUrl
 } = require('../items/items-middleware');
 const restricted = require('../auth/restricted_middleware');
+const { permit } = require('../auth/auth-middleware');
 
 // post a url and have item-info scraped
 // currently options are 'MET' 'VA' or 'CAM'
@@ -11,6 +12,7 @@ const restricted = require('../auth/restricted_middleware');
 router.post(
   '/',
   restricted,
+  permit('admin'),
   checkForDuplicateUrl,
   async (req, res) => {
     console.log('BODY:', req.body);

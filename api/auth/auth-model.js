@@ -4,11 +4,14 @@ module.exports = {
   add,
   find,
   findBy,
-  findById
+  findById,
+  destroy
 };
 
 function find() {
-  return db('users').select('id', 'username', 'email').orderBy('id');
+  return db('users')
+    .select('id', 'username', 'email', 'role')
+    .orderBy('id');
 }
 
 function findBy(filter) {
@@ -17,7 +20,7 @@ function findBy(filter) {
 
 function findById(id) {
   return db('users')
-    .select('id', 'username', 'email')
+    .select('id', 'username', 'email', 'role')
     .where({ id })
     .first();
 }
@@ -26,4 +29,9 @@ async function add(user) {
   const new_user_id = await db('users').insert(user, 'id');
   const user_id = new_user_id[0].id;
   return findById(user_id);
+}
+
+async function destroy(id) {
+  console.log('ID', id);
+  return db('users').where({ id }).del();
 }

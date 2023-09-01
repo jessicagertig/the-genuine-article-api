@@ -31,7 +31,8 @@ router.post('/login', (req, res) => {
 
       const returned_user = {
         username: user.username,
-        email: user.email
+        email: user.email,
+        role: user.role
       };
 
       // send the token
@@ -52,15 +53,40 @@ router.get('/', restricted, async (req, res) => {
   console.log('Request:', req.params);
   const user = req.user;
   if (user) {
-    res
-      .status(200)
-      .json({ username: user.username, email: user.email });
+    res.status(200).json({
+      username: user.username,
+      email: user.email,
+      role: user.role
+    });
   } else {
     res.status(401).json({
       message: 'Unauthenticated!'
     });
   }
 });
+
+router.delete('/:user_id', restricted, async (req, res) => {
+  const user_id = req.params.user_id;
+  console.log('Deleting user', req.params.user_id);
+  if (user_id) {
+    UserAuth.destroy(user_id)
+      .then(() => {
+        res.status(200).json({
+          message: 'user deleted'
+        });
+      })
+      .catch((error) => {
+        return res.status(500).json({
+          message: `Error: ${error}`
+        });
+      });
+  } else {
+    return res.status(400).json({
+      message: 'User id invalid!'
+    });
+  }
+});
+
 // this functions creates and signs the token
 function signToken(user) {
   const payload = {

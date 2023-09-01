@@ -12,6 +12,7 @@ const {
   checkForDuplicateItem
 } = require('./items-middleware');
 const restricted = require('../auth/restricted_middleware');
+const { permit } = require('../auth/auth-middleware');
 
 //Get all items
 router.get('/', async (req, res) => {
@@ -21,7 +22,7 @@ router.get('/', async (req, res) => {
     if (result) {
       res.status(200).json(result);
     } else {
-      res.status(400).json({
+      res.status(404).json({
         message: 'There are no items listed. Error on client end.'
       });
     }
@@ -43,7 +44,7 @@ router.get('/list', async (req, res) => {
       console.log('hasMore?', result.hasMore);
       res.status(200).json(result);
     } else {
-      res.status(400).json({
+      res.status(404).json({
         message: 'There are no items listed. Error on client end.'
       });
     }
@@ -63,7 +64,7 @@ router.get('/pages', async (req, res) => {
     if (result) {
       res.status(200).json(result);
     } else {
-      res.status(400).json({
+      res.status(404).json({
         message: 'There are no items.'
       });
     }
@@ -230,6 +231,7 @@ router.get('/:item_id', async (req, res) => {
 router.post(
   '/',
   restricted,
+  permit('admin'),
   checkForRequestBody,
   checkForDuplicateItem,
   async (req, res) => {
@@ -250,83 +252,106 @@ router.post(
 );
 
 //put item-info (edit main info section only)
-router.put('/:item_id', restricted, async (req, res) => {
-  const item_id = req.params.item_id;
-  console.log('item_id', item_id);
-  console.log('req.body', req.body);
-  try {
-    const existing_item_info = await ItemsInfo.findInfoById(item_id);
-    console.log('existing item info', existing_item_info);
-    if (existing_item_info !== undefined) {
-      const edited_item = await Items.updateItem(
-        item_id,
-        req.body.item_info,
-        req.body.item_colors,
-        req.body.item_materials
+router.put(
+  '/:item_id',
+  restricted,
+  permit('admin'),
+  async (req, res) => {
+    const item_id = req.params.item_id;
+    console.log('item_id', item_id);
+    console.log('req.body', req.body);
+    try {
+      const existing_item_info = await ItemsInfo.findInfoById(
+        item_id
       );
-      console.log('edited item', edited_item);
-      return res.status(200).json(edited_item);
-    } else {
-      return res.status(404).json({
-        message: `No item with id ${item_id} exists.`
-      });
-    }
-  } catch (error) {
-    return res.status(500).json({
-      message: `Error on server end updating item by id ${item_id}.`,
-      error
-    });
-  }
-});
-
-//delete item by item id
-router.delete('/:item_id', restricted, async (req, res) => {
-  const item_id = req.params.item_id;
-  console.log('Request params:', req.params);
-  try {
-    const item = await Items.deleteItem(item_id);
-    return res.status(200).json(item[0]);
-  } catch (error) {
-    res.status(500).json({
-      Message: `Error deleting item with id ${item_id}.`,
-      error
-    });
-  }
-});
-
-// for temp admin use delete item with no image record
-router.delete('/admin/:item_id', restricted, async (req, res) => {
-  const item_id = req.params.item_id;
-
-  try {
-    const item = await Items.deleteItemNoImage(item_id);
-    return res.status(200).json(item[0]);
-  } catch (error) {
-    res.status(500).json({
-      Message: `Error deleting item with id ${item_id}.`,
-      error
-    });
-  }
-});
-
-router.post('/garment_titles', restricted, async (req, res) => {
-  console.log('req.body', req.body);
-  const garment_title = req.body.garment_title;
-  Items.addGarmentTitle(garment_title)
-    .then((item) => {
-      res.status(201).json(item);
-    })
-    .catch((error) => {
-      res.status(500).json({
-        message: `Error on server end adding garment_title.`,
+      console.log('existing item info', existing_item_info);
+      if (existing_item_info !== undefined) {
+        const edited_item = await Items.updateItem(
+          item_id,
+          req.body.item_info,
+          req.body.item_colors,
+          req.body.item_materials
+        );
+        console.log('edited item', edited_item);
+        return res.status(200).json(edited_item);
+      } else {
+        return res.status(404).json({
+          message: `No item with id ${item_id} exists.`
+        });
+      }
+    } catch (error) {
+      return res.status(500).json({
+        message: `Error on server end updating item by id ${item_id}.`,
         error
       });
-    });
-});
+    }
+  }
+);
+
+//delete item by item id
+router.delete(
+  '/:item_id',
+  restricted,
+  permit('admin'),
+  async (req, res) => {
+    const item_id = req.params.item_id;
+    console.log('Request params:', req.params);
+    try {
+      const item = await Items.deleteItem(item_id);
+      return res.status(200).json(item[0]);
+    } catch (error) {
+      res.status(500).json({
+        Message: `Error deleting item with id ${item_id}.`,
+        error
+      });
+    }
+  }
+);
+
+// for temp admin use delete item with no image record
+router.delete(
+  '/admin/:item_id',
+  restricted,
+  permit('admin'),
+  async (req, res) => {
+    const item_id = req.params.item_id;
+
+    try {
+      const item = await Items.deleteItemNoImage(item_id);
+      return res.status(200).json(item[0]);
+    } catch (error) {
+      res.status(500).json({
+        Message: `Error deleting item with id ${item_id}.`,
+        error
+      });
+    }
+  }
+);
+
+router.post(
+  '/garment_titles',
+  restricted,
+  permit('admin'),
+  async (req, res) => {
+    console.log('req.body', req.body);
+    const garment_title = req.body.garment_title;
+    Items.addGarmentTitle(garment_title)
+      .then((item) => {
+        res.status(201).json(item);
+      })
+      .catch((error) => {
+        res.status(500).json({
+          message: `Error on server end adding garment_title.`,
+          error
+        });
+      });
+  }
+);
 
 router.delete(
   '/garment_titles/:garment_title_id',
   restricted,
+  permit('admin'),
   async (req, res) => {
     console.log('req.body', req.body);
     const garment_title_id = req.params.garment_title_id;

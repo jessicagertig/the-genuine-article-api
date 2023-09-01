@@ -4,41 +4,53 @@ const {
   checkForDuplicateColors
 } = require('./items-colors-validation');
 const restricted = require('../auth/restricted_middleware');
+const { permit } = require('../auth/auth-middleware');
 
-router.post('/colors', restricted, async (req, res) => {
-  console.log('req.body', req.body);
-  const color = req.body.color;
-  ItemColors.addColor(color)
-    .then((item) => {
-      res.status(201).json(item);
-    })
-    .catch((error) => {
-      res.status(500).json({
-        message: `Error on server end adding color.`,
-        error
+router.post(
+  '/colors',
+  restricted,
+  permit('admin'),
+  async (req, res) => {
+    console.log('req.body', req.body);
+    const color = req.body.color;
+    ItemColors.addColor(color)
+      .then((item) => {
+        res.status(201).json(item);
+      })
+      .catch((error) => {
+        res.status(500).json({
+          message: `Error on server end adding color.`,
+          error
+        });
       });
-    });
-});
+  }
+);
 
-router.delete('/colors/:color_id', restricted, async (req, res) => {
-  console.log('req.body', req.body);
-  const color_id = req.params.color_id;
-  ItemColors.deleteColor(color_id)
-    .then((item) => {
-      res.status(200).json(item);
-    })
-    .catch((error) => {
-      res.status(500).json({
-        message: `Error on server end deleting color.`,
-        error
+router.delete(
+  '/colors/:color_id',
+  restricted,
+  permit('admin'),
+  async (req, res) => {
+    console.log('req.body', req.body);
+    const color_id = req.params.color_id;
+    ItemColors.deleteColor(color_id)
+      .then((item) => {
+        res.status(200).json(item);
+      })
+      .catch((error) => {
+        res.status(500).json({
+          message: `Error on server end deleting color.`,
+          error
+        });
       });
-    });
-});
+  }
+);
 
 //post item-colors
 router.post(
   '/:item_id',
   restricted,
+  permit('admin'),
   checkForDuplicateColors,
   async (req, res) => {
     const item_id = req.params.item_id;
@@ -95,8 +107,8 @@ router.get('/color/:color_id', (req, res) => {
       if (items.length > 0) {
         res.status(200).json(items);
       } else {
-        res.status(400).json({
-          message: `No items exist which list the color with id ${color_id}. Error on client end.`
+        res.status(404).json({
+          message: `No items exist which list the color with id ${color_id}.`
         });
       }
     })
@@ -109,29 +121,34 @@ router.get('/color/:color_id', (req, res) => {
 });
 
 //delete item color by item_id and color_id
-router.delete('/:item_id', restricted, (req, res) => {
-  const item_id = req.params.item_id;
-  const color_id = req.body.color_id;
+router.delete(
+  '/:item_id',
+  restricted,
+  permit('admin'),
+  (req, res) => {
+    const item_id = req.params.item_id;
+    const color_id = req.body.color_id;
 
-  ItemColors.removeItemColor(item_id, color_id)
-    .then((item_color) => {
-      console.log('item_color', item_color);
-      if (item_color.length > 0) {
-        res.status(200).json({
-          message: `Color with id ${color_id} deleted from record of garment with id ${item_id}.`
+    ItemColors.removeItemColor(item_id, color_id)
+      .then((item_color) => {
+        console.log('item_color', item_color);
+        if (item_color.length > 0) {
+          res.status(200).json({
+            message: `Color with id ${color_id} deleted from record of garment with id ${item_id}.`
+          });
+        } else {
+          res.status(404).json({
+            message: `No record with item_id ${item_id} and color_id ${color_id} exists.`
+          });
+        }
+      })
+      .catch((error) => {
+        res.status(500).json({
+          message: `Error on server end deleting color from item with id ${item_id}.`,
+          error
         });
-      } else {
-        res.status(400).json({
-          message: `No record with item_id ${item_id} and color_id ${color_id} exists.`
-        });
-      }
-    })
-    .catch((error) => {
-      res.status(500).json({
-        message: `Error on server end deleting color from item with id ${item_id}.`,
-        error
       });
-    });
-});
+  }
+);
 
 module.exports = router;

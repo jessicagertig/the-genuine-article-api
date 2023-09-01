@@ -8,6 +8,7 @@ const {
 const { defineParams } = require('../utils/parseFiles');
 const checkItemImageExists = require('./image-middleware');
 const restricted = require('../auth/restricted_middleware');
+const { permit } = require('../auth/auth-middleware');
 
 //get original main_image by item_id
 router.get('/main_image/:item_id', (req, res) => {
@@ -35,6 +36,7 @@ router.get('/main_image/:item_id', (req, res) => {
 router.post(
   '/main_image/:item_id',
   restricted,
+  permit('admin'),
   checkItemImageExists,
   async (req, res) => {
     const item_id = req.params.item_id;
@@ -78,36 +80,42 @@ router.post(
 );
 
 //put original main_image by item_id
-router.put('/main_image/:item_id', restricted, async (req, res) => {
-  const item_id = req.params.item_id;
-  const [body, content_type, file_name, md5] = await defineParams(
-    req
-  );
-  const image_info = { body, content_type, file_name, md5 };
-  Images.replaceMainImage(item_id, image_info)
-    .then((result) => {
-      if (result) {
-        return res.status(200).json({
-          message: `The main image for item with id ${item_id} has been replaced.`
+router.put(
+  '/main_image/:item_id',
+  restricted,
+  permit('admin'),
+  async (req, res) => {
+    const item_id = req.params.item_id;
+    const [body, content_type, file_name, md5] = await defineParams(
+      req
+    );
+    const image_info = { body, content_type, file_name, md5 };
+    Images.replaceMainImage(item_id, image_info)
+      .then((result) => {
+        if (result) {
+          return res.status(200).json({
+            message: `The main image for item with id ${item_id} has been replaced.`
+          });
+        } else {
+          return res.status(404).json({
+            message: `No main image existed for item with id ${item_id} in the DB.`
+          });
+        }
+      })
+      .catch((error) => {
+        return res.status(500).json({
+          message: `An error occured while replacing the main image for item with id ${item_id}`,
+          error
         });
-      } else {
-        return res.status(400).json({
-          message: `No main image existed for item with id ${item_id} in the DB.`
-        });
-      }
-    })
-    .catch((error) => {
-      return res.status(500).json({
-        message: `An error occured while replacing the main image for item with id ${item_id}`,
-        error
       });
-    });
-});
+  }
+);
 
 //delete original unaltered main image from database
 router.delete(
   '/main_image/:item_id',
   restricted,
+  permit('admin'),
   async (req, res) => {
     const item_id = req.params.item_id;
     try {
@@ -138,6 +146,7 @@ router.delete(
 router.post(
   '/secondary_images/:item_id',
   restricted,
+  permit('admin'),
   async (req, res) => {
     const item_id = req.params.item_id;
     const [body, content_type, file_name] = await defineParams(req);
