@@ -111,6 +111,16 @@ async function addItemInfo(item_info, context = {}) {
 async function editItemInfo(item_id, item_info, context = {}) {
   const { trx } = context;
 
+  const begin_year =
+    item_info['begin_year'] !== undefined
+      ? item_info['begin_year']
+      : '';
+  const end_year =
+    item_info['end_year'] !== undefined ? item_info['end_year'] : '';
+  const decadesArray = calculateDecades(begin_year, end_year);
+  item_info['decade'] = decadesArray[0];
+  item_info['secondary_decade'] = decadesArray[1];
+
   const edited_item_info = await db('items')
     .where('id', item_id)
     .first({})
