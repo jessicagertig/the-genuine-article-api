@@ -9,10 +9,11 @@ module.exports = {
 
 async function selectGarmentOfTheDay(excluded_ids) {
   const totalRecords = await db('items').count();
+  const totalRecordsCount = parseInt(totalRecords[0].count);
   let selectedRecord = [];
   while (selectedRecord.length === 0) {
     const randomIndex = Math.floor(
-      Math.random() * totalRecords[0].count
+      Math.random() * totalRecordsCount
     );
     console.log('RANDOM_INDEX', randomIndex);
     selectedRecord = await db('items')
@@ -48,8 +49,8 @@ async function rows_count() {
   const existing_records = await db('garment_of_the_day')
     .count('id')
     .whereNotNull('item_id');
-
-  const records_maxed = existing_records >= 7;
+  const total_records_count = parseInt(existing_records[0].count);
+  const records_maxed = total_records_count >= 14;
   return records_maxed;
 }
 
