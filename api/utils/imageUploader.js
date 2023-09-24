@@ -151,6 +151,7 @@ class ResizedMainImageUploader extends ImageUploader {
     super(modelName, {
       large: [640, 768],
       display: [400, 600], //for search view
+      small: [64, 96],
       thumb: [64, 64]
     });
   }
@@ -165,12 +166,17 @@ class ResizedMainImageUploader extends ImageUploader {
         const names = Object.keys(this.sizes);
         for (const name of names) {
           const [width, height] = this.sizes[name];
-          const fitType = name === 'display' ? 'cover' : 'contain';
+          const quality = name === 'small' ? 80 : 100;
+          const fitType =
+            name === 'display' || name === 'small'
+              ? 'cover'
+              : 'contain';
           const sizedBody = await Sharp(body)
             .resize(width, height, {
               fit: fitType,
               background: { r: 255, g: 255, b: 255, alpha: 1 }
             })
+            .jpeg({ quality: quality })
             .toBuffer();
 
           const command = new PutObjectCommand({

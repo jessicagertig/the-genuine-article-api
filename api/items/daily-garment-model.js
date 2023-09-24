@@ -34,13 +34,17 @@ async function replace_oldest_daily_item(item_id) {
       .transacting(trx);
 
     if (oldestRecord) {
-      await db('garment_of_the_day')
+      const affectedRows = await db('garment_of_the_day')
         .where('id', oldestRecord.id)
         .update({
           item_id: item_id,
           updated_at: db.fn.now()
         })
         .transacting(trx);
+
+      if (affectedRows === 0) {
+        console.error('Update operation failed:', oldestRecord.id);
+      }
     }
   });
 }
@@ -49,8 +53,11 @@ async function rows_count() {
   const existing_records = await db('garment_of_the_day')
     .count('id')
     .whereNotNull('item_id');
+
   const total_records_count = parseInt(existing_records[0].count);
   const records_maxed = total_records_count >= 14;
+  console.log('records_maxed?', records_maxed);
+
   return records_maxed;
 }
 
