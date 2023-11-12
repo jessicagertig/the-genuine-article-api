@@ -1,6 +1,6 @@
 exports.up = async function (knex) {
   return knex.schema.table('main_images', function (tbl) {
-    tbl.numeric('ratio', 20, 14);
+    tbl.decimal('ratio', 20, 14);
   });
 };
 
