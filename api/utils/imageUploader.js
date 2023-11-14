@@ -29,9 +29,6 @@ class ImageUploader {
   }
 
   //The MAIN IMAGE should NOT be deleted without a replacement being added
-  //TODO:  INCORPORATE DELETION INTO POSTING OF MAIN IMAGE
-  //HOW TO PROVIDE CORRECT KEY TO DELETE TO S3?  GET FILENAME FROM PG?  FROM S3?s
-  //SEPARATE SECONDARY IMAGE POSTINGS INTO ANOTHER CLASS? PREVENT INHERITANCE OF DELETION?
   //SECONDARY IMAGES SHOULD BE ABLE TO BE DELETED WITHOUT REPLACEMENT
   //THE MAIN IMAGE TABLE & RESIZED MAIN IMAGES TABLE HAVE BEEN CONSOLIDATED. For the time being, refactoring the function in the images router file allowed the original and resized versions of the main image to all be uploaded and urls saved to the db.
 
@@ -160,8 +157,16 @@ class ResizedMainImageUploader extends ImageUploader {
   async uploadResizedImages(id, file_name, body, content_type) {
     const Bucket = process.env.S3_BUCKET_NAME;
     let baseUrl;
+    let ratio;
 
     try {
+      const metadata = await Sharp(body).metadata();
+      console.log('METADATA', {
+        width: metadata.width,
+        height: metadata.height
+      });
+      ratio = metadata.width / metadata.height;
+
       if (this.sizes) {
         const names = Object.keys(this.sizes);
         for (const name of names) {
@@ -197,7 +202,7 @@ class ResizedMainImageUploader extends ImageUploader {
           process.env.S3_REGION
         }.amazonaws.com/${this.dir(id)}`;
       }
-      return baseUrl;
+      return { baseUrl: baseUrl, aspectRatio: ratio };
     } catch (err) {
       console.error(
         `Error uploading resized versions of image with filename "${file_name}".  Message: `,
