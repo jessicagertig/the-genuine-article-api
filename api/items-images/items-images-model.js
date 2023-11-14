@@ -24,7 +24,8 @@ async function findMainImageByItemId(item_id) {
       'large_url',
       'small_url',
       'display_url',
-      'thumb_url'
+      'thumb_url',
+      'ratio'
     )
     .first();
 
@@ -70,18 +71,20 @@ async function addMainImage(item_id, image_info) {
     const resizedUpload = new ResizedMainImageUploader(
       'resized_main_image'
     );
-    const baseUrl = await resizedUpload.uploadResizedImages(
-      item_id,
-      file_name,
-      body,
-      content_type
-    );
+    const { baseUrl, aspectRatio } =
+      await resizedUpload.uploadResizedImages(
+        item_id,
+        file_name,
+        body,
+        content_type
+      );
     // add info to the db
     const result = await addMainImageSizes(
       main_image_url,
       baseUrl,
       file_name,
-      item_id
+      item_id,
+      aspectRatio
     );
     return result;
   } catch (error) {
@@ -103,7 +106,8 @@ async function addMainImageSizes(
   main_image_url,
   baseUrl,
   file_name,
-  item_id
+  item_id,
+  aspectRatio
 ) {
   const fieldsToInsert = {
     file_name: file_name,
@@ -112,7 +116,8 @@ async function addMainImageSizes(
     display_url: `${baseUrl}/display_${file_name}`,
     small_url: `${baseUrl}/small_${file_name}`,
     thumb_url: `${baseUrl}/thumb_${file_name}`,
-    item_id: item_id
+    item_id: item_id,
+    ratio: aspectRatio
   };
   //TODO check for entry with that item_id and overwrite it if exists instead of creating new row
   return await db('main_images')

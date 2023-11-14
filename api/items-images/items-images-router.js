@@ -55,18 +55,20 @@ router.post(
     const resizedUpload = new ResizedMainImageUploader(
       'resized_main_image'
     );
-    const baseUrl = await resizedUpload.uploadResizedImages(
-      item_id,
-      file_name,
-      body,
-      content_type
-    );
+    const { baseUrl, aspectRatio } =
+      await resizedUpload.uploadResizedImages(
+        item_id,
+        file_name,
+        body,
+        content_type
+      );
     // save the urls to the db
     Images.addMainImageSizes(
       main_image_url,
       baseUrl,
       file_name,
-      item_id
+      item_id,
+      aspectRatio
     )
       .then((img) => {
         res.status(201).json({ ...img });
