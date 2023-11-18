@@ -91,10 +91,12 @@ class DeleteResizedImage extends ImageUploader {
   constructor(modelName) {
     super(modelName, null, [
       'large',
+      'tiny_large',
       'display',
+      'tiny_display',
       'admin_upload',
-      'small',
-      'thumb'
+      'thumb',
+      'tiny_main'
     ]);
   }
 
@@ -146,10 +148,12 @@ class DeleteResizedImage extends ImageUploader {
 class ResizedMainImageUploader extends ImageUploader {
   constructor(modelName) {
     super(modelName, {
-      large: [640, 768],
+      large: [640, 768], // for garment page
+      tiny_large: [65, 78],
       display: [400, 600], //for search view
-      small: [64, 96],
-      thumb: [64, 64]
+      tiny_display: [64, 96],
+      thumb: [64, 64],
+      tiny_main: [64, 96] // main image - to retain original ratio width is replaced in the actual upload function
     });
   }
 
@@ -161,19 +165,23 @@ class ResizedMainImageUploader extends ImageUploader {
 
     try {
       const metadata = await Sharp(body).metadata();
-      console.log('METADATA', {
-        width: metadata.width,
-        height: metadata.height
-      });
       ratio = metadata.width / metadata.height;
+      const tiny_main_image_width = Math.round(ratio * 96);
 
       if (this.sizes) {
         const names = Object.keys(this.sizes);
         for (const name of names) {
-          const [width, height] = this.sizes[name];
-          const quality = name === 'small' ? 80 : 100;
+          let [width, height] = this.sizes[name];
+          width =
+            name === 'tiny_main' ? tiny_main_image_width : width;
+          console.log('DIMENSIONS', {
+            name,
+            width,
+            height
+          });
+          const quality = name.includes('tiny') ? 80 : 100;
           const fitType =
-            name === 'display' || name === 'small'
+            name.includes('display') || name.includes('main')
               ? 'cover'
               : 'contain';
           const sizedBody = await Sharp(body)

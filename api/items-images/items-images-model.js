@@ -21,9 +21,11 @@ async function findMainImageByItemId(item_id) {
       'item_id',
       'file_name',
       'main_image_url',
+      'tiny_main_url',
       'large_url',
-      'small_url',
+      'tiny_large_url',
       'display_url',
+      'tiny_display_url',
       'thumb_url',
       'ratio'
     )
@@ -41,9 +43,11 @@ async function findMainImageUrlsByItemId(item_id) {
     .where('item_id', item_id)
     .select(
       'main_image_url',
+      'tiny_main_url',
       'large_url',
-      'small_url',
+      'tiny_large_url',
       'display_url',
+      'tiny_display_url',
       'thumb_url'
     )
     .first();
@@ -112,9 +116,11 @@ async function addMainImageSizes(
   const fieldsToInsert = {
     file_name: file_name,
     main_image_url: main_image_url,
+    tiny_main_url: `${baseUrl}/tiny_main_${file_name}`,
     large_url: `${baseUrl}/large_${file_name}`,
+    tiny_large_url: `${baseUrl}/tiny_large_${file_name}`,
     display_url: `${baseUrl}/display_${file_name}`,
-    small_url: `${baseUrl}/small_${file_name}`,
+    tiny_display_url: `${baseUrl}/tiny_display_${file_name}`,
     thumb_url: `${baseUrl}/thumb_${file_name}`,
     item_id: item_id,
     ratio: aspectRatio
@@ -128,7 +134,6 @@ async function addMainImageSizes(
 async function addSecondaryImageSizes(baseUrl, file_name, item_id) {
   const fieldsToInsert = {
     large: `${baseUrl}/large_${file_name}`,
-    small: `${baseUrl}/small_${file_name}`,
     thumb: `${baseUrl}/thumb_${file_name}`,
     item_id: item_id
   };
