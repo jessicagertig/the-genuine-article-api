@@ -29,9 +29,6 @@ class ImageUploader {
   }
 
   //The MAIN IMAGE should NOT be deleted without a replacement being added
-  //TODO:  INCORPORATE DELETION INTO POSTING OF MAIN IMAGE
-  //HOW TO PROVIDE CORRECT KEY TO DELETE TO S3?  GET FILENAME FROM PG?  FROM S3?s
-  //SEPARATE SECONDARY IMAGE POSTINGS INTO ANOTHER CLASS? PREVENT INHERITANCE OF DELETION?
   //SECONDARY IMAGES SHOULD BE ABLE TO BE DELETED WITHOUT REPLACEMENT
   //THE MAIN IMAGE TABLE & RESIZED MAIN IMAGES TABLE HAVE BEEN CONSOLIDATED. For the time being, refactoring the function in the images router file allowed the original and resized versions of the main image to all be uploaded and urls saved to the db.
 
@@ -94,10 +91,12 @@ class DeleteResizedImage extends ImageUploader {
   constructor(modelName) {
     super(modelName, null, [
       'large',
+      'tiny_large',
       'display',
+      'tiny_display',
       'admin_upload',
-      'small',
-      'thumb'
+      'thumb',
+      'tiny_main'
     ]);
   }
 
@@ -149,10 +148,12 @@ class DeleteResizedImage extends ImageUploader {
 class ResizedMainImageUploader extends ImageUploader {
   constructor(modelName) {
     super(modelName, {
-      large: [640, 768],
+      large: [640, 768], // for garment page
+      tiny_large: [65, 78],
       display: [400, 600], //for search view
-      small: [64, 96],
-      thumb: [64, 64]
+      tiny_display: [64, 96],
+      thumb: [64, 64],
+      tiny_main: [64, 96] // main image - to retain original ratio width is replaced in the actual upload function
     });
   }
 
@@ -160,15 +161,27 @@ class ResizedMainImageUploader extends ImageUploader {
   async uploadResizedImages(id, file_name, body, content_type) {
     const Bucket = process.env.S3_BUCKET_NAME;
     let baseUrl;
+    let ratio;
 
     try {
+      const metadata = await Sharp(body).metadata();
+      ratio = metadata.width / metadata.height;
+      const tiny_main_image_width = Math.round(ratio * 96);
+
       if (this.sizes) {
         const names = Object.keys(this.sizes);
         for (const name of names) {
-          const [width, height] = this.sizes[name];
-          const quality = name === 'small' ? 80 : 100;
+          let [width, height] = this.sizes[name];
+          width =
+            name === 'tiny_main' ? tiny_main_image_width : width;
+          console.log('DIMENSIONS', {
+            name,
+            width,
+            height
+          });
+          const quality = name.includes('tiny') ? 80 : 100;
           const fitType =
-            name === 'display' || name === 'small'
+            name.includes('display') || name.includes('main')
               ? 'cover'
               : 'contain';
           const sizedBody = await Sharp(body)
@@ -197,7 +210,7 @@ class ResizedMainImageUploader extends ImageUploader {
           process.env.S3_REGION
         }.amazonaws.com/${this.dir(id)}`;
       }
-      return baseUrl;
+      return { baseUrl: baseUrl, aspectRatio: ratio };
     } catch (err) {
       console.error(
         `Error uploading resized versions of image with filename "${file_name}".  Message: `,
