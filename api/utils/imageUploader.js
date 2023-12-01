@@ -149,11 +149,11 @@ class ResizedMainImageUploader extends ImageUploader {
   constructor(modelName) {
     super(modelName, {
       large: [640, 768], // for garment page
-      tiny_large: [65, 78],
+      tiny_large: [320, 284],
       display: [400, 600], //for search view
-      tiny_display: [64, 96],
+      tiny_display: [200, 300],
       thumb: [64, 64],
-      tiny_main: [64, 96] // main image - to retain original ratio width is replaced in the actual upload function
+      tiny_main: [0, 0] // main image - to retain original size dimensions replaced in the actual upload function
     });
   }
 
@@ -166,30 +166,40 @@ class ResizedMainImageUploader extends ImageUploader {
     try {
       const metadata = await Sharp(body).metadata();
       ratio = metadata.width / metadata.height;
-      const tiny_main_image_width = Math.round(ratio * 96);
 
       if (this.sizes) {
         const names = Object.keys(this.sizes);
         for (const name of names) {
           let [width, height] = this.sizes[name];
-          width =
-            name === 'tiny_main' ? tiny_main_image_width : width;
-          console.log('DIMENSIONS', {
-            name,
-            width,
-            height
-          });
-          const quality = name.includes('tiny') ? 80 : 100;
+          if (name === 'tiny_main') {
+            width = metadata.width;
+            height = metadata.height;
+          }
+          const quality = name.includes('main')
+            ? 10
+            : name.includes('tiny')
+            ? 25
+            : 100;
           const fitType =
             name.includes('display') || name.includes('main')
               ? 'cover'
               : 'contain';
+          console.log('DIMENSIONS & QUALITY', {
+            name,
+            quality,
+            width,
+            height
+          });
           const sizedBody = await Sharp(body)
             .resize(width, height, {
               fit: fitType,
               background: { r: 255, g: 255, b: 255, alpha: 1 }
             })
-            .jpeg({ quality: quality })
+            .jpeg({
+              quality: quality,
+              trellisQuantisation: true,
+              overshootDeringing: true
+            })
             .toBuffer();
 
           const command = new PutObjectCommand({
