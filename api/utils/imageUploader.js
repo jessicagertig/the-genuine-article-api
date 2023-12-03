@@ -149,7 +149,7 @@ class ResizedMainImageUploader extends ImageUploader {
   constructor(modelName) {
     super(modelName, {
       large: [640, 768], // for garment page
-      tiny_large: [320, 284],
+      tiny_large: [640, 768],
       display: [400, 600], //for search view
       tiny_display: [200, 300],
       thumb: [64, 64],
@@ -175,11 +175,7 @@ class ResizedMainImageUploader extends ImageUploader {
             width = metadata.width;
             height = metadata.height;
           }
-          const quality = name.includes('main')
-            ? 10
-            : name.includes('tiny')
-            ? 25
-            : 100;
+          const quality = name.includes('tiny') ? 15 : 100;
           const fitType =
             name.includes('display') || name.includes('main')
               ? 'cover'
