@@ -26,6 +26,6 @@ jobs:
 
       - name: Install dependencies
         run: yarn install
-
+      ## this particular script cannot execute with a DB connection, but this file is a good example
       - name: Run job
         run: node api/utils/imageDownloader.js

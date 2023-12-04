@@ -148,10 +148,10 @@ class DeleteResizedImage extends ImageUploader {
 class ResizedMainImageUploader extends ImageUploader {
   constructor(modelName) {
     super(modelName, {
-      large: [640, 768], // for garment page
-      tiny_large: [640, 768],
-      display: [400, 600], //for search view
-      tiny_display: [200, 300],
+      large: [500, 609], // for garment page
+      tiny_large: [500, 609],
+      display: [296, 444], //for search view
+      tiny_display: [296, 444],
       thumb: [64, 64],
       tiny_main: [0, 0] // main image - to retain original size dimensions replaced in the actual upload function
     });
