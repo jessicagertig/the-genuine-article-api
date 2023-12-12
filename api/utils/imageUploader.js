@@ -175,7 +175,7 @@ class ResizedMainImageUploader extends ImageUploader {
             width = metadata.width;
             height = metadata.height;
           }
-          const quality = name.includes('tiny') ? 15 : 100;
+          const quality = name.includes('tiny') ? 25 : 100;
           const fitType =
             name.includes('display') || name.includes('main')
               ? 'cover'
@@ -191,7 +191,7 @@ class ResizedMainImageUploader extends ImageUploader {
               fit: fitType,
               background: { r: 255, g: 255, b: 255, alpha: 1 }
             })
-            .jpeg({
+            .toFormat('webp', {
               quality: quality,
               trellisQuantisation: true,
               overshootDeringing: true
