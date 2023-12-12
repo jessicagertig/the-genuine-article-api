@@ -158,7 +158,7 @@ class ResizedMainImageUploader extends ImageUploader {
   }
 
   //method to upload resized images (resized with Sharp)
-  async uploadResizedImages(id, file_name, body, content_type) {
+  async uploadResizedImages(id, file_name, body) {
     const Bucket = process.env.S3_BUCKET_NAME;
     let baseUrl;
     let ratio;
@@ -202,7 +202,7 @@ class ResizedMainImageUploader extends ImageUploader {
             Bucket,
             Body: sizedBody,
             Key: `${this.dir(id)}/${name}_${file_name}`,
-            ContentType: content_type,
+            ContentType: 'image/webp',
             ACL: 'public-read'
           });
           await this.s3.send(command);
