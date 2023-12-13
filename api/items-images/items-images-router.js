@@ -59,8 +59,8 @@ router.post(
       await resizedUpload.uploadResizedImages(
         item_id,
         file_name,
-        body,
-        content_type
+        body
+        // content_type
       );
     // save the urls to the db
     Images.addMainImageSizes(

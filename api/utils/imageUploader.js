@@ -158,7 +158,7 @@ class ResizedMainImageUploader extends ImageUploader {
   }
 
   //method to upload resized images (resized with Sharp)
-  async uploadResizedImages(id, file_name, body, content_type) {
+  async uploadResizedImages(id, file_name, body) {
     const Bucket = process.env.S3_BUCKET_NAME;
     let baseUrl;
     let ratio;
@@ -175,7 +175,7 @@ class ResizedMainImageUploader extends ImageUploader {
             width = metadata.width;
             height = metadata.height;
           }
-          const quality = name.includes('tiny') ? 15 : 100;
+          const quality = name.includes('tiny') ? 5 : 100;
           const fitType =
             name.includes('display') || name.includes('main')
               ? 'cover'
@@ -191,7 +191,7 @@ class ResizedMainImageUploader extends ImageUploader {
               fit: fitType,
               background: { r: 255, g: 255, b: 255, alpha: 1 }
             })
-            .jpeg({
+            .toFormat('webp', {
               quality: quality,
               trellisQuantisation: true,
               overshootDeringing: true
@@ -202,7 +202,7 @@ class ResizedMainImageUploader extends ImageUploader {
             Bucket,
             Body: sizedBody,
             Key: `${this.dir(id)}/${name}_${file_name}`,
-            ContentType: content_type,
+            ContentType: 'image/webp',
             ACL: 'public-read'
           });
           await this.s3.send(command);

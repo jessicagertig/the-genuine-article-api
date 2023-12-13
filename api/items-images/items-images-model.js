@@ -79,8 +79,8 @@ async function addMainImage(item_id, image_info) {
       await resizedUpload.uploadResizedImages(
         item_id,
         file_name,
-        body,
-        content_type
+        body
+        // content_type
       );
     // add info to the db
     const result = await addMainImageSizes(
