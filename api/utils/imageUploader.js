@@ -175,7 +175,7 @@ class ResizedMainImageUploader extends ImageUploader {
             width = metadata.width;
             height = metadata.height;
           }
-          const quality = name.includes('tiny') ? 25 : 100;
+          const quality = name.includes('tiny') ? 5 : 100;
           const fitType =
             name.includes('display') || name.includes('main')
               ? 'cover'
