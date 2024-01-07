@@ -46,14 +46,14 @@ const checkForDuplicateItem = async (req, res, next) => {
     existing_collection_no === undefined
   ) {
     res.status(400).json({
-      message: `An item with url ${existing_url.collection_url} exists. The collection url may not be correct. Please review item with id no. ${existing_url.id} and verify the collection url is correct.`
+      message: `An item with url ${existing_url.collection_url} exists. Please review existing item with id no. ${existing_url.id} and verify the collection url is correct.`
     });
   } else if (
     existing_url === undefined &&
     existing_collection_no !== undefined
   ) {
     res.status(400).json({
-      message: `An item with collection no. ${existing_collection_no.item_collection_no} exists. The collection no. may not be correct. Please review item with id no. ${existing_collection_no.id} and verify the collection no. is correct.`
+      message: `An item with collection no. ${existing_collection_no.item_collection_no} exists. Please review the existing item with id no. ${existing_collection_no.id} and verify the collection no. is correct.`
     });
   }
 };
@@ -69,7 +69,7 @@ const checkForDuplicateUrl = async (req, res, next) => {
     next();
   } else if (existing_url !== undefined) {
     res.status(400).json({
-      message: `An item with url ${existing_url.collection_url} exists. The collection url may not be correct. Please review item with id no. ${existing_url.id} and verify the collection url is correct.`
+      message: `An item with url ${existing_url.collection_url} exists. Please review the existing item with id no. ${existing_url.id} and verify the collection url is correct.`
     });
   }
 };
