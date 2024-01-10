@@ -9,7 +9,8 @@ const {
 } = require('./daily-garment-model');
 const {
   checkForRequestBody,
-  checkForDuplicateItem
+  checkForDuplicateItem,
+  checkForDuplicatesWhileEditing
 } = require('./items-middleware');
 const restricted = require('../auth/restricted_middleware');
 const { permit } = require('../auth/auth-middleware');
@@ -256,6 +257,7 @@ router.put(
   '/:item_id',
   restricted,
   permit('admin'),
+  checkForDuplicatesWhileEditing,
   async (req, res) => {
     const item_id = req.params.item_id;
     console.log('item_id', item_id);
