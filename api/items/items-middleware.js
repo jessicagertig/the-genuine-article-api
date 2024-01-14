@@ -1,4 +1,5 @@
 const ItemsInfo = require('../items-info/items-info-model');
+const Items = require('../items/items-model');
 
 const checkForRequestBody = (req, res, next) => {
   if (!req.body.item_info) {
@@ -135,9 +136,30 @@ const checkForDuplicatesWhileEditing = async (req, res, next) => {
   }
 };
 
+const checkForDuplicateGarmentTitleMenuItem = async (
+  req,
+  res,
+  next
+) => {
+  const new_menu_item = req.body.garment_title;
+
+  const existing_menu_item = await Items.findGarmentTitle(
+    new_menu_item
+  );
+
+  if (existing_menu_item === undefined) {
+    next();
+  } else if (existing_menu_item !== undefined) {
+    res.status(400).json({
+      message: `Duplicate error: the garment title option '${existing_menu_item.garment_title}' already exists.`
+    });
+  }
+};
+
 module.exports = {
   checkForDuplicateItem,
   checkForRequestBody,
   checkForDuplicateUrl,
-  checkForDuplicatesWhileEditing
+  checkForDuplicatesWhileEditing,
+  checkForDuplicateGarmentTitleMenuItem
 };
