@@ -29,6 +29,7 @@ const { withTransaction } = require('../utils/withTransaction');
 const { sortByYear } = require('../utils/helpers');
 
 module.exports = {
+  findGarmentTitle,
   findAllGarmentTitles,
   getAllItems,
   getPaginatedItems,
@@ -60,15 +61,26 @@ const infoToSelect = [
   'description'
 ];
 
+function findGarmentTitle(garment_title) {
+  return db('garment_titles').where({ garment_title }).first();
+}
+
 //findsAllGarmentTitles (for menu/search)
 function findAllGarmentTitles() {
   return db('garment_titles').select('*');
 }
 
 async function addGarmentTitle(garment_title) {
-  return db('garment_titles')
-    .insert({ garment_title: garment_title })
-    .returning('*');
+  try {
+    const added_title = await db('garment_titles')
+      .insert({ garment_title: garment_title })
+      .returning('*');
+    return added_title[0];
+  } catch (error) {
+    console.error(
+      'Could not add the new garment title menu option.'
+    );
+  }
 }
 
 async function deleteGarmentTitle(garment_title_id) {
@@ -76,16 +88,26 @@ async function deleteGarmentTitle(garment_title_id) {
     .where({ id: garment_title_id })
     .returning('*');
   const title_string = title[0]['garment_title'];
-  const allowed = await db('items').where({
+  const existing_items_with_title = await db('items').where({
     garment_title: title_string
   });
-  console.log('allowed', allowed);
-  if (allowed.length === 0 || allowed === null) {
+  console.log(
+    'existing_items_with_title',
+    existing_items_with_title
+  );
+  if (
+    existing_items_with_title.length === 0 ||
+    existing_items_with_title === null
+  ) {
     return db('garment_titles')
       .where({ id: garment_title_id })
       .del()
       .returning('*');
   } else {
+    console.error(
+      'Cannot delete garment title while associated with items: ',
+      existing_items_with_title
+    );
     throw new Error(
       'Cannot delete garment title while associated with items.'
     );

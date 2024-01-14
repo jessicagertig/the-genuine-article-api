@@ -10,7 +10,8 @@ const {
 const {
   checkForRequestBody,
   checkForDuplicateItem,
-  checkForDuplicatesWhileEditing
+  checkForDuplicatesWhileEditing,
+  checkForDuplicateGarmentTitleMenuItem
 } = require('./items-middleware');
 const restricted = require('../auth/restricted_middleware');
 const { permit } = require('../auth/auth-middleware');
@@ -334,6 +335,7 @@ router.post(
   '/garment_titles',
   restricted,
   permit('admin'),
+  checkForDuplicateGarmentTitleMenuItem,
   async (req, res) => {
     console.log('req.body', req.body);
     const garment_title = req.body.garment_title;
