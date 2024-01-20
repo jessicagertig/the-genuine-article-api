@@ -1,7 +1,8 @@
 const router = require('express').Router();
 const ItemColors = require('./items-colors-model');
 const {
-  checkForDuplicateColors
+  checkForDuplicateColors,
+  checkForDuplicateColorOptions
 } = require('./items-colors-validation');
 const restricted = require('../auth/restricted_middleware');
 const { permit } = require('../auth/auth-middleware');
@@ -10,16 +11,41 @@ router.post(
   '/colors',
   restricted,
   permit('admin'),
+  checkForDuplicateColorOptions,
   async (req, res) => {
     console.log('req.body', req.body);
     const color = req.body.color;
     ItemColors.addColor(color)
       .then((item) => {
-        res.status(201).json(item);
+        const new_item = item[0];
+        res.status(201).json(new_item);
       })
       .catch((error) => {
         res.status(500).json({
           message: `Error on server end adding color.`,
+          error
+        });
+      });
+  }
+);
+
+router.put(
+  '/colors/:color_id',
+  restricted,
+  permit('admin'),
+  checkForDuplicateColorOptions,
+  async (req, res) => {
+    console.log('req.body edit:', req.body);
+    const color = req.body.color;
+    const color_id = req.params.color_id;
+    ItemColors.editColor(color, color_id)
+      .then((item) => {
+        const edited_item = item[0];
+        res.status(200).json(edited_item);
+      })
+      .catch((error) => {
+        res.status(500).json({
+          message: `Error on server end editing color.`,
           error
         });
       });
