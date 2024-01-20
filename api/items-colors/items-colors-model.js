@@ -8,7 +8,9 @@ module.exports = {
   removeItemColor,
   editItemColors,
   deleteItemColors,
+  findColorByName,
   addColor,
+  editColor,
   deleteColor
 };
 
@@ -52,8 +54,37 @@ function findItemsByColorId(color_id) {
     .where('color_id', color_id);
 }
 
+async function findColorByName(color) {
+  // if (typeof color === 'string') {
+  //   console.log("It's a string.");
+  // }
+  const result = await db('colors')
+    .select('*')
+    .where('color', color);
+  return result[0];
+}
+
 async function addColor(color) {
-  return db('colors').insert({ color: color }).returning('*');
+  const new_color = color.toLowerCase();
+  return db('colors').insert({ color: new_color }).returning('*');
+}
+
+async function editColor(color, color_id) {
+  const new_color = color.toLowerCase();
+
+  const edited_color = await db('colors')
+    .where('id', color_id)
+    .first({})
+    .update({ color: new_color })
+    .returning('*');
+  console.log(
+    '\x1b[35m',
+    '[editColor Function] Edited color:',
+    edited_color,
+    '\x1b[0m'
+  );
+
+  return edited_color;
 }
 
 async function deleteColor(color_id) {
