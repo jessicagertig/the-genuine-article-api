@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const ItemColors = require('./items-colors-model');
+const Colors = require('./items-colors-model');
 const {
   checkForDuplicateColors,
   checkForDuplicateColorOptions
@@ -13,9 +13,9 @@ router.post(
   permit('admin'),
   checkForDuplicateColorOptions,
   async (req, res) => {
-    console.log('req.body', req.body);
+    console.log('POST colors req.body', { body: req.body });
     const color = req.body.color;
-    ItemColors.addColor(color)
+    Colors.addColor(color)
       .then((item) => {
         const new_item = item[0];
         res.status(201).json(new_item);
@@ -35,10 +35,10 @@ router.put(
   permit('admin'),
   checkForDuplicateColorOptions,
   async (req, res) => {
-    console.log('req.body edit:', req.body);
+    console.log('PUT colors req.body', { body: req.body });
     const color = req.body.color;
     const color_id = req.params.color_id;
-    ItemColors.editColor(color, color_id)
+    Colors.editColor(color, color_id)
       .then((item) => {
         const edited_item = item[0];
         res.status(200).json(edited_item);
@@ -57,9 +57,9 @@ router.delete(
   restricted,
   permit('admin'),
   async (req, res) => {
-    console.log('req.body', req.body);
+    console.log('DELETE colors req.body', { body: req.body });
     const color_id = req.params.color_id;
-    ItemColors.deleteColor(color_id)
+    Colors.deleteColor(color_id)
       .then((item) => {
         res.status(200).json(item);
       })
@@ -81,7 +81,7 @@ router.post(
   async (req, res) => {
     const item_id = req.params.item_id;
     console.log('req.body', req.body.fields);
-    ItemColors.insertItemColors(item_id, req.body.fields)
+    Colors.insertItemColors(item_id, req.body.fields)
       .then((item) => {
         res.status(201).json(item);
       })
@@ -98,7 +98,7 @@ router.post(
 router.get('/:item_id', (req, res) => {
   const item_id = req.params.item_id;
 
-  ItemColors.findColorsByItemId(item_id)
+  Colors.findColorsByItemId(item_id)
     .then((item_colors) => {
       console.log('item_colors', item_colors);
       if (item_colors.length > 0) {
@@ -128,7 +128,7 @@ router.get('/:item_id', (req, res) => {
 router.get('/color/:color_id', (req, res) => {
   const color_id = req.params.color_id;
 
-  ItemColors.findItemsByColorId(color_id)
+  Colors.findItemsByColorId(color_id)
     .then((items) => {
       if (items.length > 0) {
         res.status(200).json(items);
@@ -155,7 +155,7 @@ router.delete(
     const item_id = req.params.item_id;
     const color_id = req.body.color_id;
 
-    ItemColors.removeItemColor(item_id, color_id)
+    Colors.removeItemColor(item_id, color_id)
       .then((item_color) => {
         console.log('item_color', item_color);
         if (item_color.length > 0) {
