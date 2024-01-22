@@ -8,7 +8,9 @@ module.exports = {
   removeItemMaterial,
   editItemMaterials,
   deleteItemMaterials,
+  findMaterialByName,
   addMaterial,
+  editMaterial,
   deleteMaterial
 };
 
@@ -51,10 +53,36 @@ function findItemsByMaterialId(material_id) {
     .where('material_id', material_id);
 }
 
+async function findMaterialByName(material) {
+  const result = await db('materials')
+    .select('*')
+    .where('material', material);
+  return result[0];
+}
+
 async function addMaterial(material) {
+  const new_material = material.toLowerCase();
   return db('materials')
-    .insert({ material: material })
+    .insert({ material: new_material })
     .returning('*');
+}
+
+async function editMaterial(material, material_id) {
+  const new_material = material.toLowerCase();
+
+  const edited_material = await db('materials')
+    .where('id', material_id)
+    .first({})
+    .update({ material: new_material })
+    .returning('*');
+  console.log(
+    '\x1b[35m',
+    '[editColor Function] Edited material:',
+    edited_material,
+    '\x1b[0m'
+  );
+
+  return edited_material;
 }
 
 async function deleteMaterial(material_id) {
