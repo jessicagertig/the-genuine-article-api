@@ -1,32 +1,62 @@
 const router = require('express').Router();
-const {
-  checkForDuplicateMaterials
-} = require('./item-materials-validation');
 const Materials = require('./items-materials-model');
+const {
+  checkForDuplicateMaterials,
+  checkForDuplicateMaterialOptions
+} = require('./item-materials-validation');
 const restricted = require('../auth/restricted_middleware');
 const { permit } = require('../auth/auth-middleware');
 
-router.post('/materials', async (req, res) => {
-  console.log('req.body', req.body);
-  const material = req.body.material;
-  Materials.addMaterial(material)
-    .then((item) => {
-      res.status(201).json(item);
-    })
-    .catch((error) => {
-      res.status(500).json({
-        message: `Error on server end adding material.`,
-        error
+router.post(
+  '/materials',
+  restricted,
+  permit('admin'),
+  checkForDuplicateMaterialOptions,
+  async (req, res) => {
+    console.log('POST materials req.body', { body: req.body });
+    const material = req.body.material;
+    Materials.addMaterial(material)
+      .then((item) => {
+        res.status(201).json(item);
+      })
+      .catch((error) => {
+        res.status(500).json({
+          message: `Error on server end adding material.`,
+          error
+        });
       });
-    });
-});
+  }
+);
+
+router.put(
+  '/materials/:material_id',
+  restricted,
+  permit('admin'),
+  checkForDuplicateMaterialOptions,
+  async (req, res) => {
+    console.log('PUT materials req.body', { body: req.body });
+    const material = req.body.material;
+    const material_id = req.params.material_id;
+    Materials.editMaterial(material, material_id)
+      .then((item) => {
+        const edited_item = item[0];
+        res.status(200).json(edited_item);
+      })
+      .catch((error) => {
+        res.status(500).json({
+          message: `Error on server end editing material.`,
+          error
+        });
+      });
+  }
+);
 
 router.delete(
   '/materials/:material_id',
   restricted,
   permit('admin'),
   async (req, res) => {
-    console.log('req.body', req.body);
+    console.log('DELETE materials req.body', { body: req.body });
     const material_id = req.params.material_id;
     Materials.deleteMaterial(material_id)
       .then((item) => {
