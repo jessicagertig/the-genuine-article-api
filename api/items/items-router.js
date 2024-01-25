@@ -82,10 +82,10 @@ router.get('/pages', async (req, res) => {
 //function must come before get by item_id else pg will try to insert 'menus' as id
 router.get('/menus', async (req, res) => {
   try {
-    const color_menu = await Colors.findAllColors();
+    const colors_menu = await Colors.findAllColors();
     const materials_menu = await Materials.findAllMaterials();
     const garment_titles_menu = await Items.findAllGarmentTitles();
-    if (!color_menu) {
+    if (!colors_menu) {
       throw 'Error fetching the color menu.';
     }
     if (!materials_menu) {
@@ -95,7 +95,7 @@ router.get('/menus', async (req, res) => {
       throw 'Error fetching the garment titles menu.';
     }
     const menus = {
-      color_menu: color_menu,
+      colors_menu: colors_menu,
       materials_menu: materials_menu,
       garment_titles_menu: garment_titles_menu
     };

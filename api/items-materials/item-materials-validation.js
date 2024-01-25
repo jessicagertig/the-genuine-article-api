@@ -1,4 +1,5 @@
 const Items = require('../items/items-model');
+const Materials = require('./items-materials-model');
 
 const checkForDuplicateMaterials = async (req, res, next) => {
   const item_id = req.params.item_id;
@@ -30,6 +31,24 @@ const checkForDuplicateMaterials = async (req, res, next) => {
   }
 };
 
+const checkForDuplicateMaterialOptions = async (req, res, next) => {
+  const material = req.body.material;
+  const existing_material = await Materials.findMaterialByName(
+    material
+  );
+
+  if (existing_material !== undefined) {
+    res.status(400).json({
+      message: `Duplicate material option. A material (id ${
+        existing_material.id
+      }) with name ${material.toUpperCase()} already exists.`
+    });
+  } else {
+    next();
+  }
+};
+
 module.exports = {
-  checkForDuplicateMaterials
+  checkForDuplicateMaterials,
+  checkForDuplicateMaterialOptions
 };

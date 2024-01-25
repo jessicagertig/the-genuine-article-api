@@ -1,4 +1,5 @@
 const Items = require('../items/items-model');
+const Colors = require('./items-colors-model');
 
 const checkForDuplicateColors = async (req, res, next) => {
   const item_id = req.params.item_id;
@@ -26,6 +27,22 @@ const checkForDuplicateColors = async (req, res, next) => {
   }
 };
 
+const checkForDuplicateColorOptions = async (req, res, next) => {
+  const color = req.body.color;
+  const existing_color = await Colors.findColorByName(color);
+
+  if (existing_color !== undefined) {
+    res.status(400).json({
+      message: `Duplicate color option. A color (id ${
+        existing_color.id
+      }) with name ${color.toUpperCase()} already exists.`
+    });
+  } else {
+    next();
+  }
+};
+
 module.exports = {
-  checkForDuplicateColors
+  checkForDuplicateColors,
+  checkForDuplicateColorOptions
 };
