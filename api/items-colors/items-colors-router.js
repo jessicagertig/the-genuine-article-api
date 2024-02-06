@@ -14,7 +14,7 @@ router.post(
   checkForDuplicateColorOptions,
   async (req, res) => {
     console.log('POST colors req.body', { body: req.body });
-    const color = req.body.color;
+    const color = req.body.color_option;
     Colors.addColor(color)
       .then((item) => {
         const new_item = item[0];
