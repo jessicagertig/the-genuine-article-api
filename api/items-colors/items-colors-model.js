@@ -16,7 +16,7 @@ module.exports = {
 
 //find all colors
 function findAllColors() {
-  return db('colors').select('*');
+  return db('colors').select('*').orderBy('color', 'asc');
 }
 
 //findColorsByItemId
@@ -55,12 +55,10 @@ function findItemsByColorId(color_id) {
 }
 
 async function findColorByName(color) {
-  // if (typeof color === 'string') {
-  //   console.log("It's a string.");
-  // }
+  const lookup_color = color && color.toLowerCase();
   const result = await db('colors')
     .select('*')
-    .where('color', color);
+    .where('color', lookup_color);
   return result[0];
 }
 
