@@ -32,7 +32,7 @@ const checkForDuplicateMaterials = async (req, res, next) => {
 };
 
 const checkForDuplicateMaterialOptions = async (req, res, next) => {
-  const material = req.body.material;
+  const material = req.body.material_option;
   const existing_material = await Materials.findMaterialByName(
     material
   );
