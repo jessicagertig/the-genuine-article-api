@@ -16,7 +16,7 @@ module.exports = {
 
 //find materials for dropdown menus (forms and searchs)
 function findAllMaterials() {
-  return db('materials').select('*');
+  return db('materials').select('*').orderBy('material', 'asc');
 }
 
 //findMaterialsByItemId
@@ -54,9 +54,10 @@ function findItemsByMaterialId(material_id) {
 }
 
 async function findMaterialByName(material) {
+  const lookup_material = material && material.toLowerCase();
   const result = await db('materials')
     .select('*')
-    .where('material', material);
+    .where('material', lookup_material);
   return result[0];
 }
 

@@ -14,7 +14,7 @@ router.post(
   checkForDuplicateMaterialOptions,
   async (req, res) => {
     console.log('POST materials req.body', { body: req.body });
-    const material = req.body.material;
+    const material = req.body.material_option;
     Materials.addMaterial(material)
       .then((item) => {
         res.status(201).json(item);
