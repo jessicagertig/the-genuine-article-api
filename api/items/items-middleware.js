@@ -141,7 +141,7 @@ const checkForDuplicateGarmentTitleMenuItem = async (
   res,
   next
 ) => {
-  const new_menu_item = req.body.garment_title;
+  const new_menu_item = req.body.garment_title_option;
 
   const existing_menu_item = await Items.findGarmentTitle(
     new_menu_item

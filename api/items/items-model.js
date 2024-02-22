@@ -67,7 +67,9 @@ function findGarmentTitle(garment_title) {
 
 //findsAllGarmentTitles (for menu/search)
 function findAllGarmentTitles() {
-  return db('garment_titles').select('*');
+  return db('garment_titles')
+    .select('*')
+    .orderBy('garment_title', 'asc');
 }
 
 async function addGarmentTitle(garment_title) {
