@@ -352,6 +352,28 @@ router.post(
   }
 );
 
+router.put(
+  '/garment_titles/:garment_title_id',
+  restricted,
+  permit('admin'),
+  checkForDuplicateGarmentTitleMenuItem,
+  async (req, res) => {
+    console.log('req.body', req.body);
+    const garment_title = req.body.garment_title;
+    const garment_title_id = req.params.garment_title_id;
+    Items.editGarmentTitle(garment_title, garment_title_id)
+      .then((item) => {
+        res.status(200).json(item);
+      })
+      .catch((error) => {
+        res.status(500).json({
+          message: `Error on server end editing garment_title.`,
+          error
+        });
+      });
+  }
+);
+
 router.delete(
   '/garment_titles/:garment_title_id',
   restricted,
