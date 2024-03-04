@@ -28,7 +28,7 @@ const checkForDuplicateColors = async (req, res, next) => {
 };
 
 const checkForDuplicateColorOptions = async (req, res, next) => {
-  const color = req.body.color_option;
+  const color = req.body.color_option || req.body.color;
   const existing_color = await Colors.findColorByName(color);
   if (existing_color !== undefined) {
     res.status(400).json({

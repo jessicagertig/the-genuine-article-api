@@ -141,8 +141,11 @@ const checkForDuplicateGarmentTitleMenuItem = async (
   res,
   next
 ) => {
-  const new_menu_item = req.body.garment_title_option;
-
+  const new_menu_item =
+    req.body.garment_title_option || req.body.garment_title;
+  console.log('checkForDuplicateGarmentTitleMenuItem req.body', {
+    body: req.body
+  });
   const existing_menu_item = await Items.findGarmentTitle(
     new_menu_item
   );
