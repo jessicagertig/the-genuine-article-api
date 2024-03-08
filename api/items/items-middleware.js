@@ -1,7 +1,22 @@
+const isEmpty = require('lodash.isempty');
+
 const ItemsInfo = require('../items-info/items-info-model');
 const Items = require('../items/items-model');
 
 const checkForRequestBody = (req, res, next) => {
+  console.log('[checkForRequestBody] middleware', {
+    body: req.body
+  });
+  if (!req.body || isEmpty(req.body)) {
+    res.status(400).json({
+      message: 'Request body is missing, malformed, or empty.'
+    });
+  } else {
+    next();
+  }
+};
+
+const checkForNewItemRequestBody = (req, res, next) => {
   if (!req.body.item_info) {
     res.status(400).json({
       message: 'Please include item_info in the request body.'
@@ -160,8 +175,9 @@ const checkForDuplicateGarmentTitleMenuItem = async (
 };
 
 module.exports = {
-  checkForDuplicateItem,
   checkForRequestBody,
+  checkForDuplicateItem,
+  checkForNewItemRequestBody,
   checkForDuplicateUrl,
   checkForDuplicatesWhileEditing,
   checkForDuplicateGarmentTitleMenuItem
