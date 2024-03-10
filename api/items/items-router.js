@@ -9,6 +9,7 @@ const {
 } = require('./daily-garment-model');
 const {
   checkForRequestBody,
+  checkForNewItemRequestBody,
   checkForDuplicateItem,
   checkForDuplicatesWhileEditing,
   checkForDuplicateGarmentTitleMenuItem
@@ -234,7 +235,7 @@ router.post(
   '/',
   restricted,
   permit('admin'),
-  checkForRequestBody,
+  checkForNewItemRequestBody,
   checkForDuplicateItem,
   async (req, res) => {
     console.log('Request body:', req.body);
@@ -258,6 +259,7 @@ router.put(
   '/:item_id',
   restricted,
   permit('admin'),
+  checkForRequestBody,
   checkForDuplicatesWhileEditing,
   async (req, res) => {
     const item_id = req.params.item_id;
@@ -335,10 +337,11 @@ router.post(
   '/garment_titles',
   restricted,
   permit('admin'),
+  checkForRequestBody,
   checkForDuplicateGarmentTitleMenuItem,
   async (req, res) => {
     console.log('req.body', req.body);
-    const garment_title = req.body.garment_title;
+    const garment_title = req.body.garment_title_option;
     Items.addGarmentTitle(garment_title)
       .then((item) => {
         res.status(201).json(item);
@@ -356,6 +359,7 @@ router.put(
   '/garment_titles/:garment_title_id',
   restricted,
   permit('admin'),
+  checkForRequestBody,
   checkForDuplicateGarmentTitleMenuItem,
   async (req, res) => {
     console.log('req.body', req.body);
