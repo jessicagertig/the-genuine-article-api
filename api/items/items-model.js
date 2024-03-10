@@ -82,8 +82,10 @@ async function addGarmentTitle(garment_title) {
     return added_title[0];
   } catch (error) {
     console.error(
-      'Could not add the new garment title menu option.'
+      'Could not add the new garment title menu option:',
+      error
     );
+    throw new Error('Error adding new garment title menu option');
   }
 }
 

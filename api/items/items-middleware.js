@@ -162,7 +162,7 @@ const checkForDuplicateGarmentTitleMenuItem = async (
     body: req.body
   });
   const existing_menu_item = await Items.findGarmentTitle(
-    new_menu_item
+    new_menu_item.trim()
   );
 
   if (existing_menu_item === undefined) {
