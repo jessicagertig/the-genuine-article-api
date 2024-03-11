@@ -60,9 +60,6 @@ async function scrapeMET(ch, item) {
   // get title
   const title = ch('.artwork__title--text').text();
   item['garment_type'] = title;
-  // get culture_country
-  const culture = ch('.gtm__artist_culture').text();
-  item['culture_country'] = culture;
   // get begin_year
   const dateStr = ch('.artwork__creation-date')
     .children('time')
@@ -82,11 +79,18 @@ async function scrapeMET(ch, item) {
     const spans = ch(el).children();
     const label = ch(spans[0]).text();
     const value = ch(spans[1]).text();
-    if (label === 'Credit Line:') {
+    if (label === 'Culture:') {
+      item['culture_country'] = value;
+    } else if (label === 'Credit Line:') {
       item['source'] = value;
-    }
-    if (label === 'Accession Number:') {
+    } else if (label === 'Accession Number:') {
       item['item_collection_no'] = value;
+    } else if (label === 'Maker:') {
+      item['creator'] = createOrAddToDictValue(
+        item['creator'],
+        value,
+        'unknown'
+      );
     }
   });
   console.log('MET fn', item);
@@ -551,6 +555,22 @@ function processDescArray(desc_array, item) {
   );
   console.log('final', final_desc_array);
   item['description'] = final_desc_array.join('\n\n');
+}
+
+function createOrAddToDictValue(
+  dict_value,
+  next_value,
+  default_value = ''
+) {
+  if (
+    !dict_value ||
+    dict_value.trim().length === 0 ||
+    dict_value === default_value
+  ) {
+    return next_value;
+  } else {
+    return dict_value + ', ' + next_value;
+  }
 }
 
 /* TEST Functions
