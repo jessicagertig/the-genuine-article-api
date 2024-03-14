@@ -4,6 +4,7 @@ const {
   checkForDuplicateMaterials,
   checkForDuplicateMaterialOptions
 } = require('./item-materials-validation');
+const { checkForRequestBody } = require('../items/items-middleware');
 const restricted = require('../auth/restricted_middleware');
 const { permit } = require('../auth/auth-middleware');
 
@@ -11,6 +12,7 @@ router.post(
   '/materials',
   restricted,
   permit('admin'),
+  checkForRequestBody,
   checkForDuplicateMaterialOptions,
   async (req, res) => {
     console.log('POST materials req.body', { body: req.body });
@@ -32,6 +34,7 @@ router.put(
   '/materials/:material_id',
   restricted,
   permit('admin'),
+  checkForRequestBody,
   checkForDuplicateMaterialOptions,
   async (req, res) => {
     console.log('PUT materials req.body', { body: req.body });

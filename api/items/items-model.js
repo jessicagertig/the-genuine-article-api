@@ -41,7 +41,8 @@ module.exports = {
   searchItems,
   simpleSearch,
   addGarmentTitle,
-  deleteGarmentTitle
+  deleteGarmentTitle,
+  editGarmentTitle
 };
 
 const infoToSelect = [
@@ -62,6 +63,7 @@ const infoToSelect = [
 ];
 
 function findGarmentTitle(garment_title) {
+  console.log('findGarmentTitle called', { garment_title });
   return db('garment_titles').where({ garment_title }).first();
 }
 
@@ -80,8 +82,24 @@ async function addGarmentTitle(garment_title) {
     return added_title[0];
   } catch (error) {
     console.error(
-      'Could not add the new garment title menu option.'
+      'Could not add the new garment title menu option:',
+      error
     );
+    throw new Error('Error adding new garment title menu option');
+  }
+}
+
+async function editGarmentTitle(garment_title, garment_title_id) {
+  try {
+    const edited_title = await db('garment_titles')
+      .where('id', garment_title_id)
+      .first({})
+      .update({ garment_title: garment_title })
+      .returning('*');
+    console.log('[editGarmentTitle] EDITED TITLE', { edited_title });
+    return edited_title[0];
+  } catch (error) {
+    console.error('Error while editing garment title:', error);
   }
 }
 

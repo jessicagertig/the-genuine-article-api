@@ -78,7 +78,7 @@ async function editMaterial(material, material_id) {
     .returning('*');
   console.log(
     '\x1b[35m',
-    '[editColor Function] Edited material:',
+    '[editMaterial Function] Edited material:',
     edited_material,
     '\x1b[0m'
   );

@@ -4,6 +4,7 @@ const {
   checkForDuplicateColors,
   checkForDuplicateColorOptions
 } = require('./items-colors-validation');
+const { checkForRequestBody } = require('../items/items-middleware');
 const restricted = require('../auth/restricted_middleware');
 const { permit } = require('../auth/auth-middleware');
 
@@ -11,6 +12,7 @@ router.post(
   '/colors',
   restricted,
   permit('admin'),
+  checkForRequestBody,
   checkForDuplicateColorOptions,
   async (req, res) => {
     console.log('POST colors req.body', { body: req.body });
@@ -33,6 +35,7 @@ router.put(
   '/colors/:color_id',
   restricted,
   permit('admin'),
+  checkForRequestBody,
   checkForDuplicateColorOptions,
   async (req, res) => {
     console.log('PUT colors req.body', { body: req.body });
@@ -77,6 +80,7 @@ router.post(
   '/:item_id',
   restricted,
   permit('admin'),
+  checkForRequestBody,
   checkForDuplicateColors,
   async (req, res) => {
     const item_id = req.params.item_id;
