@@ -5,7 +5,7 @@ name:
 
   # Controls when the workflow will run
 on:
-  # Triggers the workflow every 5 minutes
+  # Triggers the workflow every day a 5 AM UTC
   schedule:
     - cron: '0 5 * * *'
 

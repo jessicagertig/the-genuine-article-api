@@ -6,7 +6,7 @@ module.exports = {
   getGarmentOfTheDay,
   dailyGarmentJob
 };
-
+// called second in daily garment job
 async function selectGarmentOfTheDay(excluded_ids) {
   const totalRecords = await db('items').count();
   const totalRecordsCount = parseInt(totalRecords[0].count);
@@ -23,7 +23,7 @@ async function selectGarmentOfTheDay(excluded_ids) {
   }
   return selectedRecord[0];
 }
-
+// 
 async function replace_oldest_daily_item(item_id) {
   return withTransaction(async (trx) => {
     const oldestRecord = await db('garment_of_the_day')
@@ -60,7 +60,7 @@ async function rows_count() {
 
   return records_maxed;
 }
-
+// called first in dailyGarmentJob
 async function getExcludedIds() {
   const existing_ids = await db('garment_of_the_day')
     .whereNotNull('item_id')
@@ -70,7 +70,7 @@ async function getExcludedIds() {
 
   return excluded_ids;
 }
-
+// Main function
 async function dailyGarmentJob() {
   try {
     const excludedIds = await getExcludedIds();
