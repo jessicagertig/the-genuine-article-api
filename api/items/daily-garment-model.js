@@ -4,9 +4,11 @@ const { withTransaction } = require('../utils/withTransaction');
 
 module.exports = {
   getGarmentOfTheDay,
-  dailyGarmentJob
+  dailyGarmentJob,
+  deleteGarmentOfTheDay
 };
 // called second in daily garment job
+// needs to know excluded ids before being called
 async function selectGarmentOfTheDay(excluded_ids) {
   const totalRecords = await db('items').count();
   const totalRecordsCount = parseInt(totalRecords[0].count);
@@ -23,7 +25,8 @@ async function selectGarmentOfTheDay(excluded_ids) {
   }
   return selectedRecord[0];
 }
-// 
+// If the table has returns true for records_maxed in daily Garment Job
+// Call this function to replace the oldest record
 async function replace_oldest_daily_item(item_id) {
   return withTransaction(async (trx) => {
     const oldestRecord = await db('garment_of_the_day')
@@ -48,7 +51,9 @@ async function replace_oldest_daily_item(item_id) {
     }
   });
 }
-
+// Returns true if 14 or more rows exist
+// This is used in a function to ensure that for 14 days no duplicate will be selected
+// In future this may be a month or a year in length
 async function rows_count() {
   const existing_records = await db('garment_of_the_day')
     .count('id')
@@ -61,6 +66,7 @@ async function rows_count() {
   return records_maxed;
 }
 // called first in dailyGarmentJob
+// returns ids that should be excluded from selection
 async function getExcludedIds() {
   const existing_ids = await db('garment_of_the_day')
     .whereNotNull('item_id')
@@ -114,5 +120,24 @@ async function getGarmentOfTheDay() {
       `An error occurred while getting the item of the day from the DB. ${error}`
     );
     throw error;
+  }
+}
+// used in the delete_item funciont
+// so this records is not orphaned, should consider a cascade instead
+async function deleteGarmentOfTheDay(item_id, context = {}) {
+  const { trx } = context;
+  try {
+    await db('garment_of_the_day')
+      .where('item_id', item_id)
+      .del()
+      .transacting(trx);
+  } catch (error) {
+    console.error(
+      `Error deleting garment of the day for item_id: ${item_id}`,
+      {
+        error: error.message,
+        itemId: item_id
+      }
+    );
   }
 }
