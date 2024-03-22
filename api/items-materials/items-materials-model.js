@@ -176,8 +176,20 @@ async function editItemMaterials(
 
 async function deleteItemMaterials(item_id, context = {}) {
   const { trx } = context;
-  await db('item_materials')
-    .where({ item_id })
-    .del()
-    .transacting(trx);
+  try {
+    await db('item_materials')
+      .where({ item_id })
+      .del()
+      .transacting(trx);
+  } catch (error) {
+    // Log the error along with the transaction id (if available) and item_id for tracking
+    console.error(
+      `Error in transaction for deleting materials of item_id: ${item_id}`,
+      {
+        error: error.message,
+        transactionId: trx ? trx.id : 'N/A', // Adjust based on your transaction object structure.
+        itemId: item_id
+      }
+    );
+  }
 }

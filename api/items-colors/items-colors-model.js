@@ -161,5 +161,17 @@ async function editItemColors(item_id, colors_array, context = {}) {
 
 async function deleteItemColors(item_id, context = {}) {
   const { trx } = context;
-  await db('item_colors').where({ item_id }).del().transacting(trx);
+  try {
+    await db('item_colors')
+      .where({ item_id })
+      .del()
+      .transacting(trx);
+  } catch (error) {
+    console.error(
+      `Error in transaction for deleting colors of item_id: ${item_id}`,
+      {
+        error: error.message
+      }
+    );
+  }
 }
