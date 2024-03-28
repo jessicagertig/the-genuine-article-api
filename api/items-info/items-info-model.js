@@ -134,13 +134,22 @@ async function editItemInfo(item_id, item_info, context = {}) {
 //delete item info
 async function deleteItemInfo(item_id, context = {}) {
   const { trx } = context;
+  try {
+    const item_deleted = await db('items')
+      .where('id', item_id)
+      .first({})
+      .del()
+      .transacting(trx)
+      .returning('id');
 
-  const item_deleted = await db('items')
-    .where('id', item_id)
-    .first({})
-    .del()
-    .transacting(trx)
-    .returning('id');
-
-  return item_deleted;
+    return item_deleted;
+  } catch (error) {
+    console.error(
+      `Error attempting to delete item info for item_id: ${item_id}`,
+      {
+        error: error.message,
+        itemId: item_id
+      }
+    );
+  }
 }
