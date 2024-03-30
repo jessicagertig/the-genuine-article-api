@@ -87,15 +87,18 @@ async function addItemInfo(item_info, context = {}) {
   item_info['decade'] = decadesArray[0];
   item_info['secondary_decade'] = decadesArray[1];
 
-  const insertQuery = db('items').insert(item_info).returning('*');
+  try {
+    const query = db('items').insert(item_info).returning('*');
 
-  if (trx) {
-    insertQuery.transacting(trx);
+    // Use trx if provided, otherwise proceed without transaction
+    const new_item_info = trx
+      ? await query.transacting(trx)
+      : await query;
+
+    return new_item_info;
+  } catch (error) {
+    console.error('Error adding item info:', error);
   }
-
-  const new_item_info = await insertQuery;
-
-  return new_item_info;
 }
 
 // editItemInfo
@@ -112,14 +115,22 @@ async function editItemInfo(item_id, item_info, context = {}) {
   item_info['decade'] = decadesArray[0];
   item_info['secondary_decade'] = decadesArray[1];
 
-  const edited_item_info = await db('items')
-    .where('id', item_id)
-    .first({})
-    .update(item_info)
-    .transacting(trx)
-    .returning('*');
+  try {
+    const query = db('items')
+      .where('id', item_id)
+      .first({})
+      .update(item_info)
+      .returning('*');
 
-  return edited_item_info;
+    // Use trx if provided, otherwise proceed without transaction
+    const edited_item_info = trx
+      ? await query.transacting(trx)
+      : await query;
+
+    return edited_item_info;
+  } catch (error) {
+    console.error('Error editing item info:', error);
+  }
 }
 
 //delete item info
