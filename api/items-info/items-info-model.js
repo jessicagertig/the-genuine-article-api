@@ -71,19 +71,7 @@ function findInfoById(id) {
 // addItemScrapedInfo
 async function addScrapedItemInfo(url) {
   const item_info = await scrape(url);
-
-  const decadesArray = calculateDecades(
-    item_info['begin_year'],
-    item_info['end_year']
-  );
-
-  item_info['decade'] = decadesArray[0];
-  item_info['secondary_decade'] = decadesArray[1];
-
-  const new_item_info = await db('items')
-    .insert(item_info)
-    .returning('*');
-
+  const new_item_info = await addItemInfo(item_info);
   return new_item_info;
 }
 
@@ -99,10 +87,13 @@ async function addItemInfo(item_info, context = {}) {
   item_info['decade'] = decadesArray[0];
   item_info['secondary_decade'] = decadesArray[1];
 
-  const new_item_info = await db('items')
-    .insert(item_info)
-    .transacting(trx)
-    .returning('*');
+  const insertQuery = db('items').insert(item_info).returning('*');
+
+  if (trx) {
+    insertQuery.transacting(trx);
+  }
+
+  const new_item_info = await insertQuery;
 
   return new_item_info;
 }
