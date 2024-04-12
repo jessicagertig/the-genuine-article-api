@@ -1,7 +1,22 @@
+const isEmpty = require('lodash.isempty');
+
 const ItemsInfo = require('../items-info/items-info-model');
 const Items = require('../items/items-model');
 
 const checkForRequestBody = (req, res, next) => {
+  console.log('[checkForRequestBody] middleware', {
+    body: req.body
+  });
+  if (!req.body || isEmpty(req.body)) {
+    res.status(400).json({
+      message: 'Request body is missing, malformed, or empty.'
+    });
+  } else {
+    next();
+  }
+};
+
+const checkForNewItemRequestBody = (req, res, next) => {
   if (!req.body.item_info) {
     res.status(400).json({
       message: 'Please include item_info in the request body.'
@@ -141,10 +156,13 @@ const checkForDuplicateGarmentTitleMenuItem = async (
   res,
   next
 ) => {
-  const new_menu_item = req.body.garment_title_option;
-
+  const new_menu_item =
+    req.body.garment_title_option || req.body.garment_title;
+  console.log('checkForDuplicateGarmentTitleMenuItem req.body', {
+    body: req.body
+  });
   const existing_menu_item = await Items.findGarmentTitle(
-    new_menu_item
+    new_menu_item.trim()
   );
 
   if (existing_menu_item === undefined) {
@@ -157,8 +175,9 @@ const checkForDuplicateGarmentTitleMenuItem = async (
 };
 
 module.exports = {
-  checkForDuplicateItem,
   checkForRequestBody,
+  checkForDuplicateItem,
+  checkForNewItemRequestBody,
   checkForDuplicateUrl,
   checkForDuplicatesWhileEditing,
   checkForDuplicateGarmentTitleMenuItem

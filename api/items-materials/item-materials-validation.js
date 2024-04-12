@@ -33,18 +33,24 @@ const checkForDuplicateMaterials = async (req, res, next) => {
 
 const checkForDuplicateMaterialOptions = async (req, res, next) => {
   const material = req.body.material_option;
-  const existing_material = await Materials.findMaterialByName(
-    material
-  );
-
-  if (existing_material !== undefined) {
+  if (!material) {
     res.status(400).json({
-      message: `Duplicate material option. A material (id ${
-        existing_material.id
-      }) with name ${material.toUpperCase()} already exists.`
+      message: `Material was undefined or null, check for key error in POST body.`
     });
   } else {
-    next();
+    const existing_material = await Materials.findMaterialByName(
+      material.trim()
+    );
+
+    if (existing_material !== undefined) {
+      res.status(400).json({
+        message: `Duplicate material option. A material (id ${
+          existing_material.id
+        }) with name ${material.toUpperCase()} already exists.`
+      });
+    } else {
+      next();
+    }
   }
 };
 
