@@ -16,7 +16,9 @@ console.log(
 console.log('defineParamsFromFile function is being defined');
 const defineParamsFromFile = async (body) => {
   console.log(`Defining parameters from body`);
-  const type = await fileType.fromBuffer(body);
+  const type = await fileType.fileTypeFromBuffer(body);
+  // const type = await fileType.fromBuffer(body); - old method
+  // when using this util again please ensure it works since the file-type package was upgraded and the new method fileTypeFromBuffer added to replace .fromBuffer - it has not been tested since doing so
   if (!type || !type.mime.startsWith('image/')) {
     throw new Error('File is not an image');
   }
