@@ -1,6 +1,8 @@
 const router = require('express').Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const queryString = require('query-string');
+const axios = require('axios');
 
 const UserAuth = require('./auth-model');
 const restricted = require('./restricted_middleware');
@@ -108,5 +110,66 @@ function signToken(user) {
 
   return jwt.sign(payload, secret, options);
 }
+
+/* PINTEREST */
+const PINTEREST_CLIENT_ID = process.env.PINTEREST_APP_ID;
+const PINTEREST_CLIENT_SECRET = process.env.PINTEREST_APP_SECRET;
+const REDIRECT_URI = 'http://localhost:4000/auth/pinterest/callback';
+
+// Redirect user to Pinterest for authorization
+router.get('/pinterest', (req, res) => {
+  const queryParams = queryString.stringify({
+    response_type: 'code',
+    client_id: PINTEREST_CLIENT_ID,
+    redirect_uri: REDIRECT_URI,
+    scope: 'boards:read boards:write pins:write',
+    state: 'yourRandomStringHere' // Should be a random string to prevent CSRF attacks
+  });
+
+  res.redirect(`https://www.pinterest.com/oauth/?${queryParams}`);
+});
+
+// Callback route from Pinterest OAuth
+router.get('/pinterest/callback', async (req, res) => {
+  const { code } = req.query;
+  console.log('Received Code:', { code });
+
+  // Encode client credentials
+  const credentials = Buffer.from(
+    `${PINTEREST_CLIENT_ID}:${PINTEREST_CLIENT_SECRET}`
+  ).toString('base64');
+
+  try {
+    const tokenResponse = await axios.post(
+      'https://api.pinterest.com/v5/oauth/token',
+      queryString.stringify({
+        grant_type: 'authorization_code',
+        client_id: PINTEREST_CLIENT_ID,
+        code: code,
+        redirect_uri: REDIRECT_URI // Make sure this matches the registered URI
+      }),
+      {
+        headers: {
+          Authorization: `Basic ${credentials}`,
+          'Content-Type': 'application/x-www-form-urlencoded'
+        }
+      }
+    );
+
+    console.log('RESPONSE FROM PINTEREST', { tokenResponse });
+
+    const { access_token } = tokenResponse.data;
+    // Save the access token in the session or a secure place
+    req.session.accessToken = access_token;
+
+    res.redirect('http://localhost:3002/garments'); // Redirect to a dashboard or another page
+  } catch (error) {
+    console.error(
+      'Error exchanging code for an access token',
+      error
+    );
+    res.status(500).send('Authentication failed');
+  }
+});
 
 module.exports = router;
