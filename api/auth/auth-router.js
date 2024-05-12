@@ -112,18 +112,22 @@ function signToken(user) {
 }
 
 /* PINTEREST */
-const PINTEREST_CLIENT_ID = process.env.PINTEREST_APP_ID;
-const PINTEREST_CLIENT_SECRET = process.env.PINTEREST_APP_SECRET;
-const REDIRECT_URI = 'http://localhost:4000/auth/pinterest/callback';
+const {
+  PINTEREST_CLIENT_ID,
+  PINTEREST_CLIENT_SECRET,
+  PINTEREST_REDIRECT_URI
+} = process.env;
 
 // Redirect user to Pinterest for authorization
 router.get('/pinterest', (req, res) => {
+  console.log('Params?', { params: req.query });
+  const serializedParams = queryString.stringify(req.query);
   const queryParams = queryString.stringify({
     response_type: 'code',
     client_id: PINTEREST_CLIENT_ID,
-    redirect_uri: REDIRECT_URI,
+    redirect_uri: PINTEREST_REDIRECT_URI,
     scope: 'boards:read boards:write pins:write',
-    state: 'yourRandomStringHere' // Should be a random string to prevent CSRF attacks
+    state: serializedParams
   });
 
   res.redirect(`https://www.pinterest.com/oauth/?${queryParams}`);
@@ -131,8 +135,12 @@ router.get('/pinterest', (req, res) => {
 
 // Callback route from Pinterest OAuth
 router.get('/pinterest/callback', async (req, res) => {
-  const { code } = req.query;
+  console.log('Callback params', { queryParams: req.query });
+  const { code, state } = req.query;
   console.log('Received Code:', { code });
+  const additionalParams = queryString.parse(state);
+  console.log('Other params', { additionalParams });
+  const redirectPath = additionalParams.returnTo;
 
   // Encode client credentials
   const credentials = Buffer.from(
@@ -146,7 +154,7 @@ router.get('/pinterest/callback', async (req, res) => {
         grant_type: 'authorization_code',
         client_id: PINTEREST_CLIENT_ID,
         code: code,
-        redirect_uri: REDIRECT_URI // Make sure this matches the registered URI
+        redirect_uri: PINTEREST_REDIRECT_URI // Make sure this matches the registered URI
       }),
       {
         headers: {
@@ -161,8 +169,14 @@ router.get('/pinterest/callback', async (req, res) => {
     const { access_token } = tokenResponse.data;
     // Save the access token in the session or a secure place
     req.session.accessToken = access_token;
+    const result = await UserAuth.saveOauthToken(
+      tokenResponse?.data,
+      'pinterest',
+      req.sessionID
+    );
+    console.log('RESULT', result);
 
-    res.redirect('http://localhost:3002/garments'); // Redirect to a dashboard or another page
+    res.redirect(`http://localhost:3002${redirectPath}`); // Redirect to a dashboard or another page
   } catch (error) {
     console.error(
       'Error exchanging code for an access token',
