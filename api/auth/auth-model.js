@@ -5,7 +5,9 @@ module.exports = {
   find,
   findBy,
   findById,
-  destroy
+  destroy,
+  findOauthToken,
+  saveOauthToken
 };
 
 function find() {
@@ -34,4 +36,27 @@ async function add(user) {
 async function destroy(id) {
   console.log('ID', id);
   return db('users').where({ id }).del();
+}
+
+async function findOauthToken(provider, session_id) {
+  return db('oauth_tokens')
+    .where({ session_id })
+    .where({ provider })
+    .first();
+}
+
+async function saveOauthToken(data, provider, session_id) {
+  console.log('Oauth save data', { data, provider, session_id });
+  const { access_token, refresh_token, expires_in } = data;
+  const new_record = {
+    provider,
+    session_id,
+    access_token,
+    refresh_token,
+    expires_in
+  };
+  const inserted_record = await db('oauth_tokens')
+    .insert(new_record)
+    .returning('*');
+  return inserted_record;
 }
