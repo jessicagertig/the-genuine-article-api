@@ -5,6 +5,7 @@ const express = require('express');
 const cors = require('cors');
 const logger = require('morgan');
 const helmet = require('helmet');
+const sessionConfig = require('./session-config');
 
 // ----- Router Imports -----
 const authRouter = require('./api/auth/auth-router');
@@ -22,6 +23,7 @@ app.use(helmet());
 app.use(express.json());
 app.use(cors());
 app.use(logger('dev'));
+app.use(sessionConfig);
 
 // ------- Routers --------
 app.use('/auth', authRouter);
