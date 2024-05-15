@@ -7,6 +7,7 @@ const axios = require('axios');
 const UserAuth = require('./auth-model');
 const restricted = require('./restricted_middleware');
 const { permit } = require('./auth-middleware');
+const PinterestAPIService = require('../services/pinterest_api_service');
 
 router.post('/register', restricted, permit('admin'), (req, res) => {
   let user = req.body;
@@ -112,25 +113,48 @@ function signToken(user) {
 }
 
 /* PINTEREST */
-const {
-  PINTEREST_CLIENT_ID,
-  PINTEREST_CLIENT_SECRET,
-  PINTEREST_REDIRECT_URI
-} = process.env;
-
+const pinterestAPI = new PinterestAPIService();
 // Redirect user to Pinterest for authorization
-router.get('/pinterest', (req, res) => {
-  console.log('Params?', { params: req.query });
-  const serializedParams = queryString.stringify(req.query);
-  const queryParams = queryString.stringify({
-    response_type: 'code',
-    client_id: PINTEREST_CLIENT_ID,
-    redirect_uri: PINTEREST_REDIRECT_URI,
-    scope: 'boards:read boards:write pins:write',
-    state: serializedParams
-  });
+router.get('/pinterest', async (req, res) => {
+  const redirectPath = req.query.returnTo;
+  console.log('Query params', { query: req.query });
 
-  res.redirect(`https://www.pinterest.com/oauth/?${queryParams}`);
+  try {
+    const accessToken = await UserAuth.getValidAccessToken(
+      'pinterest',
+      req.sessionID
+    );
+    // If accessToken is valid or refreshed successfully - gonna need to create a pin here
+    if (accessToken) {
+      res.redirect(
+        `http://localhost:3002${redirectPath}?pinterestOauth=success`
+      );
+    }
+  } catch (error) {
+    if (
+      error.message === 'No token found for session' ||
+      error.message === 'Token is expired and refresh failed'
+    ) {
+      // Redirect to Pinterest OAuth
+      const serializedParams = queryString.stringify(req.query);
+      const queryParams = queryString.stringify({
+        response_type: 'code',
+        client_id: pinterestAPI.clientId,
+        redirect_uri: pinterestAPI.redirectUri,
+        scope: 'boards:read boards:write pins:read pins:write',
+        state: serializedParams
+      });
+
+      res.redirect(
+        `https://www.pinterest.com/oauth/?${queryParams}`
+      );
+    } else {
+      // Handle other errors with a consistent error response
+      res.status(500).json({
+        message: 'error.message'
+      });
+    }
+  }
 });
 
 // Callback route from Pinterest OAuth
@@ -144,7 +168,7 @@ router.get('/pinterest/callback', async (req, res) => {
 
   // Encode client credentials
   const credentials = Buffer.from(
-    `${PINTEREST_CLIENT_ID}:${PINTEREST_CLIENT_SECRET}`
+    `${pinterestAPI.clientId}:${pinterestAPI.clientSecret}`
   ).toString('base64');
 
   try {
@@ -152,9 +176,9 @@ router.get('/pinterest/callback', async (req, res) => {
       'https://api.pinterest.com/v5/oauth/token',
       queryString.stringify({
         grant_type: 'authorization_code',
-        client_id: PINTEREST_CLIENT_ID,
+        client_id: pinterestAPI.clientId,
         code: code,
-        redirect_uri: PINTEREST_REDIRECT_URI // Make sure this matches the registered URI
+        redirect_uri: pinterestAPI.redirectUri // Make sure this matches the registered URI
       }),
       {
         headers: {
