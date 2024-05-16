@@ -166,47 +166,31 @@ router.get('/pinterest/callback', async (req, res) => {
   console.log('Other params', { additionalParams });
   const redirectPath = additionalParams.returnTo;
 
-  // Encode client credentials
-  const credentials = Buffer.from(
-    `${pinterestAPI.clientId}:${pinterestAPI.clientSecret}`
-  ).toString('base64');
-
   try {
-    const tokenResponse = await axios.post(
-      'https://api.pinterest.com/v5/oauth/token',
-      queryString.stringify({
-        grant_type: 'authorization_code',
-        client_id: pinterestAPI.clientId,
-        code: code,
-        redirect_uri: pinterestAPI.redirectUri // Make sure this matches the registered URI
-      }),
-      {
-        headers: {
-          Authorization: `Basic ${credentials}`,
-          'Content-Type': 'application/x-www-form-urlencoded'
-        }
-      }
+    const tokenResponseData = await pinterestAPI.getAccessTokenData(
+      code
     );
 
-    console.log('RESPONSE FROM PINTEREST', { tokenResponse });
+    console.log('RESPONSE FROM PINTEREST', { tokenResponseData });
 
-    const { access_token } = tokenResponse.data;
-    // Save the access token in the session or a secure place
-    req.session.accessToken = access_token;
     const result = await UserAuth.saveOauthToken(
-      tokenResponse?.data,
+      tokenResponseData,
       'pinterest',
       req.sessionID
     );
     console.log('RESULT', result);
 
-    res.redirect(`http://localhost:3002${redirectPath}`); // Redirect to a dashboard or another page
+    res.redirect(
+      `http://localhost:3002${redirectPath}?pinterestOauth=success`
+    ); // Redirect to a dashboard or another page
   } catch (error) {
     console.error(
       'Error exchanging code for an access token',
       error
     );
-    res.status(500).send('Authentication failed');
+    res.status(500).json({
+      message: 'Authentication failed'
+    });
   }
 });
 
