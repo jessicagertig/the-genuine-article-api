@@ -1,13 +1,10 @@
 const router = require('express').Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const queryString = require('query-string');
-const axios = require('axios');
 
 const UserAuth = require('./auth-model');
 const restricted = require('./restricted_middleware');
 const { permit } = require('./auth-middleware');
-const PinterestAPIService = require('../services/pinterest_api_service');
 
 router.post('/register', restricted, permit('admin'), (req, res) => {
   let user = req.body;
@@ -111,87 +108,5 @@ function signToken(user) {
 
   return jwt.sign(payload, secret, options);
 }
-
-/* PINTEREST */
-const pinterestAPI = new PinterestAPIService();
-// Redirect user to Pinterest for authorization
-router.get('/pinterest', async (req, res) => {
-  const redirectPath = req.query.returnTo;
-  console.log('Query params', { query: req.query });
-
-  try {
-    const accessToken = await UserAuth.getValidAccessToken(
-      'pinterest',
-      req.sessionID
-    );
-    // If accessToken is valid or refreshed successfully - gonna need to create a pin here
-    if (accessToken) {
-      res.redirect(
-        `http://localhost:3002${redirectPath}?pinterestOauth=success`
-      );
-    }
-  } catch (error) {
-    if (
-      error.message === 'No token found for session' ||
-      error.message === 'Token is expired and refresh failed'
-    ) {
-      // Redirect to Pinterest OAuth
-      const serializedParams = queryString.stringify(req.query);
-      const queryParams = queryString.stringify({
-        response_type: 'code',
-        client_id: pinterestAPI.clientId,
-        redirect_uri: pinterestAPI.redirectUri,
-        scope: 'boards:read boards:write pins:read pins:write',
-        state: serializedParams
-      });
-
-      res.redirect(
-        `https://www.pinterest.com/oauth/?${queryParams}`
-      );
-    } else {
-      // Handle other errors with a consistent error response
-      res.status(500).json({
-        message: 'error.message'
-      });
-    }
-  }
-});
-
-// Callback route from Pinterest OAuth
-router.get('/pinterest/callback', async (req, res) => {
-  console.log('Callback params', { queryParams: req.query });
-  const { code, state } = req.query;
-  console.log('Received Code:', { code });
-  const additionalParams = queryString.parse(state);
-  console.log('Other params', { additionalParams });
-  const redirectPath = additionalParams.returnTo;
-
-  try {
-    const tokenResponseData = await pinterestAPI.getAccessTokenData(
-      code
-    );
-
-    console.log('RESPONSE FROM PINTEREST', { tokenResponseData });
-
-    const result = await UserAuth.saveOauthToken(
-      tokenResponseData,
-      'pinterest',
-      req.sessionID
-    );
-    console.log('RESULT', result);
-
-    res.redirect(
-      `http://localhost:3002${redirectPath}?pinterestOauth=success`
-    ); // Redirect to a dashboard or another page
-  } catch (error) {
-    console.error(
-      'Error exchanging code for an access token',
-      error
-    );
-    res.status(500).json({
-      message: 'Authentication failed'
-    });
-  }
-});
 
 module.exports = router;
