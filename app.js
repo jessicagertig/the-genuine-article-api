@@ -9,6 +9,7 @@ const sessionConfig = require('./session-config');
 
 // ----- Router Imports -----
 const authRouter = require('./api/auth/auth-router');
+const integrationsRouter = require('./api/integrations/integrations-router');
 const itemsRouter = require('./api/items/items-router');
 const itemsInfoRouter = require('./api/items-info/items-info-router');
 const itemsImagesRouter = require('./api/items-images/items-images-router');
@@ -27,6 +28,7 @@ app.use(sessionConfig);
 
 // ------- Routers --------
 app.use('/auth', authRouter);
+app.use('/integrations', integrationsRouter);
 app.use('/items', itemsRouter);
 app.use('/items-info', itemsInfoRouter);
 app.use('/images', itemsImagesRouter);
