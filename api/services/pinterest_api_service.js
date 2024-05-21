@@ -3,12 +3,12 @@ const queryString = require('query-string');
 
 class PinterestAPIService {
   constructor() {
+    this.accessTokenUrl = 'https://api.pinterest.com/v5/oauth/token';
+    // this.apiUrl = 'https://api.pinterest.com/v5';
+    this.apiUrl = 'https://api-sandbox.pinterest.com/v5';
     this.clientId = process.env.PINTEREST_CLIENT_ID;
     this.clientSecret = process.env.PINTEREST_CLIENT_SECRET;
     this.redirectUri = process.env.PINTEREST_REDIRECT_URI;
-    this.accessTokenUrl = 'https://api.pinterest.com/v5/oauth/token';
-    this.apiUrl = 'https://api.pinterest.com/v5';
-    this.sandboxApiUrl = 'https://api-sandbox.pinterest.com/v5';
 
     this.basicAuth = Buffer.from(
       `${this.clientId}:${this.clientSecret}`
@@ -65,10 +65,9 @@ class PinterestAPIService {
     };
 
     try {
-      const response = await axios.get(
-        `${this.sandboxApiUrl}/boards`,
-        { headers }
-      );
+      const response = await axios.get(`${this.apiUrl}/boards`, {
+        headers
+      });
       return response.data;
     } catch (error) {
       this.handleError(error);
@@ -82,7 +81,7 @@ class PinterestAPIService {
 
     try {
       const response = await axios.get(
-        `${this.sandboxApiUrl}/boards/${boardId}`,
+        `${this.apiUrl}/boards/${boardId}`,
         { headers }
       );
       return response.data;
@@ -96,7 +95,7 @@ class PinterestAPIService {
     const boardData = {
       name: name,
       description: description,
-      privacy: 'Public'
+      privacy: 'PUBLIC'
     };
 
     const headers = {
@@ -106,7 +105,7 @@ class PinterestAPIService {
 
     try {
       const response = await axios.post(
-        `${this.sandboxApiUrl}/pins`,
+        `${this.apiUrl}/boards`,
         boardData,
         { headers }
       );
@@ -124,7 +123,7 @@ class PinterestAPIService {
 
     try {
       const response = await axios.get(
-        `${this.sandboxApiUrl}/pins/${pinId}`,
+        `${this.apiUrl}/pins/${pinId}`,
         { headers }
       );
       return response.data;
@@ -133,7 +132,7 @@ class PinterestAPIService {
     }
   }
 
-  async createPin(accessToken, pin) {
+  async createPin(accessToken, pin, boardId) {
     const { title, description, link, image_url } = pin;
     const pinData = {
       link: link,
@@ -143,7 +142,7 @@ class PinterestAPIService {
         source_type: 'image_url',
         url: image_url
       },
-      board_id: process.env.PINTEREST_BOARD_ID
+      board_id: boardId
     };
     console.log('pin JSON', { pinData });
     const headers = {
@@ -153,7 +152,7 @@ class PinterestAPIService {
 
     try {
       const response = await axios.post(
-        `${this.sandboxApiUrl}/pins`,
+        `${this.apiUrl}/pins`,
         pinData,
         { headers }
       );
@@ -170,7 +169,7 @@ class PinterestAPIService {
       const errorCode = error.response.data.code || 'Unknown Code';
       const errorMessage =
         error.response.data.message || 'Unknown Message';
-      const customErrorMessage = `Error from Pinterest API: Code ${errorCode}, Message: ${errorMessage}`;
+      const customErrorMessage = `Response from Pinterest API: Code ${errorCode}, Message: ${errorMessage}`;
       console.error(customErrorMessage);
       throw new Error(customErrorMessage);
     } else {
