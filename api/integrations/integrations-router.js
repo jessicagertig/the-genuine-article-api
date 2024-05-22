@@ -2,7 +2,7 @@ const router = require('express').Router();
 const queryString = require('query-string');
 
 const Integrations = require('./integrations-model');
-
+const Items = require('../items/items-model');
 const PinterestAPIService = require('../services/pinterest_api_service');
 const pinterestAPI = new PinterestAPIService();
 
@@ -151,21 +151,30 @@ router.post('/pinterest/pin', async (req, res) => {
       req.sessionID
     );
 
-    const itemData = {
-      title: 'Morning Dress',
-      description: 'Bright yellow Morning Dress of silk circa 1836',
-      link: 'https://www.metmuseum.org/art/collection/search/108058',
-      image_url:
-        'https://genuine-article-uploads.s3.us-east-2.amazonaws.com/garment_item_id25/resized_main_image/tiny_large_32.jpg'
+    const { item_id, board_id } = req.body;
+
+    // Call the findItemById method of items-model.js
+    const itemData = await Items.findItemById(item_id);
+
+    if (!itemData) {
+      return res.status(404).json({ message: 'Item not found' });
+    }
+
+    const pinData = {
+      title: itemData.garment_title,
+      description: itemData.description,
+      link: `https://thegenuinearticle.co/garments/${itemData.id}`,
+      image_url: itemData.image_urls.main_image_url
     };
-    // Call the getBoards method of PinterestAPIService
+
+    // Call the createPin method of PinterestAPIService
     const pin = await pinterestAPI.createPin(
       accessToken,
-      itemData,
-      '101471866543589310'
+      pinData,
+      board_id
     );
 
-    // Return the fetched boards
+    // Return the created pin
     res.status(200).json(pin);
   } catch (error) {
     // Handle errors (e.g., network issues, invalid access token)
