@@ -31,7 +31,7 @@ router.get('/auth/pinterest/callback', async (req, res) => {
     );
     console.log('Token Reponse Data:', tokenResponseData);
 
-    res.redirect(`http://localhost:3000/?pinterestOauth=success`); // Redirect to a dashboard or another page
+    res.redirect(`http://localhost:3002/?pinterestOauth=success`); // Redirect to a dashboard or another page
   } catch (error) {
     console.error(
       'Error exchanging code for an access token',
@@ -46,14 +46,13 @@ router.get('/auth/pinterest/callback', async (req, res) => {
 router.post('/pinterest/boards', async (req, res) => {
   try {
     // Retrieve the access token for the authenticated user
-    const accessToken = await Integrations.getValidAccessToken(
-      'pinterest',
-      req.sessionID
-    );
-    const board = {
-      name: '1800s Garments',
-      description: 'Historical clothing records from the 1800s'
-    };
+    // const accessToken = await Integrations.getValidAccessToken(
+    //   'pinterest',
+    //   req.sessionID
+    // );
+    console.log('req.body', req.body);
+    const accessToken = process.env.PINTEREST_SANDBOX_TOKEN;
+    const board = req.body.board;
     // Call the getBoards method of PinterestAPIService
     const newBoard = await pinterestAPI.createBoard(
       accessToken,
@@ -74,10 +73,12 @@ router.post('/pinterest/boards', async (req, res) => {
 router.get('/pinterest/boards', async (req, res) => {
   try {
     // Retrieve the access token for the authenticated user
-    const accessToken = await Integrations.getValidAccessToken(
-      'pinterest',
-      req.sessionID
-    );
+    // const accessToken = await Integrations.getValidAccessToken(
+    //   'pinterest',
+    //   req.sessionID
+    // );
+    // SANDBOX TOKEN
+    const accessToken = process.env.PINTEREST_SANDBOX_TOKEN;
 
     // Call the getBoards method of PinterestAPIService
     const boards = await pinterestAPI.getBoards(accessToken);
@@ -93,19 +94,19 @@ router.get('/pinterest/boards', async (req, res) => {
   }
 });
 
-router.get('/pinterest/board', async (req, res) => {
+router.get('/pinterest/board/:boardId', async (req, res) => {
   try {
     // Retrieve the access token for the authenticated user
-    const accessToken = await Integrations.getValidAccessToken(
-      'pinterest',
-      req.sessionID
-    );
+    // const accessToken = await Integrations.getValidAccessToken(
+    //   'pinterest',
+    //   req.sessionID
+    // );
+    const boardId = req.params.boardId;
+    console.log('board id', boardId);
+    const accessToken = process.env.PINTEREST_SANDBOX_TOKEN;
 
     // Call the getBoards method of PinterestAPIService
-    const boards = await pinterestAPI.getBoard(
-      accessToken,
-      '101471866543589310'
-    );
+    const boards = await pinterestAPI.getBoard(accessToken, boardId);
 
     // Return the fetched boards
     res.status(200).json(boards);
@@ -118,19 +119,19 @@ router.get('/pinterest/board', async (req, res) => {
   }
 });
 
-router.get('/pinterest/pin', async (req, res) => {
+router.get('/pinterest/pin/:pinId', async (req, res) => {
   try {
+    const pinId = req.params.pinId;
+    console.log(req.params)
+    console.log('pin id', pinId);
     // Retrieve the access token for the authenticated user
-    const accessToken = await Integrations.getValidAccessToken(
-      'pinterest',
-      req.sessionID
-    );
-
+    // const accessToken = await Integrations.getValidAccessToken(
+    //   'pinterest',
+    //   req.sessionID
+    // );
+    const accessToken = process.env.PINTEREST_SANDBOX_TOKEN;
     // Call the getBoards method of PinterestAPIService
-    const pin = await pinterestAPI.getPin(
-      accessToken,
-      '101471797847970338'
-    );
+    const pin = await pinterestAPI.getPin(accessToken, pinId);
 
     // Return the fetched boards
     res.status(200).json(pin);
@@ -146,11 +147,13 @@ router.get('/pinterest/pin', async (req, res) => {
 router.post('/pinterest/pin', async (req, res) => {
   try {
     // Retrieve the access token for the authenticated user
-    const accessToken = await Integrations.getValidAccessToken(
-      'pinterest',
-      req.sessionID
-    );
+    // const accessToken = await Integrations.getValidAccessToken(
+    //   'pinterest',
+    //   req.sessionID
+    // );
+    const accessToken = process.env.PINTEREST_SANDBOX_TOKEN;
 
+    console.log('post pin body', req.body);
     const { item_id, board_id } = req.body;
 
     // Call the findItemById method of items-model.js
@@ -159,10 +162,15 @@ router.post('/pinterest/pin', async (req, res) => {
     if (!itemData) {
       return res.status(404).json({ message: 'Item not found' });
     }
+    // Pinterest requires the description be less than 400 characters
+    const description =
+      itemData.description.length > 400
+        ? itemData.description.substring(0, 397) + '...'
+        : itemData.description;
 
     const pinData = {
       title: itemData.garment_title,
-      description: itemData.description,
+      description: description,
       link: `https://thegenuinearticle.co/garments/${itemData.id}`,
       image_url: itemData.image_urls.main_image_url
     };
