@@ -91,11 +91,12 @@ class PinterestAPIService {
   }
 
   async createBoard(accessToken, board) {
-    const { name, description } = board;
+    const { name, description, secret } = board;
+    const privacy = secret ? 'SECRET' : 'PUBLIC';
     const boardData = {
       name: name,
       description: description,
-      privacy: 'PUBLIC'
+      privacy: privacy
     };
 
     const headers = {
