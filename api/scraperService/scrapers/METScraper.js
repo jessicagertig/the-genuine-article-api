@@ -6,7 +6,7 @@ const {
 const assert = require('assert');
 
 // Metropolitan Museum of Art scraper function
-async function scrapeMET(ch, item) {
+module.exports = async function scrapeMET(ch, item) {
   item['collection'] = 'The Metropolitan Museum of Art';
 
   // cleanup url
@@ -75,6 +75,4 @@ async function scrapeMET(ch, item) {
   });
   console.log('MET fn', item);
   return item;
-}
-
-module.exports = scrapeMET;
+};
