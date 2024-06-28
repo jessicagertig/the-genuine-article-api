@@ -1,6 +1,6 @@
 const db = require('../../database/db-config');
 const { calculateDecades } = require('../utils/helpers');
-const { scrape } = require('../scraper');
+const { scrape } = require('../scraperService/scraper');
 
 module.exports = {
   findAllItemsInfo,
