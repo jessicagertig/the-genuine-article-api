@@ -7,6 +7,7 @@ const FITScraper = require('./FITScraper');
 const ROMScraper = require('./ROMScraper');
 const CWScraper = require('./CWScraper');
 const MFABScraper = require('./MFABScraper');
+const MCCORDScraper = require('./MCCORDScraper');
 
 module.exports = {
   MET: METScraper,
@@ -17,5 +18,6 @@ module.exports = {
   FIT: FITScraper,
   ROM: ROMScraper,
   CW: CWScraper,
-  MFAB: MFABScraper
+  MFAB: MFABScraper,
+  MCCORD: MCCORDScraper
 };

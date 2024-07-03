@@ -55,7 +55,8 @@ function getSourceFromUrl(url) {
     fitnyc: 'FIT',
     'collections.rom.on': 'ROM',
     'emuseum.history.org': 'CW',
-    'collections.mfa.org': 'MFAB'
+    'collections.mfa.org': 'MFAB',
+    'collections.musee-mccord-stewart.ca': 'MCCORD'
   };
   let src;
   for (const [key, value] of Object.entries(options)) {
@@ -99,3 +100,10 @@ function getSourceFromUrl(url) {
 // scrape(fitUrl);
 // scrape(romUrl);
 // scrape(cwUrl);
+// const mccordUrl =
+//   ' https://collections.musee-mccord-stewart.ca/en/objects/7902/no-title';
+const mccordUrl =
+  'https://collections.musee-mccord-stewart.ca/en/objects/37586/no-title';
+// const mccordUrl =
+//   'https://collections.musee-mccord-stewart.ca/en/objects/48411/no-title';
+scrape(mccordUrl)
