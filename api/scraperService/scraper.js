@@ -56,7 +56,8 @@ function getSourceFromUrl(url) {
     'collections.rom.on': 'ROM',
     'emuseum.history.org': 'CW',
     'collections.mfa.org': 'MFAB',
-    'collections.musee-mccord-stewart.ca': 'MCCORD'
+    'collections.musee-mccord-stewart.ca': 'MCCORD',
+    'fidmmuseum.pastperfectonline.com': 'FIDM'
   };
   let src;
   for (const [key, value] of Object.entries(options)) {
@@ -102,8 +103,12 @@ function getSourceFromUrl(url) {
 // scrape(cwUrl);
 // const mccordUrl =
 //   ' https://collections.musee-mccord-stewart.ca/en/objects/7902/no-title';
-const mccordUrl =
-  'https://collections.musee-mccord-stewart.ca/en/objects/37586/no-title';
+// const mccordUrl =
+//   'https://collections.musee-mccord-stewart.ca/en/objects/37586/no-title';
 // const mccordUrl =
 //   'https://collections.musee-mccord-stewart.ca/en/objects/48411/no-title';
-scrape(mccordUrl)
+const fidmUrl =
+  'https://fidmmuseum.pastperfectonline.com/webobject/4F416BBD-549D-4DB8-B4B1-143441109900';
+// const fidmUrl =
+//   'https://fidmmuseum.pastperfectonline.com/webobject/AB2B2B47-A832-4F37-BE94-864339472502';
+scrape(fidmUrl)
