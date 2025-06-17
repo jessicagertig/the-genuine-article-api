@@ -20,7 +20,12 @@ const app = express();
 // ----- Middleware ------
 app.use(helmet());
 app.use(express.json());
-app.use(cors());
+app.use(
+  cors({
+    origin: process.env.CORS_ORIGIN || 'http://localhost:3002',
+    credentials: process.env.CORS_CREDENTIALS === 'true'
+  })
+);
 app.use(logger('dev'));
 
 // ------- Routers --------
