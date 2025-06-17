@@ -10,7 +10,8 @@
   "scripts": {
     "start": "node ./build/index.js --trace-warnings",
     "test": "cross-env NODE_ENV=testing jest --verbose --i --forceExit --detectOpenHandles",
-    "test-watch": "cross-env NODE_ENV=testing jest --verbose --i --watchAll"
+    "test-watch": "cross-env NODE_ENV=testing jest --verbose --i --watchAll",
+    "vercel-build": "npm install sharp --platform=linux --arch=x64 --libc=glibc && echo 'build step done'"
   },
   "jest": {
     "testEnvironment": "node"
