@@ -1,12 +1,6 @@
 {
   "version": 2,
   "name": "the-genuine-article-api",
-  "builds": [
-    {
-      "src": "app.js",
-      "use": "@vercel/node"
-    }
-  ],
   "routes": [
     {
       "src": "/(.*)",
