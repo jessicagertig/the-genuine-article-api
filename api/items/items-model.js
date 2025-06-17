@@ -90,6 +90,10 @@ async function addGarmentTitle(garment_title) {
 }
 
 async function editGarmentTitle(garment_title, garment_title_id) {
+  console.log('editGarmentTitle model function input', {
+    garment_title,
+    garment_title_id
+  });
   try {
     const edited_title = await db('garment_titles')
       .where('id', garment_title_id)

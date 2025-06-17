@@ -341,7 +341,11 @@ router.post(
   checkForDuplicateGarmentTitleMenuItem,
   async (req, res) => {
     console.log('req.body', req.body);
-    const garment_title = req.body.garment_title_option;
+    let garment_title = req.body.garment_title;
+    garment_title = garment_title.replace(/\b\w/g, (char) =>
+      char.toUpperCase()
+    );
+    console.log('GARMENT TITLE', { garment_title });
     Items.addGarmentTitle(garment_title)
       .then((item) => {
         res.status(201).json(item);
@@ -362,8 +366,11 @@ router.put(
   checkForRequestBody,
   checkForDuplicateGarmentTitleMenuItem,
   async (req, res) => {
-    console.log('req.body', req.body);
-    const garment_title = req.body.garment_title;
+    console.log('req.body & req.params', {
+      body: req.body,
+      params: req.params
+    });
+    const garment_title = req.body.garment_title_option;
     const garment_title_id = req.params.garment_title_id;
     Items.editGarmentTitle(garment_title, garment_title_id)
       .then((item) => {

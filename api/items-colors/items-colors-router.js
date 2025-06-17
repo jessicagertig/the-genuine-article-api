@@ -39,7 +39,7 @@ router.put(
   checkForDuplicateColorOptions,
   async (req, res) => {
     console.log('PUT colors req.body', { body: req.body });
-    const color = req.body.color;
+    const color = req.body.color_option;
     const color_id = req.params.color_id;
     Colors.editColor(color, color_id)
       .then((item) => {

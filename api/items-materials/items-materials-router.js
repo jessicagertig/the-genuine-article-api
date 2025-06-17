@@ -38,7 +38,7 @@ router.put(
   checkForDuplicateMaterialOptions,
   async (req, res) => {
     console.log('PUT materials req.body', { body: req.body });
-    const material = req.body.material;
+    const material = req.body.material_option;
     const material_id = req.params.material_id;
     Materials.editMaterial(material, material_id)
       .then((item) => {
