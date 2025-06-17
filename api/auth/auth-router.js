@@ -6,7 +6,7 @@ const UserAuth = require('./auth-model');
 const restricted = require('./restricted_middleware');
 const { permit } = require('./auth-middleware');
 
-router.post('/register', restricted, permit('admin'), (req, res) => {
+router.post('/register', (req, res) => {
   let user = req.body;
   const hash = bcrypt.hashSync(user.password, 12);
   user.password = hash;
