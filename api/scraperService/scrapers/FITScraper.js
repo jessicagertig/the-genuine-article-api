@@ -15,47 +15,65 @@ module.exports = async function FITScraper(ch, item) {
   // cleanup url
   const initial_url = item['collection_url'];
   removeQueryFromUrl(initial_url, item);
-  let desc_array = [];
 
-  // get rows of data
-  const rows = ch('.item-details-inner').children();
+  // get fields using new structure
+  item['garment_type'] = ch(
+    '.item-details-inner .dynastyField .detailFieldValue'
+  )
+    .text()
+    .trim();
 
-  rows.each(function (i, el) {
-    const title_str = ch(el).children('.detailFieldLabel').text();
-    const title = title_str.trim();
-    const value_str = ch(el).children('.detailFieldValue').text();
-    const value = value_str.trim();
-    // console.log('TITLE _________:', title);
-    // console.log('VALUE _________:', value);
-
-    if (title === 'Object:') {
-      item['garment_type'] = value;
-    } else if (title === 'Brand:') {
-      item['creator'] = value;
-    } else if (title === 'Date:') {
-      const end_index = value.length;
-      const year = value.slice(end_index - 4, end_index);
-      const year_valid = canConvertToInteger(year);
-      if (year_valid && year.length === 4) {
-        item['begin_year'] = year;
-      }
-    } else if (title === 'Country:') {
-      item['culture_country'] = value;
-    } else if (title === 'Credit Line:') {
-      item['source'] = value;
-    } else if (title === 'Object number:') {
-      item['item_collection_no'] = value;
-    } else if (title === 'Label Text:' && value.length > 0) {
-      desc_array[0] = value;
-    } else if (title === 'Medium:' && value.length > 0) {
-      const desc_item = `${title} ${value}`;
-      desc_array[2] = desc_item;
-    } else if (title === 'Description') {
-      const span = ch(el).children('.detailFieldLabel').next();
-      const desc = span.text();
-      desc_array[1] = desc;
+  // Date extraction: get value, then use original logic
+  const date_value = ch(
+    '.item-details-inner .displayDateField .detailFieldValue'
+  )
+    .text()
+    .trim();
+  if (date_value) {
+    const end_index = date_value.length;
+    const year = date_value.slice(end_index - 4, end_index);
+    const year_valid = canConvertToInteger(year);
+    if (year_valid && year.length === 4) {
+      item['begin_year'] = year;
     }
-  });
+  }
+
+  item['culture_country'] = ch(
+    '.item-details-inner .cultureField .detailFieldValue'
+  )
+    .text()
+    .trim();
+  item['source'] = ch(
+    '.item-details-inner .creditlineField .detailFieldValue'
+  )
+    .text()
+    .trim();
+  item['item_collection_no'] = ch(
+    '.item-details-inner .invnoField .detailFieldValue'
+  )
+    .text()
+    .trim();
+
+  let desc_array = [];
+  const labelText = ch(
+    '.item-details-inner .labelTextField .detailFieldValue'
+  )
+    .text()
+    .trim();
+  const medium = ch(
+    '.item-details-inner .mediumField .detailFieldValue'
+  )
+    .text()
+    .trim();
+  const description = ch(
+    '.item-details-inner .descriptionField .toggleContent'
+  )
+    .text()
+    .trim();
+
+  if (labelText) desc_array[0] = labelText;
+  if (description) desc_array[1] = description;
+  if (medium) desc_array[2] = `Medium: ${medium}`;
 
   processDescArray(desc_array, item);
 
