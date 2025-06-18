@@ -51,7 +51,7 @@ module.exports = async function scrapeMET(ch, item) {
       item['culture_country'] = value;
     } else if (label === 'Credit Line:') {
       item['source'] = value;
-    } else if (label === 'Accession Number:') {
+    } else if (label === 'Object Number:') {
       item['item_collection_no'] = value;
     } else if (label === 'Maker:') {
       item['creator'] = createOrAddToDictValue(
