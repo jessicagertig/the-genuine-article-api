@@ -25,7 +25,8 @@ async function scrape(url) {
       creator: 'unknown',
       source: '',
       item_collection_no: '',
-      description: ''
+      description: '',
+      sourceImageUrl: ''
     };
 
     if (src in scraperFunctions) {
@@ -57,7 +58,8 @@ function getSourceFromUrl(url) {
     'emuseum.history.org': 'CW',
     'collections.mfa.org': 'MFAB',
     'collections.musee-mccord-stewart.ca': 'MCCORD',
-    'fidmmuseum.pastperfectonline.com': 'FIDM'
+    'fidmmuseum.pastperfectonline.com': 'FIDM',
+    'kci.or.jp': 'KCI'
   };
   let src;
   for (const [key, value] of Object.entries(options)) {
@@ -107,8 +109,10 @@ function getSourceFromUrl(url) {
 //   'https://collections.musee-mccord-stewart.ca/en/objects/37586/no-title';
 // const mccordUrl =
 //   'https://collections.musee-mccord-stewart.ca/en/objects/48411/no-title';
-const fidmUrl =
-  'https://fidmmuseum.pastperfectonline.com/webobject/4F416BBD-549D-4DB8-B4B1-143441109900';
+// const fidmUrl =
+//   'https://fidmmuseum.pastperfectonline.com/webobject/4F416BBD-549D-4DB8-B4B1-143441109900';
 // const fidmUrl =
 //   'https://fidmmuseum.pastperfectonline.com/webobject/AB2B2B47-A832-4F37-BE94-864339472502';
-scrape(fidmUrl)
+const fitUrl =
+  'https://fashionmuseum.fitnyc.edu/objects/128946/ballgown-belt?ctx=4225b15fe8e7ba661958d04bd4da8743455a7754&idx=62';
+scrape(fitUrl);

@@ -73,6 +73,13 @@ module.exports = async function LACMAScraper(ch, item) {
 
   processDescArray(desc_array, item);
 
+  // Extract and store the main image URL
+  const imgSrc = ch('.media-asset-image img').attr('src');
+  if (imgSrc) {
+    item.sourceImageUrl = imgSrc;
+    console.log('LACMA main image URL:', imgSrc);
+  }
+
   console.log('Lacma fn', item);
   return item;
 };

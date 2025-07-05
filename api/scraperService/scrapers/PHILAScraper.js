@@ -62,6 +62,48 @@ module.exports = async function PHILAScraper(ch, item) {
 
   processDescArray(desc_array, item);
 
+  // Since imageviewer is dynamically loaded, look for the ID in script tags
+  const micrId = extractMicrId(ch);
+
+  // If we found an ID, construct the IIIF URL
+  if (micrId) {
+    item.sourceImageUrl = `https://iiif.micr.io/${micrId}/full/^4096,/0/default.jpg`;
+    console.log(`PHILA: Image URL: ${item.sourceImageUrl}`);
+  } else {
+    console.log('PHILA: Could not find micr ID');
+  }
+
   console.log('Phila fn', item);
   return item;
 };
+
+/**
+ * Extracts the micr ID from script tags in the page
+ * @param {object} ch - The Cheerio object loaded with the webpage HTML
+ * @returns {string|null} The micr ID if found, null otherwise
+ */
+function extractMicrId(ch) {
+  const scriptTags = ch('script');
+  let micrId = null;
+
+  scriptTags.each((i, el) => {
+    const scriptContent = ch(el).html();
+    if (scriptContent) {
+      // Look for the micrio configuration with shortId
+      if (
+        scriptContent.includes('"micrio"') &&
+        scriptContent.includes('"shortId"')
+      ) {
+        // Based on debug output, the structure is: "shortId":"dRcXz"
+        const shortIdMatch =
+          scriptContent.match(/"shortId":"(\w+)"/);
+        if (shortIdMatch) {
+          micrId = shortIdMatch[1];
+          console.log(`PHILA: Found micr ID:`, micrId);
+        }
+      }
+    }
+  });
+
+  return micrId;
+}

@@ -15,6 +15,7 @@ module.exports = async function FITScraper(ch, item) {
   // cleanup url
   const initial_url = item['collection_url'];
   removeQueryFromUrl(initial_url, item);
+  let desc_array = [];
 
   // get fields using new structure
   item['garment_type'] = ch(
@@ -54,7 +55,6 @@ module.exports = async function FITScraper(ch, item) {
     .text()
     .trim();
 
-  let desc_array = [];
   const labelText = ch(
     '.item-details-inner .labelTextField .detailFieldValue'
   )
@@ -76,6 +76,21 @@ module.exports = async function FITScraper(ch, item) {
   if (medium) desc_array[2] = `Medium: ${medium}`;
 
   processDescArray(desc_array, item);
+
+  // Extract and store the main image URL
+  const imgSrc = ch('.media-zone img').attr('src');
+  if (imgSrc) {
+    // Extract base URL from the provided URL
+    const urlObj = new URL(item.collection_url);
+    const baseUrl = `${urlObj.protocol}//${urlObj.host}`;
+
+    // Construct full image URL
+    const fullImageUrl = imgSrc.startsWith('http')
+      ? imgSrc
+      : baseUrl + imgSrc;
+    item.sourceImageUrl = fullImageUrl;
+    console.log('FIT main image URL:', fullImageUrl);
+  }
 
   console.log('FIT fn', item);
   return item;

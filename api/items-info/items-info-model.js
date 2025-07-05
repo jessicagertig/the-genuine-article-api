@@ -1,6 +1,9 @@
 const db = require('../../database/db-config');
 const { calculateDecades } = require('../utils/helpers');
 const { scrape } = require('../scraperService/scraper');
+const {
+  processScrapedImage
+} = require('../scraperService/helpers/imageHelper');
 
 module.exports = {
   findAllItemsInfo,
@@ -12,7 +15,8 @@ module.exports = {
   addItemInfo,
   addScrapedItemInfo,
   editItemInfo,
-  deleteItemInfo
+  deleteItemInfo,
+  addScrapedItem
 };
 
 const infoToSelect = [
@@ -85,6 +89,33 @@ async function addScrapedItemInfo(url) {
     .returning('*');
 
   return new_item_info;
+}
+
+// addScrapedItem - creates item info and processes image if available
+async function addScrapedItem(url) {
+  try {
+    console.log('Creating scraped item for URL:', url);
+
+    const new_item = await addScrapedItemInfo(url);
+    console.log('Successfully created item:', new_item[0]);
+
+    // Check if we have an image source URL and process it
+    if (new_item[0].sourceImageUrl) {
+      console.log('Processing image for item:', new_item[0].id);
+      await processScrapedImage(
+        new_item[0].sourceImageUrl,
+        new_item[0].id
+      );
+      console.log('Image processing completed');
+    } else {
+      console.log('No image URL found for this item');
+    }
+
+    return new_item;
+  } catch (error) {
+    console.error('Error creating scraped item:', error);
+    throw error;
+  }
 }
 
 // addItemInfo
