@@ -58,7 +58,8 @@ function getSourceFromUrl(url) {
     'emuseum.history.org': 'CW',
     'collections.mfa.org': 'MFAB',
     'collections.musee-mccord-stewart.ca': 'MCCORD',
-    'fidmmuseum.pastperfectonline.com': 'FIDM'
+    'fidmmuseum.pastperfectonline.com': 'FIDM',
+    'kci.or.jp': 'KCI'
   };
   let src;
   for (const [key, value] of Object.entries(options)) {
