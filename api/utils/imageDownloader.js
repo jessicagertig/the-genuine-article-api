@@ -1,19 +1,12 @@
 const axios = require('axios');
 const crypto = require('crypto');
 const fileType = require('file-type');
-const {
-  replaceMainImage,
-  find
-} = require('../items-images/items-images-model');
-console.log(
-  'axios, fs, crypto, and fileType modules have been imported'
-);
 
-console.log(
-  'replaceMainImage and find functions have been imported from items-images-model'
-);
-
-console.log('defineParamsFromFile function is being defined');
+/**
+ * Define parameters from file buffer (content type and MD5)
+ * @param {Buffer} body - The image buffer
+ * @returns {Promise<Array>} - [content_type, md5]
+ */
 const defineParamsFromFile = async (body) => {
   console.log(`Defining parameters from body`);
   const type = await fileType.fromBuffer(body);
@@ -26,7 +19,12 @@ const defineParamsFromFile = async (body) => {
   const params = [content_type, md5];
   return params;
 };
-console.log('downloadImage function is being defined');
+
+/**
+ * Download image from URL
+ * @param {string} url - The URL to download from
+ * @returns {Promise<Buffer>} - The image buffer
+ */
 const downloadImage = async (url) => {
   console.log(`Downloading image from ${url}`);
   const response = await axios.get(url, {
@@ -34,33 +32,8 @@ const downloadImage = async (url) => {
   });
   return Buffer.from(response.data);
 };
-console.log('runJob function is being defined');
-const runJob = async () => {
-  console.log('Fetching all items');
-  const main_images = await find(); // Fetch all items
 
-  for (const item of main_images) {
-    const imageUrl = item.main_image_url; // Get the image URL
-    const itemId = item.item_id; // Get the item ID
-    const file_name = item.file_name;
-
-    console.log(`Processing item with ID ${itemId}`);
-
-    // Download the image and get the image data as a Buffer
-    const body = await downloadImage(imageUrl);
-
-    // Define the image info
-    const [content_type, md5] = await defineParamsFromFile(body);
-    const imageInfo = { body, content_type, file_name, md5 };
-
-    // Replace the main image
-    console.log(`Replacing main image for item with ID ${itemId}`);
-    await replaceMainImage(itemId, imageInfo);
-    console.log(
-      `Main image for item with ID ${itemId} has been replaced`
-    );
-  }
-  console.log('All items have been processed');
+module.exports = {
+  downloadImage,
+  defineParamsFromFile
 };
-
-runJob().catch(console.error);
