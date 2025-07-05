@@ -18,7 +18,7 @@ router.post(
     console.log('BODY:', req.body);
     const url = req.body.url;
     try {
-      const newItem = await ItemsInfo.addScrapedItemInfo(url);
+      const newItem = await ItemsInfo.addScrapedItem(url);
       return res.status(201).json(newItem);
     } catch (error) {
       return res
