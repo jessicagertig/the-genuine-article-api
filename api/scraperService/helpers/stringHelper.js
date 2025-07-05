@@ -33,13 +33,36 @@ function processDescArray(desc_array, item) {
     (str) => str.length > 0
   );
   const final_desc_array = filtered_desc_array.map((item) =>
-    item.replace(/(\r\n|\n|\r)/gm, ' ').trim()
+    item
+      .replace(/\r\n/g, '\n') // normalize Windows line endings
+      .replace(/\r/g, '\n') // normalize Mac line endings
+      .replace(/\n\s*\n/g, '\n') // collapse multiple newlines with whitespace
+      .replace(/^\s+|\s+$/g, '') // trim leading/trailing whitespace
+      .trim()
   );
   console.log('final', final_desc_array);
   item['description'] = final_desc_array.join('\n\n');
 }
 
+/**
+ * Converts HTML content by replacing <br> and <li> tags with newlines and extracting text
+ * @param {object} cheerioElement - The Cheerio element containing HTML
+ * @param {object} ch - The Cheerio instance
+ * @returns {string} Text content with preserved line breaks
+ */
+function convertHtmlTagsToNewlines(cheerioElement, ch) {
+  const htmlContent = cheerioElement.html();
+  const htmlWithNewlines = htmlContent
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<li>/gi, '\n')
+    .replace(/<\/li>/gi, '')
+    .replace(/<ul>/gi, '')
+    .replace(/<\/ul>/gi, '');
+  return ch('<div>' + htmlWithNewlines + '</div>').text();
+}
+
 module.exports = {
   processDescArray,
-  createOrAddToDictValue
+  createOrAddToDictValue,
+  convertHtmlTagsToNewlines
 };
