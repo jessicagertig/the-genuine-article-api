@@ -12,7 +12,12 @@ async function scrape(url) {
     throw new Error(`Invalid site URL: ${url}`);
   }
   try {
-    const { data } = await axios.get(url);
+    const { data } = await axios.get(url, {
+      headers: {
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+      }
+    });
     const ch = cheerio.load(data);
     const item = {
       garment_title: 'Dress',
@@ -113,6 +118,6 @@ function getSourceFromUrl(url) {
 //   'https://fidmmuseum.pastperfectonline.com/webobject/4F416BBD-549D-4DB8-B4B1-143441109900';
 // const fidmUrl =
 //   'https://fidmmuseum.pastperfectonline.com/webobject/AB2B2B47-A832-4F37-BE94-864339472502';
-const fitUrl =
-  'https://fashionmuseum.fitnyc.edu/objects/128946/ballgown-belt?ctx=4225b15fe8e7ba661958d04bd4da8743455a7754&idx=62';
-scrape(fitUrl);
+// const fitUrl =
+//   'https://fashionmuseum.fitnyc.edu/objects/128946/ballgown-belt?ctx=4225b15fe8e7ba661958d04bd4da8743455a7754&idx=62';
+// scrape(fitUrl);

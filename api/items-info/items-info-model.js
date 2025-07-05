@@ -76,6 +76,11 @@ function findInfoById(id) {
 async function addScrapedItemInfo(url) {
   const item_info = await scrape(url);
 
+  // Check if scraping was successful
+  if (!item_info) {
+    throw new Error('Scraping failed - no item data returned');
+  }
+
   const decadesArray = calculateDecades(
     item_info['begin_year'],
     item_info['end_year']
