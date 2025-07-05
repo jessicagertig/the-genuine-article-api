@@ -44,6 +44,13 @@ module.exports = async function CAMScraper(ch, item) {
 
   processDescArray(desc_array, item);
 
+  // Extract and store the main image URL
+  const imgSrc = ch('.artImage img.hidden-lg').attr('src');
+  if (imgSrc) {
+    item.sourceImageUrl = imgSrc;
+    console.log('CAM main image URL:', imgSrc);
+  }
+
   console.log('CAM fn', item);
   return item;
 };

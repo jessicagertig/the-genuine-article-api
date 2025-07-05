@@ -73,6 +73,14 @@ module.exports = async function scrapeMET(ch, item) {
       );
     }
   });
+
+  // Extract and store the main image URL
+  const imgSrc = ch('#artwork__image').attr('src');
+  if (imgSrc) {
+    item.sourceImageUrl = imgSrc;
+    console.log('MET main image URL:', imgSrc);
+  }
+
   console.log('MET fn', item);
   return item;
 };

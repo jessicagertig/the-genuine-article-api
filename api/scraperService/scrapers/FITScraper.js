@@ -1,7 +1,6 @@
 const { removeQueryFromUrl } = require('../helpers/urlHelper');
 const { processDescArray } = require('../helpers/stringHelper');
 const { canConvertToInteger } = require('../helpers/dateHelper');
-const { downloadImage, defineParamsFromFile } = require('../../utils/imageDownloader');
 
 /**
  * Scrapes data from the Fashion Institute of Technology website
