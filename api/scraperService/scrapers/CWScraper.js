@@ -58,6 +58,16 @@ module.exports = async function CWScraper(ch, item) {
 
   processDescArray(desc_array, item);
 
+  // Extract image URL
+  const imageElement = ch('#mediaZone img');
+  if (imageElement.length > 0) {
+    const imageSrc = imageElement.attr('src');
+    if (imageSrc) {
+      // Convert relative URL to absolute
+      item.sourceImageUrl = `https://emuseum.history.org${imageSrc}`;
+    }
+  }
+
   console.log('CW fn', item);
   return item;
 };

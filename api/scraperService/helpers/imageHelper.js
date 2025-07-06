@@ -64,8 +64,14 @@ async function processScrapedImage(imageUrl, item_id) {
   } catch (error) {
     console.error(
       `Error processing image for item ${item_id}:`,
-      error
+      error.message
     );
+    console.log(`Image URL that failed: ${imageUrl}`);
+    if (error.response?.status === 403) {
+      console.log(
+        `Museum is blocking image downloads (403 Forbidden)`
+      );
+    }
   }
 }
 

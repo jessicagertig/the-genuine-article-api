@@ -64,7 +64,8 @@ function getSourceFromUrl(url) {
     'collections.mfa.org': 'MFAB',
     'collections.musee-mccord-stewart.ca': 'MCCORD',
     'fidmmuseum.pastperfectonline.com': 'FIDM',
-    'kci.or.jp': 'KCI'
+    'kci.or.jp': 'KCI',
+    'thejohnbrightcollection.co.uk': 'JBC'
   };
   let src;
   for (const [key, value] of Object.entries(options)) {

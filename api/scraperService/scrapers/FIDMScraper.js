@@ -64,6 +64,15 @@ module.exports = async function FIDMScraper(ch, item) {
 
   processDescArray(desc_array, item);
 
+  // Extract image URL - get full-size image (href) not thumbnail (img src)
+  const imageLink = ch('.largeImage a.fancybox_record_images');
+  if (imageLink.length > 0) {
+    const imageUrl = imageLink.attr('href');
+    if (imageUrl) {
+      item.sourceImageUrl = imageUrl; // Already absolute URL
+    }
+  }
+
   console.log('FIDM fn', item);
   return item;
 };

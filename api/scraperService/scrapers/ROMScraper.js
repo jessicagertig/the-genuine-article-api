@@ -63,6 +63,16 @@ module.exports = async function ROMScraper(ch, item) {
 
   processDescArray(desc_array, item);
 
+  // Extract image URL
+  const imageElement = ch('#mediaZone img');
+  if (imageElement.length > 0) {
+    const imageSrc = imageElement.attr('src');
+    if (imageSrc) {
+      // Convert relative URL to absolute
+      item.sourceImageUrl = `https://collections.rom.on.ca${imageSrc}`;
+    }
+  }
+
   console.log('ROM fn', item);
   return item;
 };
