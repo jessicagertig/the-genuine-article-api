@@ -47,6 +47,14 @@ module.exports = async function JBCScraper(ch, item) {
   // Set source as the collection name
   item['source'] = 'The John Bright Collection';
 
+  // Extract URL slug as collection number for uniqueness
+  // From: https://www.thejohnbrightcollection.co.uk/costume/dress-06/
+  // Extract: dress-06
+  const urlPath = item['collection_url'];
+  const urlParts = urlPath.split('/');
+  const slug = urlParts[urlParts.length - 2]; // Get second to last part (before final slash)
+  item['item_collection_no'] = slug;
+
   // Process the description array
   processDescArray(desc_array, item);
 
