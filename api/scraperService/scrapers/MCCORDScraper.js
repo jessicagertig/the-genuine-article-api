@@ -91,6 +91,16 @@ module.exports = async function scrapeMcCordStewart(ch, item) {
 
   processDescArray(desc_array, item);
 
+  // Extract image URL
+  const imageElement = ch('#mediaZone img');
+  if (imageElement.length > 0) {
+    const imageSrc = imageElement.attr('src');
+    if (imageSrc) {
+      // Convert relative URL to absolute
+      item.sourceImageUrl = `https://collections.musee-mccord-stewart.ca${imageSrc}`;
+    }
+  }
+
   console.log('McCord Stewart fn', item);
   return item;
 };
