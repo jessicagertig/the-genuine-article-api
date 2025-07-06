@@ -10,6 +10,7 @@ const MFABScraper = require('./MFABScraper');
 const MCCORDScraper = require('./MCCORDScraper');
 const FIDMScraper = require('./FIDMScraper');
 const KCIScraper = require('./KCIScraper');
+const JBCScraper = require('./JBCScraper');
 
 module.exports = {
   MET: METScraper,
@@ -23,5 +24,6 @@ module.exports = {
   MFAB: MFABScraper,
   MCCORD: MCCORDScraper,
   FIDM: FIDMScraper,
-  KCI: KCIScraper
+  KCI: KCIScraper,
+  JBC: JBCScraper
 };
