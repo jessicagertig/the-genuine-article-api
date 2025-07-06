@@ -225,7 +225,7 @@ async function getPaginatedItems(page = 1, limit = 15) {
       const item_image_urls = image_urls ? image_urls : null;
       item['image_urls'] = item_image_urls;
     }
-    const pages = await getPageCount();
+    const pages = await getPageCount(limit);
     return { items: info, hasMore: hasMore, pages: pages };
   } catch (error) {
     console.log('Error getting items', error);
