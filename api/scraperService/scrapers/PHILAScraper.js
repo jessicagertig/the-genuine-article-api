@@ -14,7 +14,7 @@ module.exports = async function PHILAScraper(ch, item) {
   let desc_array = [];
   const desc_summary = ch('.object-label').text();
   console.log('desc_summary_____', desc_summary);
-  desc_array[0] = desc_summary;
+  desc_array[1] = desc_summary;
   // get rows of data
   const table_body = ch('.object-description').children('tbody');
   const rows = ch(table_body).children();
