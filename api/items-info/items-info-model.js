@@ -107,11 +107,19 @@ async function addScrapedItem(url) {
     // Check if we have an image source URL and process it
     if (new_item[0].sourceImageUrl) {
       console.log('Processing image for item:', new_item[0].id);
-      await processScrapedImage(
-        new_item[0].sourceImageUrl,
-        new_item[0].id
-      );
-      console.log('Image processing completed');
+      try {
+        await processScrapedImage(
+          new_item[0].sourceImageUrl,
+          new_item[0].id
+        );
+        console.log('Image processing completed');
+      } catch (imageError) {
+        console.error(
+          'Image processing failed, but item was saved:',
+          imageError.message
+        );
+        // Continue - don't fail the whole operation if just image fails
+      }
     } else {
       console.log('No image URL found for this item');
     }
