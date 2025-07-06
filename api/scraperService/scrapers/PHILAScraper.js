@@ -1,5 +1,5 @@
 const { processDescArray } = require('../helpers/stringHelper');
-const { canConvertToInteger } = require('../helpers/dateHelper');
+const { extractValidYear } = require('../helpers/dateHelper');
 
 /**
  * Scrapes data from the Philadelphia Museum of Art website
@@ -31,32 +31,32 @@ module.exports = async function PHILAScraper(ch, item) {
     // console.log('TITLE _________:', title);
     // console.log('VALUE _________:', value);
 
-    if (title === 'Title:') {
+    if (title.includes('Title')) {
       item['garment_type'] = value;
-    } else if (title === 'Date:') {
-      const end_index = value.length;
-      const year = value.slice(end_index - 4, end_index);
-      const year_valid = canConvertToInteger(year);
-      if (year_valid && year.length === 4) {
-        item['begin_year'] = year;
-      }
-    } else if (title === 'Artist:') {
+      // Add title to description array as first element
+
+      desc_array[0] = value;
+    } else if (title.includes('Date')) {
+      const year = extractValidYear(value);
+      item['begin_year'] = year;
+    } else if (title.includes('Artist')) {
       const str_array = value.split(',');
       item['culture_country'] = str_array[1].trim();
       item['creator'] = str_array[0].trim();
-    } else if (title === 'Place:') {
-      item['culture_country'] = value;
-    } else if (title === 'Accession Number:') {
-      item['item_collection_no'] = value;
-    } else if (title === 'Credit Line:') {
-      item['source'] = value;
-    } else if (title === 'Geography:') {
       desc_array[3] = value;
-    } else if (title === 'Medium:') {
+    } else if (title.includes('Place')) {
+      item['culture_country'] = value;
+    } else if (title.includes('Accession Number')) {
+      item['item_collection_no'] = value;
+    } else if (title.includes('Credit Line')) {
+      item['source'] = value;
+    } else if (title.includes('Geography')) {
+      desc_array[5] = value;
+    } else if (title.includes('Medium')) {
       const desc_item = `${title} ${value}`;
-      desc_array[1] = desc_item;
-    } else if (title === 'Dimensions:') {
-      desc_array[2] = value;
+      desc_array[2] = desc_item;
+    } else if (title.includes('Dimensions')) {
+      desc_array[4] = value;
     }
   });
 
