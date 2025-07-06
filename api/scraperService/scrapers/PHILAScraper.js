@@ -31,8 +31,11 @@ module.exports = async function PHILAScraper(ch, item) {
     // console.log('TITLE _________:', title);
     // console.log('VALUE _________:', value);
 
-    if (title === 'Title:') {
+    if (title === 'Title:' || title === 'Title') {
       item['garment_type'] = value;
+      // Add title to description array as first element
+      const title_desc = `${title} ${value}`;
+      desc_array[0] = title_desc;
     } else if (title === 'Date:') {
       const end_index = value.length;
       const year = value.slice(end_index - 4, end_index);
@@ -51,12 +54,12 @@ module.exports = async function PHILAScraper(ch, item) {
     } else if (title === 'Credit Line:') {
       item['source'] = value;
     } else if (title === 'Geography:') {
-      desc_array[3] = value;
+      desc_array[4] = value;
     } else if (title === 'Medium:') {
       const desc_item = `${title} ${value}`;
-      desc_array[1] = desc_item;
+      desc_array[2] = desc_item;
     } else if (title === 'Dimensions:') {
-      desc_array[2] = value;
+      desc_array[3] = value;
     }
   });
 
