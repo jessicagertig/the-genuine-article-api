@@ -1,3 +1,5 @@
+const Sharp = require('sharp');
+
 const decades_dictionary = {
   0: '1800s',
   1: '1810s',
@@ -62,7 +64,33 @@ const sortByYear = (order, results_array) => {
   return results_array;
 };
 
+/**
+ * Caps image width at 2400px to reduce memory usage while maintaining quality
+ * @param {Buffer} buffer - The image buffer to potentially cap
+ * @returns {Buffer} - The capped buffer or original if no capping needed
+ */
+async function capImageIfNeeded(buffer) {
+  const metadata = await Sharp(buffer).metadata();
+
+  if (metadata.width > 2400) {
+    const ratio = metadata.width / metadata.height;
+    const newHeight = Math.round(2400 / ratio);
+
+    console.log(
+      `Capping image: ${metadata.width}x${metadata.height} → 2400x${newHeight}`
+    );
+
+    return await Sharp(buffer)
+      .resize(2400, newHeight)
+      .jpeg({ quality: 100 })
+      .toBuffer();
+  }
+
+  return buffer; // Return original if no capping needed
+}
+
 module.exports = {
   calculateDecades,
-  sortByYear
+  sortByYear,
+  capImageIfNeeded
 };

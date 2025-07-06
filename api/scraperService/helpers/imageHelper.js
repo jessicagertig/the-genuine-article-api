@@ -9,6 +9,7 @@ const {
   ImageUploader,
   ResizedMainImageUploader
 } = require('../../utils/imageUploader');
+const { capImageIfNeeded } = require('../../utils/helpers');
 
 /**
  * Downloads and processes an image from a URL for a scraped item
@@ -20,11 +21,14 @@ async function processScrapedImage(imageUrl, item_id) {
 
   try {
     // Download image
-    const imageBuffer = await downloadImage(imageUrl);
+    const originalBuffer = await downloadImage(imageUrl);
 
-    // Get file type and md5
+    // Cap image if too large to reduce memory usage
+    const cappedBuffer = await capImageIfNeeded(originalBuffer);
+
+    // Get file type and md5 from capped buffer
     const [content_type, md5] = await defineParamsFromFile(
-      imageBuffer
+      cappedBuffer
     );
 
     // Generate filename
@@ -35,7 +39,7 @@ async function processScrapedImage(imageUrl, item_id) {
     const main_image_url = await upload.uploadOriginalImage(
       item_id,
       file_name,
-      imageBuffer,
+      cappedBuffer,
       content_type,
       md5
     );
@@ -48,7 +52,7 @@ async function processScrapedImage(imageUrl, item_id) {
       await resizedUpload.uploadResizedImages(
         item_id,
         file_name,
-        imageBuffer
+        cappedBuffer
       );
 
     // Save the urls to the db
