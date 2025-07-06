@@ -172,8 +172,16 @@ class ResizedMainImageUploader extends ImageUploader {
         for (const name of names) {
           let [width, height] = this.sizes[name];
           if (name === 'tiny_main') {
-            width = metadata.width;
-            height = metadata.height;
+            const maxHeight = 2000;
+            if (metadata.height > maxHeight) {
+              // Cap height and calculate proportional width
+              const ratio = metadata.width / metadata.height;
+              height = maxHeight;
+              width = Math.round(maxHeight * ratio);
+            } else {
+              width = metadata.width;
+              height = metadata.height;
+            }
           }
           const quality = name.includes('tiny') ? 5 : 100;
           const fitType =
