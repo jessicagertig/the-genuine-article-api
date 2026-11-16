@@ -6,12 +6,14 @@ const UserAuth = require('./auth-model');
 const restricted = require('./restricted_middleware');
 const { permit } = require('./auth-middleware');
 
-router.post('/register', (req, res) => {
-  let user = req.body;
-  const hash = bcrypt.hashSync(user.password, 12);
-  user.password = hash;
+// Restricted to authenticated admins. The role field in the request body is
+// ignored, so this endpoint cannot create an admin. Admins are created with
+// database/create-admin.js.
+router.post('/register', restricted, permit('admin'), (req, res) => {
+  const { username, email, password } = req.body;
+  const hash = bcrypt.hashSync(password, 12);
 
-  UserAuth.add(user)
+  UserAuth.add({ username, email, password: hash })
     .then((saved) => {
       res.status(201).json(saved);
     })
