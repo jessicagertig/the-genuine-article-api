@@ -1,7 +1,6 @@
-// Links seeded garments to materials. Keys are item_collection_no values and
-// values are material names from the materials seed. Ids are looked up by
-// name so this file does not depend on the order rows were inserted in.
-// Every garment only gets materials its own description states.
+// Seeds the item_materials join table. Since the item collection number is
+// unique to every item, we are using them in the test seeding to substitute
+// for the normal database unique IDs.
 const garmentMaterials = {
   '2009.5.6': ['linen', 'cotton'],
   '2009.5.36': ['cotton'],
@@ -18,13 +17,9 @@ const garmentMaterials = {
   '1988.222': ['silk', 'linen'],
   '2003.127': ['silk', 'pearls'],
   '1927.331': ['cotton', 'silk'],
-  '1989.347': ['cotton'],
-  'AC312 77-12-27': ['silk', 'satin'],
+  'AC6993 91-12-14': ['silk', 'cotton'],
+  '1963-94-1a,b': ['silk', 'satin'],
   'T.151 to B-1968': ['cotton'],
-  '1969-102-1a,b': ['silk'],
-  'AC4844 1984-18-4AB': ['wool'],
-  '2011-117-1a--f': ['silk', 'satin'],
-  'C.I.68.53.5a–h': ['wool'],
   '2015.688.a-b': ['silk', 'satin'],
   'AC3887 82-25-3AB': ['wool']
 };
@@ -38,7 +33,7 @@ exports.seed = async function (knex) {
   const rows = [];
   for (const [collectionNo, names] of Object.entries(garmentMaterials)) {
     if (!itemIds.has(collectionNo)) {
-      throw new Error(`No seeded item with collection no. ${collectionNo}`);
+      throw new Error(`No seeded item with item_collection_no ${collectionNo}`);
     }
     for (const name of names) {
       if (!materialIds.has(name)) {

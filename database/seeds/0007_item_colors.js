@@ -1,8 +1,6 @@
-// Links seeded garments to colors. Keys are item_collection_no values and
-// values are color names from the colors seed. Ids are looked up by name so
-// this file does not depend on the order rows were inserted in.
-// Colors come from what each garment's description states and from its
-// production photo.
+// Seeds the item_colors join table. Since the item collection number is
+// unique to every item, we are using them in the test seeding to substitute
+// for the normal database unique IDs.
 const garmentColors = {
   '1973.65.3': ['cream'],
   '2009.5.6': ['white'],
@@ -20,13 +18,9 @@ const garmentColors = {
   '1988.222': ['cream'],
   '2003.127': ['beige'],
   '1927.331': ['white'],
-  '1989.347': ['white'],
-  'AC312 77-12-27': ['white', 'yellow'],
+  'AC6993 91-12-14': ['pink'],
+  '1963-94-1a,b': ['grey', 'blue'],
   'T.151 to B-1968': ['yellow', 'tan'],
-  '1969-102-1a,b': ['sky blue'],
-  'AC4844 1984-18-4AB': ['royal blue'],
-  '2011-117-1a--f': ['purple'],
-  'C.I.68.53.5a–h': ['grey'],
   '2015.688.a-b': ['orange'],
   'AC3887 82-25-3AB': ['brown']
 };
@@ -40,7 +34,7 @@ exports.seed = async function (knex) {
   const rows = [];
   for (const [collectionNo, names] of Object.entries(garmentColors)) {
     if (!itemIds.has(collectionNo)) {
-      throw new Error(`No seeded item with collection no. ${collectionNo}`);
+      throw new Error(`No seeded item with item_collection_no ${collectionNo}`);
     }
     for (const name of names) {
       if (!colorIds.has(name)) {

@@ -1,5 +1,5 @@
-// Runs once before the test suites. Brings the testing database up to date
-// and loads the seed data, so every test run starts from the same known state.
+// Jest globalSetup. Runs all migrations and seeds against the testing
+// database once before the test suites.
 require('dotenv').config();
 const knex = require('knex');
 const knexfile = require('../knexfile');
