@@ -11,10 +11,14 @@
     "start": "node ./build/index.js --trace-warnings",
     "test": "cross-env NODE_ENV=testing jest --verbose --i --forceExit --detectOpenHandles",
     "test-watch": "cross-env NODE_ENV=testing jest --verbose --i --watchAll",
-    "build": "echo 'no-op build'"
+    "build": "echo 'no-op build'",
+    "db:migrate": "knex migrate:latest",
+    "db:seed": "knex seed:run",
+    "db:setup": "knex migrate:latest && knex seed:run"
   },
   "jest": {
-    "testEnvironment": "node"
+    "testEnvironment": "node",
+    "globalSetup": "./database/jest-global-setup.js"
   },
   "repository": {
     "type": "git",
